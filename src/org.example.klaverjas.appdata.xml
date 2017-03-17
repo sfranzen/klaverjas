@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop-application">
+  <id>org.example.klaverjas.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license> https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-metadata_license </project_license>
+  <name>klaverjas</name>
+  <name xml:lang="ca">klaverjas</name>
+  <name xml:lang="ca-valencia">klaverjas</name>
+  <name xml:lang="cs">klaverjas</name>
+  <name xml:lang="en-GB">klaverjas</name>
+  <name xml:lang="es">klaverjas</name>
+  <name xml:lang="et">klaverjas</name>
+  <name xml:lang="ko">klaverjas</name>
+  <name xml:lang="nl">klaverjas</name>
+  <name xml:lang="pl">klaverjas</name>
+  <name xml:lang="pt">klaverjas</name>
+  <name xml:lang="pt-BR">klaverjas</name>
+  <name xml:lang="sk">klaverjas</name>
+  <name xml:lang="sv">klaverjas</name>
+  <name xml:lang="uk">klaverjas</name>
+  <name xml:lang="x-test">xxklaverjasxx</name>
+  <name xml:lang="zh-CN">klaverjas</name>
+  <name xml:lang="zh-TW">klaverjas</name>
+  <summary> https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary </summary>
+  <summary xml:lang="ca">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="ca-valencia">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="cs">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="en-GB">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="es">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="et">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="ko">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="nl">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="pl">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="pt">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="pt-BR">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="sk">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="sv">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="uk">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="x-test">xxhttps://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summaryxx</summary>
+  <summary xml:lang="zh-CN">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <summary xml:lang="zh-TW">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-summary</summary>
+  <description>
+    <p> https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description </p>
+    <p xml:lang="ca">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="ca-valencia">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="cs">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="en-GB">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="es">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="et">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="ko">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="nl">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="pl">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="pt">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="pt-BR">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="sk">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="sv">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="uk">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="x-test">xxhttps://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-descriptionxx</p>
+    <p xml:lang="zh-CN">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+    <p xml:lang="zh-TW">https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description</p>
+  </description>
+  <url type="homepage">https://www.example.org</url>
+  <url type="bugtracker">https://bugs.example.org</url>
+  <url type="donation">https://www.example.org/community/donations</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>
+	https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-screenshots
+	Central hosting is still being sorted out, poke sitter@kde.org for more info.
+      </image>
+    </screenshot>
+  </screenshots>
+  <provides>
+    <binary>klaverjas</binary>
+    <binary xml:lang="ca">klaverjas</binary>
+    <binary xml:lang="ca-valencia">klaverjas</binary>
+    <binary xml:lang="cs">klaverjas</binary>
+    <binary xml:lang="en-GB">klaverjas</binary>
+    <binary xml:lang="es">klaverjas</binary>
+    <binary xml:lang="et">klaverjas</binary>
+    <binary xml:lang="ko">klaverjas</binary>
+    <binary xml:lang="nl">klaverjas</binary>
+    <binary xml:lang="pl">klaverjas</binary>
+    <binary xml:lang="pt">klaverjas</binary>
+    <binary xml:lang="pt-BR">klaverjas</binary>
+    <binary xml:lang="sk">klaverjas</binary>
+    <binary xml:lang="sv">klaverjas</binary>
+    <binary xml:lang="uk">klaverjas</binary>
+    <binary xml:lang="x-test">xxklaverjasxx</binary>
+    <binary xml:lang="zh-CN">klaverjas</binary>
+    <binary xml:lang="zh-TW">klaverjas</binary>
+  </provides>
+  <project_group>KDE</project_group>
+</component>
