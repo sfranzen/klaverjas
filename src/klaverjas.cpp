@@ -25,34 +25,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KActionCollection>
 #include <KConfigDialog>
 
-klaverjas::klaverjas()
+#include <QQmlContext>
+#include <QTimer>
+
+Klaverjas::Klaverjas()
     : KXmlGuiWindow()
+    , m_game(this)
 {
-    m_klaverjasView = new klaverjasView(this);
+    m_klaverjasView = new QQuickWidget(this);
+    m_klaverjasView->rootContext()->setContextProperty("game", &m_game);
+    m_klaverjasView->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_klaverjasView->setSource(QUrl("qrc:/KlaverjasView.qml"));
     setCentralWidget(m_klaverjasView);
+    m_game.start();
+
     m_switchAction = actionCollection()->addAction(QStringLiteral("switch_action"), this, SLOT(slotSwitchColors()));
     m_switchAction->setText(i18n("Switch Colors"));
     m_switchAction->setIcon(QIcon::fromTheme(QStringLiteral("fill-color")));
-    connect(m_switchAction, SIGNAL(triggered(bool)), m_klaverjasView, SLOT(slotSwitchColors()));
+//     connect(m_switchAction, SIGNAL(triggered(bool)), m_klaverjasView, SLOT(slotSwitchColors()));
     KStandardAction::openNew(this, SLOT(fileNew()), actionCollection());
     KStandardAction::quit(qApp, SLOT(closeAllWindows()), actionCollection());
     KStandardAction::preferences(this, SLOT(settingsConfigure()), actionCollection());
     setupGUI();
 }
 
-klaverjas::~klaverjas()
+Klaverjas::~Klaverjas()
 {
 }
 
-void klaverjas::fileNew()
+void Klaverjas::fileNew()
 {
-    qCDebug(KLAVERJAS) << "klaverjas::fileNew()";
-    (new klaverjas)->show();
+    qCDebug(klaverjas) << "klaverjas::fileNew()";
+    (new Klaverjas)->show();
 }
 
-void klaverjas::settingsConfigure()
+void Klaverjas::settingsConfigure()
 {
-    qCDebug(KLAVERJAS) << "klaverjas::settingsConfigure()";
+    qCDebug(klaverjas) << "klaverjas::settingsConfigure()";
     // The preference dialog is derived from prefs_base.ui
     //
     // compare the names of the widgets in the .ui file

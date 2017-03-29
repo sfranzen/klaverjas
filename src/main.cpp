@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // application header
 #include "klaverjas.h"
+#include "game.h"
+#include "team.h"
 
 // KDE headers
 #include <KAboutData>
@@ -30,20 +32,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QCommandLineParser>
 #include <QIcon>
 #include <QLoggingCategory>
+#include <QDebug>
 
-Q_DECLARE_LOGGING_CATEGORY(KLAVERJAS)
-Q_LOGGING_CATEGORY(KLAVERJAS, "klaverjas")
+Q_DECLARE_LOGGING_CATEGORY(klaverjas)
+Q_LOGGING_CATEGORY(klaverjas, "klaverjas")
+Q_LOGGING_CATEGORY(klaverjasGame, "klaverjas.game")
+Q_LOGGING_CATEGORY(klaverjasPlayer, "klaverjas.player")
+
 int main(int argc, char **argv)
 {
     QApplication application(argc, argv);
 
     KLocalizedString::setApplicationDomain("klaverjas");
     KAboutData aboutData( QStringLiteral("klaverjas"),
-                          i18n("Simple App"),
+                          i18n("Klaverjas"),
                           QStringLiteral("%{VERSION}"),
-                          i18n("A Simple Application written with KDE Frameworks"),
+                          i18n("Simple Klaverjas game using KDE Frameworks and QML"),
                           KAboutLicense::GPL,
-                          i18n("(c) %{CURRENT_YEAR}, %{AUTHOR} <%{EMAIL}>"));
+                          i18n("(c) 2017, Steven Franzen <sfranzen85@gmail.com>"));
 
     aboutData.addAuthor(i18n("%{AUTHOR}"),i18n("Author"), QStringLiteral("%{EMAIL}"));
     application.setWindowIcon(QIcon::fromTheme("klaverjas"));
@@ -55,7 +61,9 @@ int main(int argc, char **argv)
     aboutData.processCommandLine(&parser);
     KAboutData::setApplicationData(aboutData);
 
-    klaverjas *appwindow = new klaverjas;
+    qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
+
+    Klaverjas *appwindow = new Klaverjas;
     appwindow->show();
     return application.exec();
 }

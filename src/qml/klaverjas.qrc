@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>ScoreBoard.qml</file>
+        <file>KlaverjasView.qml</file>
+    </qresource>
+</RCC>

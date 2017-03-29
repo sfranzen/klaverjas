@@ -1,16 +1,24 @@
 set(klaverjas_SRCS
     main.cpp
     klaverjas.cpp
-    klaverjasview.cpp
+    game.cpp
+    card.cpp
+    cardset.cpp
+    trick.cpp
+    player.cpp
+    team.cpp
+    qml/klaverjas.qrc
 )
 
 kconfig_add_kcfg_files(klaverjas_SRCS klaverjasSettings.kcfgc)
-ki18n_wrap_ui(klaverjas_SRCS klaverjasViewBase.ui settingsBase.ui)
+ki18n_wrap_ui(klaverjas_SRCS settingsBase.ui)
 
 add_executable(klaverjas ${klaverjas_SRCS})
 
 target_link_libraries(klaverjas
+    Qt5::Core
     Qt5::Widgets
+    Qt5::QuickWidgets
     KF5::CoreAddons
     KF5::I18n
     KF5::XmlGui

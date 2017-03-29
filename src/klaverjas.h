@@ -21,15 +21,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KLAVERJAS_H
 #define KLAVERJAS_H
 
-#include <QLoggingCategory>
-#include <KXmlGuiWindow>
-
-#include "ui_klaverjasViewBase.h"
 #include "ui_settingsBase.h"
 #include "klaverjasSettings.h"
-#include "klaverjasview.h"
+#include "game.h"
 
-Q_DECLARE_LOGGING_CATEGORY(KLAVERJAS)
+#include <QLoggingCategory>
+#include <QQuickWidget>
+#include <KXmlGuiWindow>
+
+Q_DECLARE_LOGGING_CATEGORY(klaverjas)
 
 /**
  * This class serves as the main window for klaverjas.  It handles the
@@ -39,19 +39,19 @@ Q_DECLARE_LOGGING_CATEGORY(KLAVERJAS)
  * @author %{AUTHOR} <%{EMAIL}>
  * @version %{VERSION}
  */
-class klaverjas : public KXmlGuiWindow
+class Klaverjas : public KXmlGuiWindow
 {
     Q_OBJECT
 public:
     /**
      * Default Constructor
      */
-    klaverjas();
+    Klaverjas();
 
     /**
      * Default Destructor
      */
-    virtual ~klaverjas();
+    virtual ~Klaverjas();
 
 private slots:
     /**
@@ -65,12 +65,10 @@ private slots:
     void settingsConfigure();
 
 private:
-    // this is the name of the root widget inside our Ui file
-    // you can rename it in designer and then change it here
+    Game m_game;
     Ui::settingsBase settingsBase;
-    Ui::klaverjasViewBase klaverjasViewBase;
     QAction *m_switchAction;
-    klaverjasView *m_klaverjasView;
+    QQuickWidget* m_klaverjasView;
 };
 
 #endif // KLAVERJAS_H
