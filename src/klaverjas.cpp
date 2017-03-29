@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // application headers
 #include "klaverjas.h"
+#include "cardimageprovider.h"
 
 // KDE headers
 #include <KActionCollection>
@@ -33,6 +34,7 @@ Klaverjas::Klaverjas()
     , m_game(this)
 {
     m_klaverjasView = new QQuickWidget(this);
+    m_klaverjasView->engine()->addImageProvider("cards", new CardImageProvider);
     m_klaverjasView->rootContext()->setContextProperty("game", &m_game);
     m_klaverjasView->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_klaverjasView->setSource(QUrl("qrc:/KlaverjasView.qml"));

@@ -7,6 +7,7 @@ set(klaverjas_SRCS
     trick.cpp
     player.cpp
     team.cpp
+    cardimageprovider.cpp
     qml/klaverjas.qrc
 )
 
@@ -19,6 +20,7 @@ target_link_libraries(klaverjas
     Qt5::Core
     Qt5::Widgets
     Qt5::QuickWidgets
+    Qt5::Svg
     KF5::CoreAddons
     KF5::I18n
     KF5::XmlGui
