@@ -41,19 +41,22 @@ class Game : public QObject
     Q_OBJECT
     Q_PROPERTY(int round READ round)
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
+    Q_PROPERTY(QQmlListProperty<Player> players READ players NOTIFY playersChanged)
     typedef QMap<Team*,int> Score;
 
 public:
     Game(QObject* parent = 0);
 
     int round() const;
+    QQmlListProperty<Player> players();
     QVariantMap scores() const;
     QQmlListProperty<Team> teams();
 
 signals:
-    void trumpSuitChanged(Suit);
+    void playersChanged();
     void scoresChanged();
     void teamsChanged();
+    void trumpSuitChanged(Card::Suit newSuit);
 
 public slots:
     void start();
@@ -61,7 +64,7 @@ public slots:
 private:
     void deal();
     void selectTrump();
-    void setContract(const Suit suit, const Player* player);
+    void setContract(const Card::Suit suit, const Player* player);
     Score scoreRound(const QVector<Trick> tricks) const;
     const QVector<Card> legalMoves(const Player* player, const Trick& trick) const;
 
@@ -70,13 +73,13 @@ private:
 
     TrumpRule m_trumpRule;
     BidRule m_bidRule;
-    Suit m_trumpSuit;
+    Card::Suit m_trumpSuit;
     CardSet m_deck;
     QVector<QVector<Trick>> m_tricks;
     int m_round;
     QVector<Score> m_scores;
     QMap<Team*,QList<QVariant>> m_roundScores;
-    QVector<Player*> m_players;
+    QList<Player*> m_players;
     QList<Team*> m_teams;
     Player* m_dealer;
     Player* m_eldest;

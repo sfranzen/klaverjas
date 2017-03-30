@@ -21,13 +21,6 @@ import QtQuick 2.3
 
 Rectangle {
     color: "green"
-//     game.start();
-    Text {
-        text: "Hello World!"
-        font.family: "Helvetica"
-        font.pointSize: 24
-        color: "red"
-    }
     ScoreBoard {
         anchors.right: parent.right
         width: parent.width / 4

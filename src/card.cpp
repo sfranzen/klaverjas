@@ -18,29 +18,35 @@
  */
 
 #include "card.h"
+#include "rules.h"
 
 #include <QDebug>
 
 // Suit collection for ease of use
-const QVector<Suit> Card::Suits { Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs };
-
-// Textual labels
-const QMap<Suit,QString> Card::s_suitLabels {
-    {Suit::Spades, QChar(9824)},
-    {Suit::Hearts, QChar(9829)},
-    {Suit::Diamonds, QChar(9830)},
-    {Suit::Clubs, QChar(9827)}
+const QVector<Card::Suit> Card::Suits {
+    Card::Suit::Spades,
+    Card::Suit::Hearts,
+    Card::Suit::Diamonds,
+    Card::Suit::Clubs
 };
 
-const QMap<Rank,QString> Card::s_rankLabels {
-    {Rank::Seven, "7"},
-    {Rank::Eight, "8"},
-    {Rank::Nine, "9"},
-    {Rank::Jack, "J"},
-    {Rank::Queen, "Q"},
-    {Rank::King, "K"},
-    {Rank::Ten, "10"},
-    {Rank::Ace, "A"}
+// Textual labels
+const QMap<Card::Suit,QString> Card::s_suitLabels {
+    {Card::Suit::Spades, QChar(9824)},
+    {Card::Suit::Hearts, QChar(9829)},
+    {Card::Suit::Diamonds, QChar(9830)},
+    {Card::Suit::Clubs, QChar(9827)}
+};
+
+const QMap<Card::Rank,QString> Card::s_rankLabels {
+    {Card::Rank::Seven, "7"},
+    {Card::Rank::Eight, "8"},
+    {Card::Rank::Nine, "9"},
+    {Card::Rank::Jack, "J"},
+    {Card::Rank::Queen, "Q"},
+    {Card::Rank::King, "K"},
+    {Card::Rank::Ten, "10"},
+    {Card::Rank::Ace, "A"}
 };
 
 Card::Card(Suit s, Rank r)
@@ -65,12 +71,12 @@ QDebug operator<<(QDebug dbg, const Card& c)
     return dbg << c.name();
 }
 
-QDebug operator<<(QDebug dbg, Suit s)
+QDebug operator<<(QDebug dbg, Card::Suit s)
 {
     return dbg << Card::s_suitLabels[s];
 }
 
-QDebug operator<<(QDebug dbg, Rank r)
+QDebug operator<<(QDebug dbg, Card::Rank r)
 {
     return dbg << Card::s_rankLabels[r];
 }

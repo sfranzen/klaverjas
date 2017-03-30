@@ -49,6 +49,7 @@ const CardSet& Player::hand() const
 void Player::setHand(CardSet cards)
 {
     m_hand = cards;
+    emit handChanged();
 }
 
 void Player::setTeam(Team* team)
@@ -70,15 +71,15 @@ Bid Player::bid(const QVector<Bid> options) const
 {
     qDebug() << m_name + "'s hand:" << m_hand;
     CardSet::SortingMap map;
-    for (const Suit s : Card::Suits)
+    for (const Card::Suit s : Card::Suits)
         map[s] = PlainRanks;
 
-    QVector<Suit> bidOptions;
+    QVector<Card::Suit> bidOptions;
     for (const Bid b : options) {
         if (b != Bid::Pass)
-            bidOptions << (Suit) b;
+            bidOptions << (Card::Suit) b;
     }
-    const QMap<Suit,int> strengthMap = handStrength(bidOptions);
+    const QMap<Card::Suit,int> strengthMap = handStrength(bidOptions);
 
     // If we can pass, we only choose one of the options if, with that suit as
     // trumps, our hand matches one of the following conditions:
@@ -87,10 +88,10 @@ Bid Player::bid(const QVector<Bid> options) const
     // otherwise choose the strongest suit.
     const auto strengthList = strengthMap.values();
     const auto suitCounts = m_hand.cardsPerSuit(strengthMap.keys().toVector());
-    QMap<Suit,int> tempCounts;
+    QMap<Card::Suit,int> tempCounts;
 
     auto maxStrength = std::max_element(strengthMap.constBegin(), strengthMap.constEnd());
-    QVector<Suit> shortList;
+    QVector<Card::Suit> shortList;
 
     if (*maxStrength > 40) {
         shortList << maxStrength.key();
@@ -101,7 +102,7 @@ Bid Player::bid(const QVector<Bid> options) const
                 if (*s == *maxStrength)
                     shortList << s.key();
 
-            for (const Suit s : shortList)
+            for (const Card::Suit s : shortList)
                 tempCounts[s] = suitCounts.value(s);
 
             shortList.clear();
@@ -126,12 +127,12 @@ Bid Player::bid(const QVector<Bid> options) const
     if (choice == Bid::Pass)
         qCDebug(klaverjasPlayer) << m_name + " passed";
     else
-        qCDebug(klaverjasPlayer) << m_name + " chose" << (Suit) choice;
+        qCDebug(klaverjasPlayer) << m_name + " chose" << (Card::Suit) choice;
 
     return choice;
 }
 
-bool Player::canBeat(const Card& card, const QVector<Rank> order) const
+bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
 {
     if (!m_hand.containsSuit(card.suit())) {
         return false;
@@ -148,23 +149,24 @@ Card Player::performTurn(const QVector<Card> legalMoves)
 {
     qCDebug(klaverjasPlayer) << "Player" << this << "cards" << hand();
     qCDebug(klaverjasPlayer) << "Legal moves: " << legalMoves;
-    return m_hand.takeAt(m_hand.indexOf(legalMoves.first()));
-//     return m_hand.takeFirst();
+    Card move = m_hand.takeAt(m_hand.indexOf(legalMoves.first()));
+    emit handChanged();
+    return move;
 }
 
 // The strength is the estimated number of points that could be scored with
 // a given trump option.
-QMap<Suit,int> Player::handStrength(const QVector<Suit> bidOptions) const
+QMap<Card::Suit,int> Player::handStrength(const QVector<Card::Suit> bidOptions) const
 {
-    QMap<Suit,int> strengthMap;
+    QMap<Card::Suit,int> strengthMap;
     CardSet::SortingMap sortingMap;
-    for (const Suit option : bidOptions) {
+    for (const Card::Suit option : bidOptions) {
         strengthMap[option] = 0;
-        for (const Suit s : Card::Suits) {
+        for (const Card::Suit s : Card::Suits) {
             sortingMap[s] = s == option ? TrumpRanks : PlainRanks;
         }
         const auto runLengthMap = m_hand.runLengths(sortingMap);
-        for (const Suit s : Card::Suits) {
+        for (const Card::Suit s : Card::Suits) {
             auto sortOrder = sortingMap[s].constBegin();
             auto values = s == option ? TrumpValues : PlainValues;
             for (auto i = sortOrder; i < sortOrder + runLengthMap.value(s); ++i)

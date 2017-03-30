@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "klaverjas.h"
 #include "game.h"
 #include "team.h"
+#include "player.h"
 
 // KDE headers
 #include <KAboutData>
@@ -61,7 +62,10 @@ int main(int argc, char **argv)
     aboutData.processCommandLine(&parser);
     KAboutData::setApplicationData(aboutData);
 
+    qRegisterMetaType<Card>();
+    qRegisterMetaType<CardSet>();
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
+    qmlRegisterType<Player>("org.kde.klaverjas", 1, 0, "Player");
 
     Klaverjas *appwindow = new Klaverjas;
     appwindow->show();

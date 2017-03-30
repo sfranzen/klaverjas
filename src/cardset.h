@@ -20,18 +20,21 @@
 #ifndef CARDSET_H
 #define CARDSET_H
 
+#include "card.h"
+
+#include <QObject>
 #include <QVector>
 #include <QMap>
 
-#include "card.h"
-
 class CardSet : public QVector<Card>
 {
+    Q_GADGET
+
 public:
     CardSet() = default;
     CardSet(QVector<Card> cards);
 
-    typedef QMap<Suit,QVector<Rank>> SortingMap;
+    typedef QMap<Card::Suit,QVector<Card::Rank>> SortingMap;
 
     // Implement some nice QVector-like methods
     void append(const Card& card);
@@ -41,22 +44,23 @@ public:
     Card takeAt(int i);
 
     // Custom methods
-    bool containsSuit(const Suit suit) const;
-    const QMap<Suit,QVector<Card>> suitSets() const;
-    QMap<Suit,int> cardsPerSuit(const QVector<Suit> suits = Card::Suits) const;
-    QMap<Suit,int> runLengths(const SortingMap sortingMap) const;
-    QMap<Suit,int> maxRunLengths(const SortingMap sortingMap) const;
-    int score(Suit trumpSuit) const;
+    bool containsSuit(const Card::Suit suit) const;
+    const QMap<Card::Suit,QVector<Card>> suitSets() const;
+    QMap<Card::Suit,int> cardsPerSuit(const QVector<Card::Suit> suits = Card::Suits) const;
+    QMap<Card::Suit,int> runLengths(const SortingMap sortingMap) const;
+    QMap<Card::Suit,int> maxRunLengths(const SortingMap sortingMap) const;
+    int score(Card::Suit trumpSuit) const;
     void shuffle();
-    void sort(const QVector<Rank> order, Suit trumpSuit, bool trumpFirst = true);
-    void sortAll(const SortingMap sortingMap, const QVector<Suit> suitOrder = Card::Suits);
+    void sort(const QVector<Card::Rank> order, Card::Suit trumpSuit, bool trumpFirst = true);
+    void sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder = Card::Suits);
 
 private:
-    void suitSort(const QVector<Rank> order);
+    void suitSort(const QVector<Card::Rank> order);
 
-    QMap<Suit,QVector<Card>> m_suitSets;
-    QMap<Suit,int> m_suitCounts;
+    QMap<Card::Suit,QVector<Card>> m_suitSets;
+    QMap<Card::Suit,int> m_suitCounts;
 
 };
 
+Q_DECLARE_METATYPE(CardSet)
 #endif // CARDSET_H

@@ -36,7 +36,7 @@ Game::Game(QObject* parent)
     , m_defenders(nullptr)
 {
     for (int  i = 0; i < 32; ++i)
-        m_deck.append(Card(Suit(i/8), Rank(i%8)));
+        m_deck.append(Card(Card::Suit(i/8), Card::Rank(i%8)));
 
     for (int i = 1; i <= 2; ++i)
         m_teams.append(new Team(QString::number(i), this));
@@ -69,6 +69,12 @@ QVariantMap Game::scores() const
         result[team->name()] = m_roundScores[team];
     return result;
 }
+
+QQmlListProperty<Player> Game::players()
+{
+    return QQmlListProperty<Player>(this, m_players);
+}
+
 
 QQmlListProperty<Team> Game::teams()
 {
@@ -153,7 +159,7 @@ void Game::selectTrump()
         bid = current->bid(options);
         Q_ASSERT(options.contains(bid));
         if (bid != Bid::Pass) {
-            setContract((Suit) bid, current);
+            setContract((Card::Suit) bid, current);
             return;
         } else {
             advancePlayer(current);
@@ -163,7 +169,7 @@ void Game::selectTrump()
     // All players have passed at this point; depending on the rules a random
     // suit is now chosen or the eldest hand is forced to choose.
     if (m_bidRule == BidRule::Twents) {
-        setContract(Suit(std::rand() % 4), m_eldest);
+        setContract(Card::Suit(std::rand() % 4), m_eldest);
         return;
     }
     if (m_bidRule == BidRule::Official) {
@@ -178,10 +184,10 @@ void Game::selectTrump()
     }
     bid = m_eldest->bid(options);
     Q_ASSERT(options.contains(bid));
-    setContract((Suit) bid, m_eldest);
+    setContract((Card::Suit) bid, m_eldest);
 }
 
-void Game::setContract(const Suit suit, const Player* player)
+void Game::setContract(const Card::Suit suit, const Player* player)
 {
     m_trumpSuit = suit;
     m_contractors = player->team();
@@ -216,8 +222,8 @@ const QVector<Card> Game::legalMoves(const Player* player, const Trick& trick) c
         return moves;
     }
 
-    const Suit suitLed = trick.suitLed();
-    QMap<Suit,Rank> minRanks;
+    const Card::Suit suitLed = trick.suitLed();
+    QMap<Card::Suit,Card::Rank> minRanks;
     if (player->hand().containsSuit(suitLed)) {
         // Following suit has the highest priority. If the suit led is trumps,
         // players must always overtrump if they can.
@@ -237,7 +243,7 @@ const QVector<Card> Game::legalMoves(const Player* player, const Trick& trick) c
             if (m_trumpRule == TrumpRule::Amsterdams
                 && player->team()->players().contains(trick.winner()))
             {
-                for (const Suit suit : Card::Suits)
+                for (const Card::Suit suit : Card::Suits)
                     minRanks[suit] = suit == m_trumpSuit ? TrumpRanks.last() : PlainRanks.last();
             } else if (trick.winningCard()->suit() == m_trumpSuit
                 && player->canBeat(*trick.winningCard(), TrumpRanks))
@@ -250,13 +256,13 @@ const QVector<Card> Game::legalMoves(const Player* player, const Trick& trick) c
             }
         } else {
             // Player has no trump cards.
-            for (const Suit suit : Card::Suits)
+            for (const Card::Suit suit : Card::Suits)
                 minRanks[suit] = suit == m_trumpSuit ? TrumpRanks.last() : PlainRanks.last();
         }
     }
     for (auto rank = minRanks.constBegin(); rank != minRanks.constEnd(); ++rank) {
-        Suit suit = rank.key();
-        QVector<Rank> order = suit == m_trumpSuit ? TrumpRanks : PlainRanks;
+        Card::Suit suit = rank.key();
+        QVector<Card::Rank> order = suit == m_trumpSuit ? TrumpRanks : PlainRanks;
         if (player->hand().containsSuit(suit))
             for (const Card& c : player->hand().suitSets()[suit])
                 if (rankDifference(c.rank(), *rank, order) >= 0)

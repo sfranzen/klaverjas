@@ -23,13 +23,13 @@
 #include <QDebug>
 
 const CardSet::SortingMap Trick::s_bonusSortingMap {
-    {Suit::Spades, BonusRanks},
-    {Suit::Hearts, BonusRanks},
-    {Suit::Diamonds, BonusRanks},
-    {Suit::Clubs, BonusRanks}
+    {Card::Suit::Spades, BonusRanks},
+    {Card::Suit::Hearts, BonusRanks},
+    {Card::Suit::Diamonds, BonusRanks},
+    {Card::Suit::Clubs, BonusRanks}
 };
 
-Trick::Trick(Suit trumpSuit)
+Trick::Trick(Card::Suit trumpSuit)
     : m_trumpSuit(trumpSuit)
     , m_order(PlainRanks)
     , m_values(PlainValues)
@@ -48,7 +48,7 @@ void Trick::add(Player* player, const Card& card)
 {
     m_cards << card;
     m_players << player;
-    const Suit suitPlayed = card.suit();
+    const Card::Suit suitPlayed = card.suit();
     m_points += suitPlayed == m_trumpSuit ? TrumpValues[card.rank()] : PlainValues[card.rank()];
     if (m_players.size() == 1) {
         m_suitLed = suitPlayed;
@@ -92,7 +92,7 @@ int Trick::points() const
     const int maxLength = *std::max_element(suitLengthMap.constBegin(), suitLengthMap.constEnd());
 
     if (maxLength == 1) {
-        const Rank rank = sets.first().first().rank();
+        const Card::Rank rank = sets.first().first().rank();
         bool sameRank = true;
         for (const auto cards : sets) {
             if (cards.first().rank() != rank) {
@@ -101,16 +101,16 @@ int Trick::points() const
             }
         }
         if (sameRank)
-            total += rank == Rank::Jack ? 200 : 100;
+            total += rank == Card::Rank::Jack ? 200 : 100;
     } else {
         const auto maxRunMap = m_cards.maxRunLengths(s_bonusSortingMap);
         for (auto set = sets.constBegin(); set != sets.constEnd(); ++set) {
-            const Suit suit = set.key();
+            const Card::Suit suit = set.key();
             const int length = maxRunMap[suit];
             const QVector<Card>* cards = &set.value();
             if (length >= 2
-                && cards->contains(Card(m_trumpSuit, Rank::King))
-                && cards->contains(Card(m_trumpSuit, Rank::Queen))) {
+                && cards->contains(Card(m_trumpSuit, Card::Rank::King))
+                && cards->contains(Card(m_trumpSuit, Card::Rank::Queen))) {
                 total += 20;
             }
             if (length == 3)
@@ -122,7 +122,7 @@ int Trick::points() const
     return total;
 }
 
-Suit Trick::suitLed() const
+Card::Suit Trick::suitLed() const
 {
     return m_suitLed;
 }

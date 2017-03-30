@@ -33,13 +33,13 @@ class Trick
 {
 public:
     Trick() = default;
-    Trick(Suit trumpSuit);
+    Trick(Card::Suit trumpSuit);
 
     void add(Player* player, const Card& card);
     const CardSet* cards() const;
     const QVector<Player*> players() const;
     int points() const;
-    Suit suitLed() const;
+    Card::Suit suitLed() const;
     Player* winner() const;
     const Card* winningCard() const;
 
@@ -48,10 +48,10 @@ private:
 
     CardSet m_cards;
     QVector<Player*> m_players;
-    Suit m_trumpSuit;
-    Suit m_suitLed;
-    QVector<Rank> m_order;
-    QMap<Rank,int> m_values;
+    Card::Suit m_trumpSuit;
+    Card::Suit m_suitLed;
+    QVector<Card::Rank> m_order;
+    QMap<Card::Rank,int> m_values;
     int m_points;
     Player* m_winner;
     Card m_winningCard;

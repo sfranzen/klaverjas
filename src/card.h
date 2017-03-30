@@ -20,14 +20,21 @@
 #ifndef CARD_H
 #define CARD_H
 
+#include <QObject>
 #include <QVector>
 #include <QMap>
 
-#include "rules.h"
-
 class Card
 {
+    Q_GADGET
+    Q_PROPERTY(Suit suit READ suit CONSTANT)
+    Q_PROPERTY(Rank rank READ rank CONSTANT)
 public:
+    enum class Suit { Spades, Hearts, Diamonds, Clubs };
+    enum class Rank { Ace, King, Queen, Jack, Ten, Nine, Eight, Seven };
+    Q_ENUM(Suit)
+    Q_ENUM(Rank)
+
     Card() = default;
     Card(Suit s, Rank r);
 
@@ -55,8 +62,9 @@ private:
     const static QMap<Rank,QString> s_rankLabels;
 };
 
+Q_DECLARE_METATYPE(Card)
 QDebug operator<<(QDebug dbg, const Card& c);
-QDebug operator<<(QDebug dbg, Suit s);
-QDebug operator<<(QDebug dbg, Rank r);
+QDebug operator<<(QDebug dbg, Card::Suit s);
+QDebug operator<<(QDebug dbg, Card::Rank r);
 
 #endif // CARD_H

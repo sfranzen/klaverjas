@@ -28,6 +28,7 @@
 #include <QVector>
 #include <QMap>
 #include <QLoggingCategory>
+#include <QVariantList>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
 
@@ -36,6 +37,8 @@ class Team;
 class Player : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(CardSet hand READ hand NOTIFY handChanged)
+    Q_PROPERTY(QString name READ name CONSTANT)
 
 public:
     Player(QString name = "", QObject* parent = 0);
@@ -50,11 +53,14 @@ public:
     void setTeam(Team* team);
 
     Bid bid(const QVector<Bid> options) const;
-    bool canBeat(const Card& card, const QVector<Rank> order) const;
+    bool canBeat(const Card& card, const QVector<Card::Rank> order) const;
     Card performTurn(const QVector<Card> legalMoves);
 
+signals:
+    void handChanged();
+
 private:
-    QMap<Suit,int> handStrength(const QVector<Suit> bidOptions) const;
+    QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;
     CardSet m_hand;
     QString m_name;
     Team* m_team;
