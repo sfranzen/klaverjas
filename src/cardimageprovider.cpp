@@ -29,6 +29,9 @@ CardImageProvider::CardImageProvider()
 
 QPixmap CardImageProvider::requestPixmap(const QString& id, QSize* size, const QSize& requestedSize)
 {
+    QPixmap pixmap;
+    if (!m_renderer.elementExists(id))
+        return pixmap;
     QSize cardSize = m_renderer.boundsOnElement(id).toAlignedRect().size();
     if (size)
         *size = cardSize;
@@ -36,7 +39,7 @@ QPixmap CardImageProvider::requestPixmap(const QString& id, QSize* size, const Q
         cardSize.setWidth(requestedSize.width());
     if (requestedSize.height() > 0)
         cardSize.setHeight(requestedSize.height());
-    QPixmap pixmap(cardSize);
+    pixmap = QPixmap(cardSize);
     QPainter painter(&pixmap);
     m_renderer.render(&painter, id);
     return pixmap;
