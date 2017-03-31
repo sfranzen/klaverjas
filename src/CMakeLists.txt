@@ -2,6 +2,7 @@ set(klaverjas_SRCS
     main.cpp
     klaverjas.cpp
     game.cpp
+    rules.cpp
     card.cpp
     cardset.cpp
     trick.cpp

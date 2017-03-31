@@ -19,4 +19,7 @@
 
 #include "rules.h"
 
-
+int rankDifference(const Card::Rank r1, const Card::Rank r2, const QVector<Card::Rank> order)
+{
+    return order.indexOf(r2) - order.indexOf(r1);
+}

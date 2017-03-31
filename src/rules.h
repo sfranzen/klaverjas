@@ -89,8 +89,6 @@ const QMap<Card::Rank,int> TrumpValues {
  * The sorting order must specify the ranks from high to low. The result is
  * positive if r1 ranks above r2.
  */
-static int rankDifference(const Card::Rank r1, const Card::Rank r2, const QVector<Card::Rank> order) {
-    return order.indexOf(r2) - order.indexOf(r1);
-};
+int rankDifference(const Card::Rank r1, const Card::Rank r2, const QVector<Card::Rank> order);
 
 #endif // RULES_H
