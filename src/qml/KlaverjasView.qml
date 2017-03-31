@@ -17,13 +17,24 @@
  * 
  */
 
-import QtQuick 2.3
+import QtQuick 2.7
 
 Rectangle {
     color: "green"
+    PlayerView {
+        height: 200
+        width: 1000
+    }
     ScoreBoard {
         anchors.right: parent.right
         width: parent.width / 4
         height: parent.height
+    }
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton
+        onClicked: {
+            game.proceed()
+        }
     }
 }

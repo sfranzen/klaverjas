@@ -27,8 +27,8 @@
 class Card
 {
     Q_GADGET
-    Q_PROPERTY(Card::Suit suit READ suit CONSTANT)
-    Q_PROPERTY(Card::Rank rank READ rank CONSTANT)
+    Q_PROPERTY(Suit suit READ suit CONSTANT)
+    Q_PROPERTY(Rank rank READ rank CONSTANT)
 public:
     enum class Suit { Spades, Hearts, Diamonds, Clubs };
     enum class Rank { Ace, King, Queen, Jack, Ten, Nine, Eight, Seven };

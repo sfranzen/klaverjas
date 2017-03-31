@@ -66,4 +66,5 @@ private:
 
 };
 
+Q_DECLARE_METATYPE(CardSet)
 #endif // CARDSET_H

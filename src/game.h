@@ -60,6 +60,7 @@ signals:
 
 public slots:
     void start();
+    void proceed();
 
 private:
     void deal();
@@ -77,12 +78,14 @@ private:
     CardSet m_deck;
     QVector<QVector<Trick>> m_tricks;
     int m_round;
+    int m_trick;
     QVector<Score> m_scores;
     QMap<Team*,QList<QVariant>> m_roundScores;
     QList<Player*> m_players;
     QList<Team*> m_teams;
     Player* m_dealer;
     Player* m_eldest;
+    Player* m_currentPlayer;
     Team* m_contractors;
     Team* m_defenders;
 

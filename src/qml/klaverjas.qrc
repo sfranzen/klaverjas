@@ -1,7 +1,9 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/">
-        <file>ScoreBoard.qml</file>
         <file>KlaverjasView.qml</file>
+        <file>PlayerView.qml</file>
+        <file>CardImage.qml</file>
+        <file>ScoreBoard.qml</file>
     </qresource>
 </RCC>

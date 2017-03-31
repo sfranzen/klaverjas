@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // application header
 #include "klaverjas.h"
+#include "cardset.h"
 #include "game.h"
 #include "team.h"
 #include "player.h"
@@ -62,10 +63,8 @@ int main(int argc, char **argv)
     aboutData.processCommandLine(&parser);
     KAboutData::setApplicationData(aboutData);
 
-    qRegisterMetaType<Card::Suit>();
-    qRegisterMetaType<Card::Rank>();
-    qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Uncreatable");
-    qmlRegisterUncreatableType<CardSet>("org.kde.klaverjas", 1, 0, "CardSet", "Uncreatable");
+    qRegisterMetaType<CardSet>();
+    qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Enum/property access only.");
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
     qmlRegisterType<Player>("org.kde.klaverjas", 1, 0, "Player");
 
