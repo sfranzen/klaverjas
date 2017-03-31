@@ -62,8 +62,10 @@ int main(int argc, char **argv)
     aboutData.processCommandLine(&parser);
     KAboutData::setApplicationData(aboutData);
 
-    qRegisterMetaType<Card>();
-    qRegisterMetaType<CardSet>();
+    qRegisterMetaType<Card::Suit>();
+    qRegisterMetaType<Card::Rank>();
+    qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Uncreatable");
+    qmlRegisterUncreatableType<CardSet>("org.kde.klaverjas", 1, 0, "CardSet", "Uncreatable");
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
     qmlRegisterType<Player>("org.kde.klaverjas", 1, 0, "Player");
 

@@ -25,14 +25,18 @@
 #include <QObject>
 #include <QVector>
 #include <QMap>
+#include <QVariantList>
 
 class CardSet : public QVector<Card>
 {
     Q_GADGET
+    Q_PROPERTY(QVariantList cards READ cards)
 
 public:
     CardSet() = default;
     CardSet(QVector<Card> cards);
+
+    QVariantList cards();
 
     typedef QMap<Card::Suit,QVector<Card::Rank>> SortingMap;
 
@@ -62,5 +66,4 @@ private:
 
 };
 
-Q_DECLARE_METATYPE(CardSet)
 #endif // CARDSET_H

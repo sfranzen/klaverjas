@@ -25,6 +25,15 @@
 #include <algorithm>
 #include <QDebug>
 
+QVariantList CardSet::cards()
+{
+    QVariantList list;
+    for (Card& card : *this)
+        list << QVariant::fromValue(card);
+    return list;
+}
+
+
 CardSet::CardSet(QVector<Card> cards)
 {
     for (const Card& c : cards)
