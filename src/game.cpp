@@ -82,6 +82,14 @@ QQmlListProperty<Team> Game::teams()
     return QQmlListProperty<Team>(this, m_teams);
 }
 
+QQmlListProperty<Card> Game::currentTrick()
+{
+    QList<Card*> list;
+    for (auto c : *m_currentTrick.cards())
+        list << &c;
+    return QQmlListProperty<Card>(this, list);
+}
+
 void Game::start()
 {
     deal();
@@ -98,18 +106,20 @@ void Game::proceed()
         return;
     }
     if (m_trick < 8) {
-        Trick currentTrick(m_trumpSuit);
+        m_currentTrick = Trick(m_trumpSuit);
+        emit trickChanged();
         for (int i = 0; i < 4; ++i) {
-            auto legalMoves = this->legalMoves(m_currentPlayer, currentTrick);
+            auto legalMoves = this->legalMoves(m_currentPlayer, m_currentTrick);
             Card currentPlay = m_currentPlayer->performTurn(legalMoves);
-            currentTrick.add(m_currentPlayer, currentPlay);
+            m_currentTrick.add(m_currentPlayer, currentPlay);
+            emit trickChanged();
             advancePlayer(m_currentPlayer);
         }
-        roundTricks << currentTrick;
-        m_currentPlayer = currentTrick.winner();
+        roundTricks << m_currentTrick;
+        m_currentPlayer = m_currentTrick.winner();
 
-        qCDebug(klaverjasGame) << "Current trick:" << currentTrick;
-        qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << currentTrick.points();
+        qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
+        qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
 
         ++m_trick;
     } else {

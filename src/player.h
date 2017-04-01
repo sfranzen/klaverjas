@@ -58,6 +58,7 @@ public:
 
 signals:
     void handChanged();
+    void cardPlayed(QVariant card);
 
 private:
     QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;

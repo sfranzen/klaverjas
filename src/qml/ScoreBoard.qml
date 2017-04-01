@@ -1,20 +1,19 @@
 
-import QtQuick 2.5
+import QtQuick 2.7
+import QtQuick.Controls 1.4
 
 Row {
     spacing: 2
     Repeater {
         id: lists
-        model: game.teams.length
+        model: game.teams
         delegate: Column {
             width: parent.width / lists.count
             height: parent.height
-            Text {
-                text: "Team " + game.teams[index].name
-            }
+            Label { text: "Team " + modelData.name }
             Repeater {
-                model: game.teams[index].scores
-                delegate: Text { text: modelData }
+                model: modelData.scores
+                delegate: Label { text: modelData }
             }
         }
     }

@@ -20,12 +20,12 @@
 #ifndef TRICK_H
 #define TRICK_H
 
-#include <QVector>
-#include <QMap>
-
 #include "card.h"
 #include "cardset.h"
 #include "rules.h"
+
+#include <QVector>
+#include <QMap>
 
 class Player;
 

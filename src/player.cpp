@@ -150,6 +150,7 @@ Card Player::performTurn(const QVector<Card> legalMoves)
     qCDebug(klaverjasPlayer) << "Player" << this << "cards" << hand();
     qCDebug(klaverjasPlayer) << "Legal moves: " << legalMoves;
     Card move = m_hand.takeAt(m_hand.indexOf(legalMoves.first()));
+    emit cardPlayed(QVariant::fromValue(move));
     emit handChanged();
     return move;
 }

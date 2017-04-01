@@ -32,7 +32,7 @@ QPixmap CardImageProvider::requestPixmap(const QString& id, QSize* size, const Q
     QPixmap pixmap;
     if (!m_renderer.elementExists(id))
         return pixmap;
-    QSize cardSize = m_renderer.boundsOnElement(id).toAlignedRect().size();
+    QSize cardSize = m_renderer.boundsOnElement(id).toRect().size();
     if (size)
         *size = cardSize;
     if (requestedSize.width() > 0)

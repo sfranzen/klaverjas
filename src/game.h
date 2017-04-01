@@ -42,6 +42,7 @@ class Game : public QObject
     Q_PROPERTY(int round READ round)
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
     Q_PROPERTY(QQmlListProperty<Player> players READ players NOTIFY playersChanged)
+    Q_PROPERTY(QQmlListProperty<Card> currentTrick READ currentTrick NOTIFY trickChanged)
     typedef QMap<Team*,int> Score;
 
 public:
@@ -51,11 +52,13 @@ public:
     QQmlListProperty<Player> players();
     QVariantMap scores() const;
     QQmlListProperty<Team> teams();
+    QQmlListProperty<Card> currentTrick();
 
 signals:
     void playersChanged();
     void scoresChanged();
     void teamsChanged();
+    void trickChanged();
     void trumpSuitChanged(Card::Suit newSuit);
 
 public slots:
@@ -77,6 +80,7 @@ private:
     Card::Suit m_trumpSuit;
     CardSet m_deck;
     QVector<QVector<Trick>> m_tricks;
+    Trick m_currentTrick;
     int m_round;
     int m_trick;
     QVector<Score> m_scores;
