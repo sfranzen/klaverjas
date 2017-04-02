@@ -60,8 +60,7 @@ signals:
     void trumpSuitChanged(Card::Suit newSuit);
 
 public slots:
-    void start();
-    void proceed();
+    void advance();
 
 private slots:
     void acceptTurn(Card card);

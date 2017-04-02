@@ -37,7 +37,7 @@ Rectangle {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
         onClicked: {
-            game.proceed()
+            game.advance()
         }
     }
 }

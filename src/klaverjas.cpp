@@ -39,7 +39,6 @@ Klaverjas::Klaverjas()
     m_klaverjasView->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_klaverjasView->setSource(QUrl("qrc:/KlaverjasView.qml"));
     setCentralWidget(m_klaverjasView);
-    m_game.start();
 
     m_switchAction = actionCollection()->addAction(QStringLiteral("switch_action"), this, SLOT(slotSwitchColors()));
     m_switchAction->setText(i18n("Switch Colors"));

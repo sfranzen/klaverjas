@@ -85,24 +85,21 @@ QQmlListProperty<Team> Game::teams()
     return QQmlListProperty<Team>(this, m_teams);
 }
 
-void Game::start()
-{
-    deal();
-    selectTrump();
-    m_currentPlayer = m_eldest;
-}
-
-void Game::proceed()
+void Game::advance()
 {
     static QVector<Trick> roundTricks;
     static int turn = 0;
     if (m_awaitingTurn)
         return;
-
-    qCDebug(klaverjasGame) << "Proceeding";
     if (m_round == 8) {
         qCDebug(klaverjasGame) << "Game finished";
         return;
+    }
+    qCDebug(klaverjasGame) << "Proceeding";
+    if (m_trick == 0 && turn == 0) {
+        m_currentPlayer = m_eldest;
+        deal();
+        selectTrump();
     }
     if (m_trick < 8) {
         if (turn == 0) {
@@ -112,7 +109,7 @@ void Game::proceed()
         if (turn < 4) {
             auto legalMoves = this->legalMoves(m_currentPlayer, m_currentTrick);
             m_awaitingTurn = true;
-            m_currentPlayer->performTurn(legalMoves);
+            m_currentPlayer->requestTurn(legalMoves);
             ++turn;
         } else {
             turn = 0;
@@ -129,15 +126,12 @@ void Game::proceed()
         for (Team* team : m_teams) {
             team->addPoints(score[team]);
         }
-        roundTricks.clear();
-        deal();
-        selectTrump();
-        advancePlayer(m_dealer);
-        advancePlayer(m_eldest);
-        m_currentPlayer = m_eldest;
         m_trick = 0;
         turn = 0;
         ++m_round;
+        roundTricks.clear();
+        advancePlayer(m_dealer);
+        advancePlayer(m_eldest);
     }
 }
 
@@ -146,7 +140,7 @@ void Game::acceptTurn(Card card)
     m_currentTrick.add(m_currentPlayer, card);
     advancePlayer(m_currentPlayer);
     m_awaitingTurn = false;
-    proceed();
+    advance();
 }
 
 void Game::deal()

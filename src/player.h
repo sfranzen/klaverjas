@@ -60,7 +60,7 @@ signals:
     void cardPlayed(Card card);
 
 public slots:
-    void performTurn(const QVector<Card> legalMoves);
+    void requestTurn(const QVector<Card> legalMoves);
 
 private:
     QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;

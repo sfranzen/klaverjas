@@ -146,7 +146,7 @@ bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
     }
 }
 
-void Player::performTurn(const QVector< Card > legalMoves)
+void Player::requestTurn(const QVector< Card > legalMoves)
 {
     qCDebug(klaverjasPlayer) << "Player" << this << "cards" << hand();
     qCDebug(klaverjasPlayer) << "Legal moves: " << legalMoves;
