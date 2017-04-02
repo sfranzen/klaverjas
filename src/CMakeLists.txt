@@ -7,6 +7,7 @@ set(klaverjas_SRCS
     cardset.cpp
     trick.cpp
     player.cpp
+    aiplayer.cpp
     team.cpp
     cardimageprovider.cpp
     qml/klaverjas.qrc

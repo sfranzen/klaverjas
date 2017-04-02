@@ -20,6 +20,7 @@
 #include "game.h"
 #include "card.h"
 #include "player.h"
+#include "aiplayer.h"
 #include "team.h"
 
 #include <algorithm>
@@ -45,7 +46,7 @@ Game::Game(QObject* parent)
         m_teams.append(new Team(QString::number(i), this));
 
     for (int p = 0, t = 0; p < s_defaultPlayerNames.size(); ++p, t = p % 2) {
-        Player* newPlayer = new Player(s_defaultPlayerNames[p], this);
+        Player* newPlayer = new AiPlayer(s_defaultPlayerNames[p], this);
         connect(newPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
         m_teams[t]->addPlayer(newPlayer);
         m_players.append(newPlayer);
