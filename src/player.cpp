@@ -21,6 +21,7 @@
 #include "game.h"
 
 #include <QQueue>
+#include <QTimer>
 #include <QDebug>
 #include <numeric>
 
@@ -145,14 +146,14 @@ bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
     }
 }
 
-Card Player::performTurn(const QVector<Card> legalMoves)
+void Player::performTurn(const QVector< Card > legalMoves)
 {
     qCDebug(klaverjasPlayer) << "Player" << this << "cards" << hand();
     qCDebug(klaverjasPlayer) << "Legal moves: " << legalMoves;
     Card move = m_hand.takeAt(m_hand.indexOf(legalMoves.first()));
-    emit cardPlayed(QVariant::fromValue(move));
+    QTimer::singleShot(500, [this, move]{ emit cardPlayed(move); });
+//     emit cardPlayed(move);
     emit handChanged();
-    return move;
 }
 
 // The strength is the estimated number of points that could be scored with

@@ -4,12 +4,15 @@ import org.kde.klaverjas 1.0
 
 // The visual representation of a card
 Image {
-    id: img
     property var card
     property bool faceUp: true
     height: 100
     fillMode: Image.PreserveAspectFit
     onCardChanged: {
+        if (!card) {
+            source = "";
+            return;
+        }
         if (!faceUp) {
             source = "image://cards/back";
             return;

@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <QTime>
+#include <QTimer>
 
 const QStringList Game::s_defaultPlayerNames {"North", "East", "South", "West"};
 
@@ -33,6 +34,7 @@ Game::Game(QObject* parent)
     , m_bidRule(BidRule::Random)
     , m_round(0)
     , m_trick(0)
+    , m_awaitingTurn(false)
     , m_contractors(nullptr)
     , m_defenders(nullptr)
 {
@@ -44,6 +46,7 @@ Game::Game(QObject* parent)
 
     for (int p = 0, t = 0; p < s_defaultPlayerNames.size(); ++p, t = p % 2) {
         Player* newPlayer = new Player(s_defaultPlayerNames[p], this);
+        connect(newPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
         m_teams[t]->addPlayer(newPlayer);
         m_players.append(newPlayer);
     }
@@ -82,14 +85,6 @@ QQmlListProperty<Team> Game::teams()
     return QQmlListProperty<Team>(this, m_teams);
 }
 
-QQmlListProperty<Card> Game::currentTrick()
-{
-    QList<Card*> list;
-    for (auto c : *m_currentTrick.cards())
-        list << &c;
-    return QQmlListProperty<Card>(this, list);
-}
-
 void Game::start()
 {
     deal();
@@ -99,29 +94,34 @@ void Game::start()
 
 void Game::proceed()
 {
-    qCDebug(klaverjasGame) << "Proceeding";
     static QVector<Trick> roundTricks;
+    static int turn = 0;
+    if (m_awaitingTurn)
+        return;
+
+    qCDebug(klaverjasGame) << "Proceeding";
     if (m_round == 8) {
         qCDebug(klaverjasGame) << "Game finished";
         return;
     }
     if (m_trick < 8) {
-        m_currentTrick = Trick(m_trumpSuit);
-        emit trickChanged();
-        for (int i = 0; i < 4; ++i) {
-            auto legalMoves = this->legalMoves(m_currentPlayer, m_currentTrick);
-            Card currentPlay = m_currentPlayer->performTurn(legalMoves);
-            m_currentTrick.add(m_currentPlayer, currentPlay);
-            emit trickChanged();
-            advancePlayer(m_currentPlayer);
+        if (turn == 0) {
+            m_currentTrick = Trick(m_trumpSuit);
+            emit newTrick();
         }
-        roundTricks << m_currentTrick;
-        m_currentPlayer = m_currentTrick.winner();
-
-        qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
-        qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
-
-        ++m_trick;
+        if (turn < 4) {
+            auto legalMoves = this->legalMoves(m_currentPlayer, m_currentTrick);
+            m_awaitingTurn = true;
+            m_currentPlayer->performTurn(legalMoves);
+            ++turn;
+        } else {
+            turn = 0;
+            ++m_trick;
+            roundTricks << m_currentTrick;
+            m_currentPlayer = m_currentTrick.winner();
+            qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
+            qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
+        }
     } else {
         m_tricks << roundTricks;
         const auto score = scoreRound(roundTricks);
@@ -134,9 +134,19 @@ void Game::proceed()
         selectTrump();
         advancePlayer(m_dealer);
         advancePlayer(m_eldest);
+        m_currentPlayer = m_eldest;
         m_trick = 0;
+        turn = 0;
         ++m_round;
     }
+}
+
+void Game::acceptTurn(Card card)
+{
+    m_currentTrick.add(m_currentPlayer, card);
+    advancePlayer(m_currentPlayer);
+    m_awaitingTurn = false;
+    proceed();
 }
 
 void Game::deal()

@@ -62,6 +62,8 @@ private:
     const static QMap<Rank,QString> s_rankLabels;
 };
 
+Q_DECLARE_METATYPE(Card)
+
 QDebug operator<<(QDebug dbg, const Card& c);
 QDebug operator<<(QDebug dbg, Card::Suit s);
 QDebug operator<<(QDebug dbg, Card::Rank r);

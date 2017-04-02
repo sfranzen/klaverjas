@@ -34,11 +34,17 @@ Item {
         id: path
         model: game.players
         delegate: CardImage {
-            id: image
+            id: img
             Connections {
                 target: modelData
                 onCardPlayed: {
-                    image.card = card;
+                    img.card = card;
+                }
+            }
+            Connections {
+                target: game
+                onNewTrick: {
+                    img.card = undefined;
                 }
             }
         }

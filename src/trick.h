@@ -35,7 +35,7 @@ public:
     Trick() = default;
     Trick(Card::Suit trumpSuit);
 
-    void add(Player* player, const Card& card);
+    void add(Player*& player, const Card& card);
     const CardSet* cards() const;
     const QVector<Player*> players() const;
     int points() const;

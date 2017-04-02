@@ -44,7 +44,7 @@ Trick::Trick(Card::Suit trumpSuit)
  * The current card beats the previous one either if it follows suit and ranks
  * higher or if it is of a different suit and that suit is the trump suit.
  */
-void Trick::add(Player* player, const Card& card)
+void Trick::add(Player*& player, const Card& card)
 {
     m_cards << card;
     m_players << player;

@@ -54,11 +54,13 @@ public:
 
     Bid bid(const QVector<Bid> options) const;
     bool canBeat(const Card& card, const QVector<Card::Rank> order) const;
-    Card performTurn(const QVector<Card> legalMoves);
 
 signals:
     void handChanged();
-    void cardPlayed(QVariant card);
+    void cardPlayed(Card card);
+
+public slots:
+    void performTurn(const QVector<Card> legalMoves);
 
 private:
     QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;
