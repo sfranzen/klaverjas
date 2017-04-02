@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // application header
-#include "klaverjas.h"
+#include "klaverjaswindow.h"
 #include "cardset.h"
 #include "game.h"
 #include "team.h"
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
     qmlRegisterType<Player>("org.kde.klaverjas", 1, 0, "Player");
 
-    Klaverjas *appwindow = new Klaverjas;
+    KlaverjasWindow *appwindow = new KlaverjasWindow;
     appwindow->show();
     return application.exec();
 }

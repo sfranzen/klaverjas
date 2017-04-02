@@ -1,6 +1,6 @@
 set(klaverjas_SRCS
     main.cpp
-    klaverjas.cpp
+    klaverjaswindow.cpp
     game.cpp
     rules.cpp
     card.cpp

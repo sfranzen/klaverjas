@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // application headers
-#include "klaverjas.h"
+#include "klaverjaswindow.h"
 #include "cardimageprovider.h"
 
 // KDE headers
@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QQmlContext>
 #include <QTimer>
 
-Klaverjas::Klaverjas()
+KlaverjasWindow::KlaverjasWindow()
     : KXmlGuiWindow()
     , m_game(this)
 {
@@ -50,17 +50,17 @@ Klaverjas::Klaverjas()
     setupGUI();
 }
 
-Klaverjas::~Klaverjas()
+KlaverjasWindow::~KlaverjasWindow()
 {
 }
 
-void Klaverjas::fileNew()
+void KlaverjasWindow::fileNew()
 {
     qCDebug(klaverjas) << "klaverjas::fileNew()";
-    (new Klaverjas)->show();
+    (new KlaverjasWindow)->show();
 }
 
-void Klaverjas::settingsConfigure()
+void KlaverjasWindow::settingsConfigure()
 {
     qCDebug(klaverjas) << "klaverjas::settingsConfigure()";
     // The preference dialog is derived from prefs_base.ui

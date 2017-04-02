@@ -18,8 +18,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef KLAVERJAS_H
-#define KLAVERJAS_H
+#ifndef KLAVERJASWINDOW_H
+#define KLAVERJASWINDOW_H
 
 #include "ui_settingsBase.h"
 #include "klaverjasSettings.h"
@@ -39,19 +39,19 @@ Q_DECLARE_LOGGING_CATEGORY(klaverjas)
  * @author %{AUTHOR} <%{EMAIL}>
  * @version %{VERSION}
  */
-class Klaverjas : public KXmlGuiWindow
+class KlaverjasWindow : public KXmlGuiWindow
 {
     Q_OBJECT
 public:
     /**
      * Default Constructor
      */
-    Klaverjas();
+    KlaverjasWindow();
 
     /**
      * Default Destructor
      */
-    virtual ~Klaverjas();
+    virtual ~KlaverjasWindow();
 
 private slots:
     /**
@@ -71,4 +71,4 @@ private:
     QQuickWidget* m_klaverjasView;
 };
 
-#endif // KLAVERJAS_H
+#endif // KLAVERJASWINDOW_H
