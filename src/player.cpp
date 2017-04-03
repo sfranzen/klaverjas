@@ -23,7 +23,10 @@
 #include <QQueue>
 #include <QTimer>
 #include <QDebug>
+#include <QLoggingCategory>
 #include <numeric>
+
+Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
 
 Player::Player(QString name, QObject* parent)
     : QObject(parent)

@@ -32,10 +32,10 @@ class AiPlayer : public Player
 {
 public:
     using Player::Player;
-    Bid bid(const QVector<Bid> options) const;
+    Bid bid(const QVector<Bid> options) const override;
 
 public slots:
-    void requestTurn(const QVector<Card> legalMoves);
+    void requestTurn(const QVector<Card> legalMoves) override;
 
 private:
     QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;

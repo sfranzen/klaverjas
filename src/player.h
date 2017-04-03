@@ -27,10 +27,7 @@
 #include <QObject>
 #include <QVector>
 #include <QMap>
-#include <QLoggingCategory>
 #include <QVariantList>
-
-Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
 
 class Team;
 
@@ -52,7 +49,7 @@ public:
     Team* team() const;
     void setTeam(Team* team);
 
-    Bid bid(const QVector<Bid> options) const;
+    virtual Bid bid(const QVector<Bid> options) const;
     bool canBeat(const Card& card, const QVector<Card::Rank> order) const;
 
 signals:
@@ -60,7 +57,7 @@ signals:
     void cardPlayed(Card card);
 
 public slots:
-    void requestTurn(const QVector<Card> legalMoves);
+    virtual void requestTurn(const QVector<Card> legalMoves);
 
 protected:
     CardSet m_hand;

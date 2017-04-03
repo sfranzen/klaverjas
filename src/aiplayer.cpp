@@ -94,9 +94,9 @@ Bid AiPlayer::bid(const QVector<Bid> options) const
         choice = (Bid) shortList.first();
 
     if (choice == Bid::Pass)
-        qCDebug(klaverjasPlayer) << m_name + " passed";
+        qCDebug(klaverjasAi) << m_name + " passed";
     else
-        qCDebug(klaverjasPlayer) << m_name + " chose" << (Card::Suit) choice;
+        qCDebug(klaverjasAi) << m_name + " chose" << (Card::Suit) choice;
 
     return choice;
 }
@@ -119,7 +119,7 @@ QMap<Card::Suit,int> AiPlayer::handStrength(const QVector<Card::Suit> bidOptions
             for (auto i = sortOrder; i < sortOrder + runLengthMap.value(s); ++i)
                 strengthMap[option] += values[*i];
         }
-        qCDebug(klaverjasPlayer) << "Suit " << option << " run lengths " << runLengthMap;
+        qCDebug(klaverjasAi) << "Suit " << option << " run lengths " << runLengthMap;
     }
     qCDebug(klaverjasAi) << "Strengths" << strengthMap;
     return strengthMap;
