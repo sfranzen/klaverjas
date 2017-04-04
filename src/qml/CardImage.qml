@@ -17,7 +17,7 @@ Image {
             source = "image://cards/back";
             return;
         }
-        var name = "";
+        var name = "image://cards/";
         switch (card.rank) {
             case Card.Ace:
                 name += "1";
@@ -57,6 +57,6 @@ Image {
             case Card.Clubs:
                 name += "club";
         }
-        source = "image://cards/" + name;
+        source = name;
     }
 }
