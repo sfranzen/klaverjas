@@ -27,7 +27,7 @@ Rectangle {
         Item {
             id: table
             height: parent.height
-            width: .75* parent.width
+            width: parent.width - infoArea.width
             TrickView {
                 id: trick
                 anchors.centerIn: parent
@@ -48,7 +48,7 @@ Rectangle {
         }
         Item {
             id: infoArea
-            width: parent.width / 4
+            width: 200
             height: parent.height
             ScoreBoard {
                 width: parent.width
