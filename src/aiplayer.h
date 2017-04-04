@@ -30,11 +30,12 @@ Q_DECLARE_LOGGING_CATEGORY(klaverjasAi)
 
 class AiPlayer : public Player
 {
+    Q_OBJECT
 public:
     AiPlayer(QString name, QObject* parent = 0);
 
 public slots:
-    void requestTurn(const QVector<Card> legalMoves) override;
+    virtual void requestTurn(const QVector<Card> legalMoves);
 
 private slots:
     void selectBid(QVariantList options);

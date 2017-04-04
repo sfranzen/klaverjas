@@ -33,6 +33,7 @@ Player::Player(QString name, QObject* parent)
     , m_name(name)
     , m_team(nullptr)
 {
+    connect(this, &Player::cardPlayed, &Player::removeCard);
 }
 
 const QString& Player::name() const
@@ -66,6 +67,12 @@ Team* Player::team() const
     return m_team;
 }
 
+void Player::removeCard(Card card)
+{
+    m_hand.removeOne(card);
+    emit handChanged();
+}
+
 bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
 {
     if (!m_hand.containsSuit(card.suit())) {
@@ -77,16 +84,6 @@ bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
         }
         return false;
     }
-}
-
-void Player::requestTurn(const QVector< Card > legalMoves)
-{
-    qCDebug(klaverjasPlayer) << "Player" << this << "cards" << m_hand;
-    qCDebug(klaverjasPlayer) << "Legal moves: " << legalMoves;
-    Card move = m_hand.takeAt(m_hand.indexOf(legalMoves.first()));
-    QTimer::singleShot(500, [this, move]{ emit cardPlayed(move); });
-//     emit cardPlayed(move);
-    emit handChanged();
 }
 
 QDebug operator<<(QDebug dbg, const Player* player) {

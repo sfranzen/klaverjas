@@ -56,10 +56,11 @@ signals:
     void bidRequested(QVariantList options);
     void bidSelected(Game::Bid bid);
     void handChanged();
+    void playRequested(const QVector<Card> legalMoves);
     void cardPlayed(Card card);
 
-public slots:
-    virtual void requestTurn(const QVector<Card> legalMoves);
+protected slots:
+    virtual void removeCard(Card card);
 
 protected:
     CardSet m_hand;

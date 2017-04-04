@@ -116,7 +116,7 @@ void Game::advance()
         if (turn < 4) {
             auto legalMoves = this->legalMoves(m_currentPlayer, m_currentTrick);
             m_awaitingTurn = true;
-            m_currentPlayer->requestTurn(legalMoves);
+            emit m_currentPlayer->playRequested(legalMoves);
             ++turn;
         } else {
             turn = 0;

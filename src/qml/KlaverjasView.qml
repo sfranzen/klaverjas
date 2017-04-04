@@ -40,7 +40,8 @@ Rectangle {
                 }
             }
             PlayerView {
-                model: game.players[1].hand.cards
+                width: parent.width
+                player: game.players[1]
                 anchors.top: trick.bottom
                 anchors.left: parent.left
             }

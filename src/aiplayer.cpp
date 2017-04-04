@@ -25,14 +25,14 @@ AiPlayer::AiPlayer(QString name, QObject* parent)
     : Player(name, parent)
 {
     connect(this, &AiPlayer::bidRequested, this, &AiPlayer::selectBid);
+    connect(this, &AiPlayer::playRequested, this, &AiPlayer::requestTurn);
 }
 
 void AiPlayer::requestTurn(const QVector< Card > legalMoves)
 {
     qCDebug(klaverjasAi) << "Player" << this << "cards" << m_hand;
     qCDebug(klaverjasAi) << "Legal moves: " << legalMoves;
-    Card move = m_hand.takeAt(m_hand.indexOf(legalMoves.first()));
-    emit handChanged();
+    Card move = legalMoves.first();
     QTimer::singleShot(200, [this, move]{ emit cardPlayed(move); });
 }
 
