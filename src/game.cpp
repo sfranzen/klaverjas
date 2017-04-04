@@ -136,9 +136,10 @@ void Game::advance()
         m_trick = 0;
         turn = 0;
         ++m_round;
-        roundTricks.clear();
+        m_biddingPhase = true;
         advancePlayer(m_dealer);
         advancePlayer(m_eldest);
+        roundTricks.clear();
     }
 }
 
@@ -182,7 +183,8 @@ void Game::proposeBid()
     } else {
         // All players have passed in the first round of bidding.
         if (m_bidRule == BidRule::Twents) {
-            options = {Bid(std::rand() % 4)};
+            acceptBid(Bid(std::rand() % 4));
+            return;
         }
         if (m_bidRule == BidRule::Official) {
             options.removeLast();
@@ -201,7 +203,6 @@ void Game::proposeBid()
 
 void Game::acceptBid(Game::Bid bid)
 {
-    qDebug() << bid;
     m_awaitingTurn = false;
     if (bid == Bid::Pass) {
         qCDebug(klaverjasGame) << "Player" << m_currentPlayer << "passed";
