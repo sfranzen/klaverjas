@@ -9,7 +9,6 @@ Row {
         model: game.teams
         delegate: Column {
             width: parent.width / lists.count
-            height: parent.height
             Label { text: "Team " + modelData.name }
             Repeater {
                 model: modelData.scores

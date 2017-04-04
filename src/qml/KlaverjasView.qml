@@ -20,24 +20,41 @@
 import QtQuick 2.7
 
 Rectangle {
+    id: root
     color: "green"
-//     PlayerView {
-//         height: 200
-//         width: 1000
-//     }
-    ScoreBoard {
-        anchors.right: parent.right
-        width: parent.width / 4
-        height: parent.height
-    }
-    TrickView {
-        anchors.centerIn: parent
-    }
-    MouseArea {
+    Row {
         anchors.fill: parent
-        acceptedButtons: Qt.LeftButton
-        onClicked: {
-            game.advance()
+        Item {
+            id: table
+            height: parent.height
+            width: .75* parent.width
+            TrickView {
+                id: trick
+                anchors.centerIn: parent
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton
+                    onClicked: {
+                        game.advance()
+                    }
+                }
+            }
+            PlayerView {
+                model: game.players[1].hand.cards
+                anchors.top: trick.bottom
+                anchors.left: parent.left
+            }
+            BidDialog {/* hidden by default */}
+        }
+        Item {
+            id: infoArea
+            width: parent.width / 4
+            height: parent.height
+            ScoreBoard {
+                width: parent.width
+                anchors.top: parent.top
+                anchors.left: parent.left
+            }
         }
     }
 }
