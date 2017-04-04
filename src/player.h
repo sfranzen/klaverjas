@@ -21,6 +21,7 @@
 #define PLAYER_H
 
 #include "rules.h"
+#include "game.h"
 #include "cardset.h"
 #include "trick.h"
 
@@ -28,6 +29,7 @@
 #include <QVector>
 #include <QMap>
 #include <QVariantList>
+#include <QList>
 
 class Team;
 
@@ -48,11 +50,11 @@ public:
 
     Team* team() const;
     void setTeam(Team* team);
-
-    virtual Bid bid(const QVector<Bid> options) const;
     bool canBeat(const Card& card, const QVector<Card::Rank> order) const;
 
 signals:
+    void bidRequested(QVariantList options);
+    void bidSelected(Game::Bid bid);
     void handChanged();
     void cardPlayed(Card card);
 

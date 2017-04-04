@@ -52,6 +52,9 @@ public:
     QVariantMap scores() const;
     QQmlListProperty<Team> teams();
 
+    enum Bid { Spades, Hearts, Diamonds, Clubs, Pass };
+    Q_ENUM(Bid)
+
 signals:
     void playersChanged();
     void scoresChanged();
@@ -63,11 +66,12 @@ public slots:
     void advance();
 
 private slots:
+    void acceptBid(Bid bid);
     void acceptTurn(Card card);
 
 private:
     void deal();
-    void selectTrump();
+    void proposeBid();
     void setContract(const Card::Suit suit, const Player* player);
     Score scoreRound(const QVector<Trick> tricks) const;
     const QVector<Card> legalMoves(const Player* player, const Trick& trick) const;
@@ -79,11 +83,13 @@ private:
     BidRule m_bidRule;
     Card::Suit m_trumpSuit;
     CardSet m_deck;
-    QVector<QVector<Trick>> m_tricks;
-    Trick m_currentTrick;
+    bool m_biddingPhase;
+    int m_bidRound;
     int m_round;
     int m_trick;
     bool m_awaitingTurn;
+    Trick m_currentTrick;
+    QVector<QVector<Trick>> m_tricks;
     QVector<Score> m_scores;
     QMap<Team*,QList<QVariant>> m_roundScores;
     QList<Player*> m_players;
@@ -96,5 +102,7 @@ private:
 
     const static QStringList s_defaultPlayerNames;
 };
+
+Q_DECLARE_METATYPE(Game::Bid)
 
 #endif // GAME_H

@@ -21,14 +21,19 @@
 
 #include <QTimer>
 
+AiPlayer::AiPlayer(QString name, QObject* parent)
+    : Player(name, parent)
+{
+    connect(this, &AiPlayer::bidRequested, this, &AiPlayer::selectBid);
+}
+
 void AiPlayer::requestTurn(const QVector< Card > legalMoves)
 {
     qCDebug(klaverjasAi) << "Player" << this << "cards" << m_hand;
     qCDebug(klaverjasAi) << "Legal moves: " << legalMoves;
     Card move = m_hand.takeAt(m_hand.indexOf(legalMoves.first()));
-    QTimer::singleShot(500, [this, move]{ emit cardPlayed(move); });
-    //     emit cardPlayed(move);
     emit handChanged();
+    QTimer::singleShot(200, [this, move]{ emit cardPlayed(move); });
 }
 
 /* Choose a bid from the options presented.
@@ -36,7 +41,7 @@ void AiPlayer::requestTurn(const QVector< Card > legalMoves)
  * The bid options are scored according to the run lengths, which give an
  * indication of how many tricks might be secured by the player.
  */
-Bid AiPlayer::bid(const QVector<Bid> options) const
+void AiPlayer::selectBid(QVariantList options)
 {
     qCDebug(klaverjasAi) << m_name + "'s hand:" << m_hand;
     CardSet::SortingMap map;
@@ -44,9 +49,10 @@ Bid AiPlayer::bid(const QVector<Bid> options) const
         map[s] = PlainRanks;
 
     QVector<Card::Suit> bidOptions;
-    for (const Bid b : options) {
-        if (b != Bid::Pass)
-            bidOptions << (Card::Suit) b;
+    for (const QVariant b : options) {
+        Game::Bid bid = b.value<Game::Bid>();
+        if (bid != Game::Bid::Pass)
+            bidOptions << (Card::Suit) bid;
     }
     const QMap<Card::Suit,int> strengthMap = handStrength(bidOptions);
 
@@ -82,23 +88,18 @@ Bid AiPlayer::bid(const QVector<Bid> options) const
             if (strengthMap[count.key()] >= 20 && *count > 3)
                 tempCounts[count.key()] = *count;
 
-            if (!tempCounts.isEmpty())
-                shortList << std::max_element(tempCounts.constBegin(), tempCounts.constEnd()).key();
+        if (!tempCounts.isEmpty())
+            shortList << std::max_element(tempCounts.constBegin(), tempCounts.constEnd()).key();
     }
 
     // Decide
-    Bid choice;
+    Game::Bid choice;
     if (shortList.isEmpty())
-        choice = options.last() == Bid::Pass ? Bid::Pass : (Bid) maxStrength.key();
+        choice = options.last() == Game::Bid::Pass ? Game::Bid::Pass : (Game::Bid) maxStrength.key();
     else
-        choice = (Bid) shortList.first();
+        choice = (Game::Bid) shortList.first();
 
-    if (choice == Bid::Pass)
-        qCDebug(klaverjasAi) << m_name + " passed";
-    else
-        qCDebug(klaverjasAi) << m_name + " chose" << (Card::Suit) choice;
-
-    return choice;
+    emit bidSelected(choice);
 }
 
 // The strength is the estimated number of points that could be scored with

@@ -3,8 +3,10 @@
 
 #include "card.h"
 
+#include <QObject>
 #include <QMap>
 #include <QVector>
+
 
 // Game rules and definitions
 enum class TrumpRule {
@@ -21,8 +23,6 @@ enum class BidRule {
     Utrechts,
     Twents
 };
-
-enum class Bid { Spades, Hearts, Diamonds, Clubs, Pass };
 
 // Card definitions
 // enum class Card::Suit { Spades, Hearts, Diamonds, Clubs };

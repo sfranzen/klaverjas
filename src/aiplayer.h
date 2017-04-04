@@ -31,11 +31,13 @@ Q_DECLARE_LOGGING_CATEGORY(klaverjasAi)
 class AiPlayer : public Player
 {
 public:
-    using Player::Player;
-    Bid bid(const QVector<Bid> options) const override;
+    AiPlayer(QString name, QObject* parent = 0);
 
 public slots:
     void requestTurn(const QVector<Card> legalMoves) override;
+
+private slots:
+    void selectBid(QVariantList options);
 
 private:
     QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;

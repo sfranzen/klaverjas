@@ -33,6 +33,8 @@ Game::Game(QObject* parent)
     : QObject(parent)
     , m_trumpRule(TrumpRule::Amsterdams)
     , m_bidRule(BidRule::Random)
+    , m_biddingPhase(true)
+    , m_bidRound(0)
     , m_round(0)
     , m_trick(0)
     , m_awaitingTurn(false)
@@ -46,7 +48,8 @@ Game::Game(QObject* parent)
         m_teams.append(new Team(QString::number(i), this));
 
     for (int p = 0, t = 0; p < s_defaultPlayerNames.size(); ++p, t = p % 2) {
-        Player* newPlayer = new AiPlayer(s_defaultPlayerNames[p], this);
+        Player* newPlayer = p == 1 ? new Player("You", this) : new AiPlayer(s_defaultPlayerNames[p], this);
+        connect(newPlayer, &Player::bidSelected, this, &Game::acceptBid);
         connect(newPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
         m_teams[t]->addPlayer(newPlayer);
         m_players.append(newPlayer);
@@ -100,7 +103,10 @@ void Game::advance()
     if (m_trick == 0 && turn == 0) {
         m_currentPlayer = m_eldest;
         deal();
-        selectTrump();
+    }
+    if (m_biddingPhase) {
+        proposeBid();
+        return;
     }
     if (m_trick < 8) {
         if (turn == 0) {
@@ -136,14 +142,6 @@ void Game::advance()
     }
 }
 
-void Game::acceptTurn(Card card)
-{
-    m_currentTrick.add(m_currentPlayer, card);
-    advancePlayer(m_currentPlayer);
-    m_awaitingTurn = false;
-    advance();
-}
-
 void Game::deal()
 {
     m_deck.shuffle();
@@ -151,66 +149,71 @@ void Game::deal()
         m_players[i]->setHand(m_deck.mid(i*8, 8));
 }
 
-void Game::selectTrump()
+void Game::proposeBid()
 {
-    // Set the allowable bids for the initial bidding
-    QVector<Bid> options;
-    switch (m_bidRule) {
-        case BidRule::Utrechts:
-            // No bidding; first player is forced to choose.
-            options = { Bid::Spades, Bid::Hearts, Bid::Diamonds, Bid::Clubs };
-        case BidRule::Official:
-            // Each player may elect a suit or pass. If all pass, first player
-            // must elect.
-            options.append(Bid::Pass);
-            break;
-        case BidRule::Random:
-            // Choose random suit followed by bidding. If all pass, first
-            // player must elect a different suit.
-        case BidRule::Twents:
-            // Like Random, but if all players pass, the trump suit will also
-            // be random.
-            if (m_round == 0)
-                options = { Bid::Clubs, Bid::Pass };
-            else
-                options = { Bid(std::rand() % 4), Bid::Pass };
-            break;
-    }
-
-    // Bidding phase
-    // First ask each player to bid, because players may be allowed to pass.
-    Player* current = m_eldest;
-    Bid bid;
-    for (int i = 0; i < 4; ++i) {
-        bid = current->bid(options);
-        Q_ASSERT(options.contains(bid));
-        if (bid != Bid::Pass) {
-            setContract((Card::Suit) bid, current);
-            return;
-        } else {
-            advancePlayer(current);
+    if (m_awaitingTurn)
+        return;
+    m_awaitingTurn = true;
+    static QVariantList options;
+    if (m_bidRound == 0) {
+        options.clear();
+        switch (m_bidRule) {
+            case BidRule::Official:
+                // Each player may elect a suit or pass. If all pass, first player
+                // must elect.
+                options = { Bid::Spades, Bid::Hearts, Bid::Diamonds, Bid::Clubs, Bid::Pass };
+                break;
+            case BidRule::Utrechts:
+                // No bidding; first player is forced to choose.
+                options = { Bid::Spades, Bid::Hearts, Bid::Diamonds, Bid::Clubs };
+                break;
+            case BidRule::Random:
+                // Choose random suit followed by bidding. If all pass, first
+                // player must elect a different suit.
+            case BidRule::Twents:
+                // Like Random, but if all players pass, the trump suit will also
+                // be random.
+                if (m_round == 0)
+                    options = { Bid::Clubs, Bid::Pass };
+                else
+                    options = { Bid(std::rand() % 4), Bid::Pass };
+                break;
+        }
+    } else {
+        // All players have passed in the first round of bidding.
+        if (m_bidRule == BidRule::Twents) {
+            options = {Bid(std::rand() % 4)};
+        }
+        if (m_bidRule == BidRule::Official) {
+            options.removeLast();
+        }
+        if (m_bidRule == BidRule::Random) {
+            Bid forbidden = options.takeFirst().value<Bid>();
+            options.clear();
+            for (int i = 0; i < 4; ++i)
+                if (Bid(i) != forbidden)
+                    options.append(Bid(i));
         }
     }
+    ++m_bidRound;
+    emit m_currentPlayer->bidRequested(options);
+}
 
-    // All players have passed at this point; depending on the rules a random
-    // suit is now chosen or the eldest hand is forced to choose.
-    if (m_bidRule == BidRule::Twents) {
-        setContract(Card::Suit(std::rand() % 4), m_eldest);
-        return;
+void Game::acceptBid(Game::Bid bid)
+{
+    qDebug() << bid;
+    m_awaitingTurn = false;
+    if (bid == Bid::Pass) {
+        qCDebug(klaverjasGame) << "Player" << m_currentPlayer << "passed";
+        advancePlayer(m_currentPlayer);
+        proposeBid();
+    } else {
+        setContract((Card::Suit) bid, m_currentPlayer);
+        qCDebug(klaverjasGame) << "Player" << m_currentPlayer << "elected" << m_trumpSuit;
+        m_currentPlayer = m_eldest;
+        m_biddingPhase = false;
+        m_bidRound = 0;
     }
-    if (m_bidRule == BidRule::Official) {
-        options.removeLast();
-    }
-    if (m_bidRule == BidRule::Random) {
-        Bid forbidden = options.takeFirst();
-        options.clear();
-        for (int i = 0; i < 4; ++i)
-            if (Bid(i) != forbidden)
-                options.append(Bid(i));
-    }
-    bid = m_eldest->bid(options);
-    Q_ASSERT(options.contains(bid));
-    setContract((Card::Suit) bid, m_eldest);
 }
 
 void Game::setContract(const Card::Suit suit, const Player* player)
@@ -219,6 +222,14 @@ void Game::setContract(const Card::Suit suit, const Player* player)
     m_contractors = player->team();
     m_defenders = m_teams.first() == m_contractors ? m_teams.last() : m_teams.first();
     emit trumpSuitChanged(suit);
+}
+
+void Game::acceptTurn(Card card)
+{
+    m_currentTrick.add(m_currentPlayer, card);
+    advancePlayer(m_currentPlayer);
+    m_awaitingTurn = false;
+    advance();
 }
 
 Game::Score Game::scoreRound(const QVector<Trick> tricks) const

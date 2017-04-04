@@ -66,6 +66,8 @@ int main(int argc, char **argv)
 
     qRegisterMetaType<CardSet>();
     qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Enum/property access only.");
+    qmlRegisterType<Game>("org.kde.klaverjas", 1, 0, "Game");
+    qRegisterMetaType<Game::Bid>("Bid");
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
     qmlRegisterType<Player>("org.kde.klaverjas", 1, 0, "Player");
 

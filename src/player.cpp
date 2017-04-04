@@ -66,16 +66,6 @@ Team* Player::team() const
     return m_team;
 }
 
-/* Choose a bid from the options presented.
- *
- * The bid options are scored according to the run lengths, which give an
- * indication of how many tricks might be secured by the player.
- */
-Bid Player::bid(const QVector<Bid> options) const
-{
-    return options.last();
-}
-
 bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
 {
     if (!m_hand.containsSuit(card.suit())) {
