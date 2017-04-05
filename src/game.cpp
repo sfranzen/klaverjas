@@ -49,8 +49,6 @@ Game::Game(QObject* parent)
 
     for (int p = 0, t = 0; p < s_defaultPlayerNames.size(); ++p, t = p % 2) {
         Player* newPlayer = p == 1 ? new Player("You", this) : new AiPlayer(s_defaultPlayerNames[p], this);
-        connect(newPlayer, &Player::bidSelected, this, &Game::acceptBid);
-        connect(newPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
         m_teams[t]->addPlayer(newPlayer);
         m_players.append(newPlayer);
     }
@@ -116,6 +114,7 @@ void Game::advance()
         if (turn < 4) {
             auto legalMoves = this->legalMoves(m_currentPlayer, m_currentTrick);
             m_awaitingTurn = true;
+            connect(m_currentPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
             emit m_currentPlayer->playRequested(legalMoves);
             ++turn;
         } else {
@@ -198,11 +197,13 @@ void Game::proposeBid()
         }
     }
     ++m_bidRound;
+    connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
     emit m_currentPlayer->bidRequested(options);
 }
 
 void Game::acceptBid(Game::Bid bid)
 {
+    disconnect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
     m_awaitingTurn = false;
     if (bid == Bid::Pass) {
         qCDebug(klaverjasGame) << "Player" << m_currentPlayer << "passed";
@@ -228,6 +229,7 @@ void Game::setContract(const Card::Suit suit, const Player* player)
 void Game::acceptTurn(Card card)
 {
     m_currentTrick.add(m_currentPlayer, card);
+    disconnect(m_currentPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
     advancePlayer(m_currentPlayer);
     m_awaitingTurn = false;
     advance();
