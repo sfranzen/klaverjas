@@ -40,13 +40,13 @@ Popup {
                         color: textColor(modelData)
                     }
                     onClicked: {
-                        game.players[1].bidSelected(modelData);
+                        game.players[0].bidSelected(modelData);
                         root.close();
                     }
                 }
             }
             Connections {
-                target: game.players[1]
+                target: game.players[0]
                 onBidRequested: {
                     optionList.model = options;
                     root.open();

@@ -27,7 +27,7 @@
 #include <QTime>
 #include <QTimer>
 
-const QStringList Game::s_defaultPlayerNames {"North", "East", "South", "West"};
+const QStringList Game::s_defaultPlayerNames {"South", "West", "North", "East"};
 
 Game::Game(QObject* parent)
     : QObject(parent)
@@ -48,7 +48,7 @@ Game::Game(QObject* parent)
         m_teams.append(new Team(QString::number(i), this));
 
     for (int p = 0, t = 0; p < s_defaultPlayerNames.size(); ++p, t = p % 2) {
-        Player* newPlayer = p == 1 ? new Player("You", this) : new AiPlayer(s_defaultPlayerNames[p], this);
+        Player* newPlayer = p == 0 ? new Player("You", this) : new AiPlayer(s_defaultPlayerNames[p], this);
         m_teams[t]->addPlayer(newPlayer);
         m_players.append(newPlayer);
     }
@@ -56,7 +56,7 @@ Game::Game(QObject* parent)
 
     qCDebug(klaverjasGame) << "Teams: " << m_teams;
 
-    m_dealer = m_players.first();
+    m_dealer = m_players.last();
     m_eldest = nextPlayer(m_dealer);
 
     // Initialise PRNG
@@ -90,17 +90,21 @@ QQmlListProperty<Team> Game::teams()
 void Game::advance()
 {
     static QVector<Trick> roundTricks;
+    static bool dealCards = true;
     static int turn = 0;
     if (m_awaitingTurn)
         return;
-    if (m_round == 8) {
+    if (m_round == 16) {
         qCDebug(klaverjasGame) << "Game finished";
         return;
     }
     qCDebug(klaverjasGame) << "Proceeding";
+    if (dealCards) {
+        deal();
+        dealCards = false;
+    }
     if (m_trick == 0 && turn == 0) {
         m_currentPlayer = m_eldest;
-        deal();
     }
     if (m_biddingPhase) {
         proposeBid();
@@ -139,6 +143,7 @@ void Game::advance()
         advancePlayer(m_dealer);
         advancePlayer(m_eldest);
         roundTricks.clear();
+        dealCards = true;
     }
 }
 
@@ -198,6 +203,7 @@ void Game::proposeBid()
     }
     ++m_bidRound;
     connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
+    qDebug() << m_currentPlayer;
     emit m_currentPlayer->bidRequested(options);
 }
 
