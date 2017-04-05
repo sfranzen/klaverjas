@@ -44,19 +44,14 @@ Image {
                 name += "king";
         }
         name += "_";
-        switch (card.suit) {
-            case Card.Spades:
-                name += "spade";
-                break;
-            case Card.Hearts:
-                name += "heart";
-                break;
-            case Card.Diamonds:
-                name += "diamond";
-                break;
-            case Card.Clubs:
-                name += "club";
-        }
+        if (card.suit == Card.Spades)
+            name += "spade";
+        else if (card.suit == Card.Hearts)
+            name += "heart";
+        else if (card.suit == Card.Diamonds)
+            name += "diamond";
+        else
+            name += "club";
         source = name;
     }
 }

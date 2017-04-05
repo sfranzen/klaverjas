@@ -64,10 +64,11 @@ int main(int argc, char **argv)
     aboutData.processCommandLine(&parser);
     KAboutData::setApplicationData(aboutData);
 
-    qRegisterMetaType<CardSet>();
+    qRegisterMetaType<CardSet>("CardSet");
     qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Enum/property access only.");
-    qmlRegisterType<Game>("org.kde.klaverjas", 1, 0, "Game");
+    qmlRegisterUncreatableType<Game>("org.kde.klaverjas", 1, 0, "Game", "For Enum access.");
     qRegisterMetaType<Game::Bid>("Bid");
+    qRegisterMetaType<Card::Suit>("Suit");
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
     qmlRegisterType<Player>("org.kde.klaverjas", 1, 0, "Player");
 
