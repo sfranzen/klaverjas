@@ -63,6 +63,7 @@ private:
 };
 
 Q_DECLARE_METATYPE(Card)
+Q_DECLARE_METATYPE(Card::Suit)
 
 QDebug operator<<(QDebug dbg, const Card& c);
 QDebug operator<<(QDebug dbg, Card::Suit s);

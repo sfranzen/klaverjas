@@ -18,10 +18,18 @@
  */
 
 import QtQuick 2.7
+import org.kde.klaverjas 1.0
 
 Rectangle {
     id: root
     color: "green"
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton
+        onClicked: {
+            game.advance()
+        }
+    }
     Row {
         anchors.fill: parent
         Item {
@@ -31,13 +39,6 @@ Rectangle {
             TrickView {
                 id: trick
                 anchors.centerIn: parent
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.LeftButton
-                    onClicked: {
-                        game.advance()
-                    }
-                }
             }
             PlayerView {
                 width: parent.width
@@ -47,14 +48,21 @@ Rectangle {
             }
             BidDialog {/* hidden by default */}
         }
-        Item {
+        Column {
             id: infoArea
             width: 200
             height: parent.height
             ScoreBoard {
                 width: parent.width
-                anchors.top: parent.top
-                anchors.left: parent.left
+            }
+            Text {
+                id: trump
+                Connections {
+                    target: game
+                    onTrumpSuitChanged: {
+                        trump.text = "Trump suit: " + newSuit;
+                    }
+                }
             }
         }
     }
