@@ -69,7 +69,7 @@ Team* Player::team() const
 
 void Player::removeCard(Card card)
 {
-    m_hand.removeOne(card);
+    m_hand.remove(card);
     emit handChanged();
 }
 

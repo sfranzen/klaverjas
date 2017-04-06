@@ -65,12 +65,12 @@ CardSet& CardSet::operator<<(const CardSet& set)
     return *this;
 }
 
-Card CardSet::takeAt(int i)
+void CardSet::remove(const Card& card)
 {
-    Card card = QVector<Card>::takeAt(i);
     m_suitSets[card.suit()].removeAll(card);
     --m_suitCounts[card.suit()];
-    return card;
+    const bool removed = removeOne(card);
+    Q_ASSERT(removed);
 }
 
 bool CardSet::containsSuit(const Card::Suit suit) const

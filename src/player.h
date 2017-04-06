@@ -59,8 +59,8 @@ signals:
     void playRequested(const QVector<Card> legalMoves);
     void cardPlayed(Card card);
 
-protected slots:
-    virtual void removeCard(Card card);
+private slots:
+    void removeCard(Card card);
 
 protected:
     CardSet m_hand;

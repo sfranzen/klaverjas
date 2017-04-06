@@ -40,17 +40,19 @@ class Game : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int round READ round)
-    Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
+    Q_PROPERTY(Card::Suit trumpSuit READ trumpSuit NOTIFY trumpSuitChanged)
     Q_PROPERTY(QQmlListProperty<Player> players READ players NOTIFY playersChanged)
+    Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
     typedef QMap<Team*,int> Score;
 
 public:
     Game(QObject* parent = 0);
 
     int round() const;
+    Card::Suit trumpSuit() const;
     QQmlListProperty<Player> players();
-    QVariantMap scores() const;
     QQmlListProperty<Team> teams();
+    QVariantMap scores() const;
 
     enum Bid { Spades, Hearts, Diamonds, Clubs, Pass };
     Q_ENUM(Bid)

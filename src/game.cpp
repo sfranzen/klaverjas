@@ -76,6 +76,11 @@ QVariantMap Game::scores() const
     return result;
 }
 
+Card::Suit Game::trumpSuit() const
+{
+    return m_trumpSuit;
+}
+
 QQmlListProperty<Player> Game::players()
 {
     return QQmlListProperty<Player>(this, m_players);
@@ -306,13 +311,18 @@ const QVector<Card> Game::legalMoves(const Player* player, const Trick& trick) c
                 minRanks[suit] = suit == m_trumpSuit ? TrumpRanks.last() : PlainRanks.last();
         }
     }
-    for (auto rank = minRanks.constBegin(); rank != minRanks.constEnd(); ++rank) {
-        Card::Suit suit = rank.key();
+
+    // Compile the list of moves
+    const auto suitSets = player->hand().suitSets();
+    for (auto set = suitSets.constBegin(); set != suitSets.constEnd(); ++set) {
+        Card::Suit suit = set.key();
         QVector<Card::Rank> order = suit == m_trumpSuit ? TrumpRanks : PlainRanks;
-        if (player->hand().containsSuit(suit))
-            for (const Card& c : player->hand().suitSets()[suit])
-                if (rankDifference(c.rank(), *rank, order) >= 0)
+        if (minRanks.contains(suit)) {
+            for (const Card& c : *set) {
+                if (rankDifference(c.rank(), minRanks[suit], order) >= 0)
                     moves << c;
+            }
+        }
     }
     return moves;
 }
