@@ -34,7 +34,7 @@ Game::Game(QObject* parent)
     , m_trumpRule(TrumpRule::Amsterdams)
     , m_bidRule(BidRule::Random)
     , m_biddingPhase(true)
-    , m_bidRound(0)
+    , m_bidCounter(0)
     , m_round(0)
     , m_trick(0)
     , m_awaitingTurn(false)
@@ -165,7 +165,7 @@ void Game::proposeBid()
         return;
     m_awaitingTurn = true;
     static QVariantList options;
-    if (m_bidRound == 0) {
+    if (m_bidCounter == 0) {
         options.clear();
         switch (m_bidRule) {
             case BidRule::Official:
@@ -189,7 +189,7 @@ void Game::proposeBid()
                     options = { Bid(std::rand() % 4), Bid::Pass };
                 break;
         }
-    } else {
+    } else if (m_bidCounter == 4) {
         // All players have passed in the first round of bidding.
         if (m_bidRule == BidRule::Twents) {
             acceptBid(Bid(std::rand() % 4));
@@ -206,7 +206,7 @@ void Game::proposeBid()
                     options.append(Bid(i));
         }
     }
-    ++m_bidRound;
+    ++m_bidCounter;
     connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
     qDebug() << m_currentPlayer;
     emit m_currentPlayer->bidRequested(options);
@@ -225,7 +225,7 @@ void Game::acceptBid(Game::Bid bid)
         qCDebug(klaverjasGame) << "Player" << m_currentPlayer << "elected" << m_trumpSuit;
         m_currentPlayer = m_eldest;
         m_biddingPhase = false;
-        m_bidRound = 0;
+        m_bidCounter = 0;
     }
 }
 

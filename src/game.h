@@ -86,7 +86,7 @@ private:
     Card::Suit m_trumpSuit;
     CardSet m_deck;
     bool m_biddingPhase;
-    int m_bidRound;
+    int m_bidCounter;
     int m_round;
     int m_trick;
     bool m_awaitingTurn;
