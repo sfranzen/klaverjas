@@ -32,10 +32,10 @@ const QVector<Card::Suit> Card::Suits {
 
 // Textual labels
 const QMap<Card::Suit,QString> Card::s_suitLabels {
-    {Card::Suit::Spades, QChar(9824)},
-    {Card::Suit::Hearts, QChar(9829)},
-    {Card::Suit::Diamonds, QChar(9830)},
-    {Card::Suit::Clubs, QChar(9827)}
+    {Card::Suit::Spades, "\u2660"},
+    {Card::Suit::Hearts, "\u2665"},
+    {Card::Suit::Diamonds, "\u2666"},
+    {Card::Suit::Clubs, "\u2663"}
 };
 
 const QMap<Card::Rank,QString> Card::s_rankLabels {
