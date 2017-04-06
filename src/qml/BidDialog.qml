@@ -5,6 +5,7 @@ import org.kde.klaverjas 1.0
 
 Popup {
     id: root
+    default property Player player: game.players[0]
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     modal: true
@@ -29,50 +30,24 @@ Popup {
                 id: optionList
                 delegate: Button {
                     width: 50; height: 50
-                    Text {
+                    SuitLabel {
+                        suit: modelData
                         anchors.fill: parent
                         anchors.margins: 2
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        fontSizeMode: Text.Fit
-                        font.pixelSize: parent.height
-                        text: label(modelData)
-                        color: textColor(modelData)
                     }
                     onClicked: {
-                        game.players[0].bidSelected(modelData);
+                        player.bidSelected(modelData);
                         root.close();
                     }
                 }
             }
             Connections {
-                target: game.players[0]
+                target: player
                 onBidRequested: {
                     optionList.model = options;
                     root.open();
                 }
             }
         }
-    }
-    // Output prettification functions
-    function label(bid) {
-        switch (bid) {
-            case Game.Spades:
-                return "\u2260";
-            case Game.Hearts:
-                return "\u2665";
-            case Game.Diamonds:
-                return "\u2666";
-            case Game.Clubs:
-                return "\u2663";
-            default:
-                return "Pass";
-        }
-    }
-    function textColor(bid) {
-        if (bid == Game.Hearts || bid == Game.Diamonds)
-            return "red";
-        else
-            return "black";
     }
 }

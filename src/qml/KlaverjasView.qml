@@ -18,6 +18,7 @@
  */
 
 import QtQuick 2.7
+import QtQuick.Layouts 1.3
 import org.kde.klaverjas 1.0
 
 Rectangle {
@@ -55,13 +56,11 @@ Rectangle {
             ScoreBoard {
                 width: parent.width
             }
-            Text {
-                id: trump
-                Connections {
-                    target: game
-                    onTrumpSuitChanged: {
-                        trump.text = "Trump suit: " + newSuit;
-                    }
+            RowLayout {
+                Text { text: "Trump suit:" }
+                SuitLabel {
+                    suit: game.trumpSuit
+                    Layout.preferredHeight: height
                 }
             }
         }

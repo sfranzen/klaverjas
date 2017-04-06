@@ -7,5 +7,6 @@
         <file>BidDialog.qml</file>
         <file>CardImage.qml</file>
         <file>ScoreBoard.qml</file>
+        <file>SuitLabel.qml</file>
     </qresource>
 </RCC>
