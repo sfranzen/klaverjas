@@ -21,7 +21,7 @@
 
 #include <QTimer>
 
-AiPlayer::AiPlayer(QString name, QObject* parent)
+AiPlayer::AiPlayer(QString name, Game* parent)
     : Player(name, parent)
 {
     connect(this, &AiPlayer::bidRequested, this, &AiPlayer::selectBid);

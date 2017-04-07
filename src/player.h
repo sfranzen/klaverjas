@@ -40,7 +40,7 @@ class Player : public QObject
     Q_PROPERTY(QString name READ name CONSTANT)
 
 public:
-    Player(QString name = "", QObject* parent = 0);
+    Player(QString name = "", Game* parent = 0);
 
     const QString& name() const;
     void setName(const QString& name);
@@ -66,8 +66,9 @@ private slots:
     void removeCard(Card card);
 
 protected:
-    CardSet m_hand;
     QString m_name;
+    const Game* m_game;
+    CardSet m_hand;
     Team* m_team;
 };
 

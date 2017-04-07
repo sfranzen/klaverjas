@@ -41,7 +41,7 @@ class AiPlayer : public Player
     typedef QMap<Player*,QMap<Card::Suit,Trick::Signal>> SignalMap;
 
 public:
-    AiPlayer(QString name, QObject* parent = 0);
+    AiPlayer(QString name = "", Game* parent = 0);
 
     virtual void setHand(CardSet cards) override;
 

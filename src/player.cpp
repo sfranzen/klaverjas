@@ -28,9 +28,10 @@
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
 
-Player::Player(QString name, QObject* parent)
+Player::Player(QString name, Game* parent)
     : QObject(parent)
     , m_name(name)
+    , m_game(parent)
     , m_team(nullptr)
 {
     connect(this, &Player::cardPlayed, &Player::removeCard);
