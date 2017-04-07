@@ -24,16 +24,35 @@
 #include "cardset.h"
 #include "rules.h"
 
+#include <QObject>
 #include <QVector>
 #include <QMap>
 
 class Player;
 
-class Trick
+class Trick : public QObject
 {
+    Q_OBJECT
 public:
-    Trick() = default;
-    Trick(Card::Suit trumpSuit);
+    Trick(Card::Suit trumpSuit, QObject* parent = 0);
+
+    /** Signal definitions
+     *
+     * Klaverjas players can inform each other about the strength of their hand
+     * if their partner is heading the current trick and they cannot follow
+     * suit. This is done by playing a particular rank of a different suit.
+     * The meanings and associated ranks are as follows:
+     *
+     * - High: the partner has played a low card (7, 8 or 9) to signal that he
+     *      has the current high card (usually the ace) in that suit.
+     *
+     * - Long: the partner has played the ace to signal that he also has at least
+     *      the 10 and K in that suit.
+     *
+     * - Low: the partner has played a K, Q or J to signal that he has no
+     *      valuable cards in that suit.
+     */
+    enum class Signal { High, Long, Low };
 
     void add(Player*& player, const Card& card);
     const CardSet* cards() const;
@@ -43,6 +62,9 @@ public:
     Player* winner() const;
     const Card* winningCard() const;
 
+signals:
+    void playerSignal(const Player* player, const Signal signal, const Card::Suit suit);
+
 private:
     void setWinner(Player* player, const Card& card);
 
@@ -50,8 +72,6 @@ private:
     QVector<Player*> m_players;
     Card::Suit m_trumpSuit;
     Card::Suit m_suitLed;
-    QVector<Card::Rank> m_order;
-    QMap<Card::Rank,int> m_values;
     int m_points;
     Player* m_winner;
     Card m_winningCard;

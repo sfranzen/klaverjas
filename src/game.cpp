@@ -22,6 +22,7 @@
 #include "player.h"
 #include "aiplayer.h"
 #include "team.h"
+#include "trick.h"
 
 #include <algorithm>
 #include <QTime>
@@ -94,7 +95,7 @@ QQmlListProperty<Team> Game::teams()
 
 void Game::advance()
 {
-    static QVector<Trick> roundTricks;
+    static QVector<Trick*> roundTricks;
     static bool dealCards = true;
     static int turn = 0;
     if (m_awaitingTurn)
@@ -117,7 +118,7 @@ void Game::advance()
     }
     if (m_trick < 8) {
         if (turn == 0) {
-            m_currentTrick = Trick(m_trumpSuit);
+            m_currentTrick = new Trick(m_trumpSuit, this);
             emit newTrick();
         }
         if (turn < 4) {
@@ -130,9 +131,9 @@ void Game::advance()
             turn = 0;
             ++m_trick;
             roundTricks << m_currentTrick;
-            m_currentPlayer = m_currentTrick.winner();
+            m_currentPlayer = m_currentTrick->winner();
             qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
-            qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
+            qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick->points();
         }
     } else {
         m_tricks << roundTricks;
@@ -239,24 +240,24 @@ void Game::setContract(const Card::Suit suit, const Player* player)
 
 void Game::acceptTurn(Card card)
 {
-    m_currentTrick.add(m_currentPlayer, card);
+    m_currentTrick->add(m_currentPlayer, card);
     disconnect(m_currentPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
     advancePlayer(m_currentPlayer);
     m_awaitingTurn = false;
     advance();
 }
 
-Game::Score Game::scoreRound(const QVector<Trick> tricks) const
+Game::Score Game::scoreRound(const QVector<Trick*> tricks) const
 {
     Score newScore;
     int total = 10;
     for (Team* t : m_teams)
         newScore[t] = 0;
     for (const auto t : tricks) {
-        newScore[t.winner()->team()] += t.points();
-        total += t.points();
+        newScore[t->winner()->team()] += t->points();
+        total += t->points();
     }
-    newScore[tricks.last().winner()->team()] += 10;
+    newScore[tricks.last()->winner()->team()] += 10;
     if (newScore[m_contractors] < total / 2 + 1) {
         newScore[m_contractors] = 0;
         newScore[m_defenders] = total;
@@ -264,24 +265,24 @@ Game::Score Game::scoreRound(const QVector<Trick> tricks) const
     return newScore;
 }
 
-const QVector<Card> Game::legalMoves(const Player* player, const Trick& trick) const
+const QVector<Card> Game::legalMoves(const Player* player, const Trick* trick) const
 {
     QVector<Card> moves;
-    if (trick.players().isEmpty()) {
+    if (trick->players().isEmpty()) {
         for (const auto card : player->hand())
             moves << card;
         return moves;
     }
 
-    const Card::Suit suitLed = trick.suitLed();
+    const Card::Suit suitLed = trick->suitLed();
     QMap<Card::Suit,Card::Rank> minRanks;
     if (player->hand().containsSuit(suitLed)) {
         // Following suit has the highest priority. If the suit led is trumps,
         // players must always overtrump if they can.
-        if (trick.suitLed() != m_trumpSuit) {
+        if (trick->suitLed() != m_trumpSuit) {
             minRanks[suitLed] = PlainRanks.last();
-        } else if (player->canBeat(*trick.winningCard(), TrumpRanks)) {
-            minRanks[suitLed] = trick.winningCard()->rank();
+        } else if (player->canBeat(*trick->winningCard(), TrumpRanks)) {
+            minRanks[suitLed] = trick->winningCard()->rank();
         } else {
             minRanks[suitLed] = TrumpRanks.last();
         }
@@ -292,15 +293,15 @@ const QVector<Card> Game::legalMoves(const Player* player, const Trick& trick) c
             // under Amsterdam rules if his partner is the current winner of
             // the trick.
             if (m_trumpRule == TrumpRule::Amsterdams
-                && player->team()->players().contains(trick.winner()))
+                && player->team()->players().contains(trick->winner()))
             {
                 for (const Card::Suit suit : Card::Suits)
                     minRanks[suit] = suit == m_trumpSuit ? TrumpRanks.last() : PlainRanks.last();
-            } else if (trick.winningCard()->suit() == m_trumpSuit
-                && player->canBeat(*trick.winningCard(), TrumpRanks))
+            } else if (trick->winningCard()->suit() == m_trumpSuit
+                && player->canBeat(*trick->winningCard(), TrumpRanks))
             {
                 // Player must overtrump his opponent
-                minRanks[m_trumpSuit] = trick.winningCard()->rank();
+                minRanks[m_trumpSuit] = trick->winningCard()->rank();
             } else {
                 // Player may play any trump
                 minRanks[m_trumpSuit] = TrumpRanks.last();

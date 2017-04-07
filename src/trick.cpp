@@ -29,10 +29,9 @@ const CardSet::SortingMap Trick::s_bonusSortingMap {
     {Card::Suit::Clubs, BonusRanks}
 };
 
-Trick::Trick(Card::Suit trumpSuit)
-    : m_trumpSuit(trumpSuit)
-    , m_order(PlainRanks)
-    , m_values(PlainValues)
+Trick::Trick(Card::Suit trumpSuit, QObject* parent)
+    : QObject(parent)
+    , m_trumpSuit(trumpSuit)
     , m_points(0)
     , m_winner(nullptr)
 {
@@ -73,7 +72,6 @@ const QVector<Player*> Trick::players() const
 {
     return m_players;
 }
-
 
 /* Return total points for current trick including any bonus points.
  *

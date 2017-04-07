@@ -22,7 +22,6 @@
 
 #include "rules.h"
 #include "cardset.h"
-#include "trick.h"
 
 #include <QObject>
 #include <QVector>
@@ -35,6 +34,7 @@ Q_DECLARE_LOGGING_CATEGORY(klaverjasGame)
 
 class Player;
 class Team;
+class Trick;
 
 class Game : public QObject
 {
@@ -75,8 +75,8 @@ private:
     void deal();
     void proposeBid();
     void setContract(const Card::Suit suit, const Player* player);
-    Score scoreRound(const QVector<Trick> tricks) const;
-    const QVector<Card> legalMoves(const Player* player, const Trick& trick) const;
+    Score scoreRound(const QVector<Trick*> tricks) const;
+    const QVector<Card> legalMoves(const Player* player, const Trick* trick) const;
 
     Player* nextPlayer(Player* player) const;
     void advancePlayer(Player*& player) const;
@@ -90,8 +90,8 @@ private:
     int m_round;
     int m_trick;
     bool m_awaitingTurn;
-    Trick m_currentTrick;
-    QVector<QVector<Trick>> m_tricks;
+    Trick* m_currentTrick;
+    QVector<QVector<Trick*>> m_tricks;
     QVector<Score> m_scores;
     QMap<Team*,QList<QVariant>> m_roundScores;
     QList<Player*> m_players;
