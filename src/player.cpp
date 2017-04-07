@@ -67,12 +67,6 @@ Team* Player::team() const
     return m_team;
 }
 
-void Player::removeCard(Card card)
-{
-    m_hand.remove(card);
-    emit handChanged();
-}
-
 bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
 {
     if (!m_hand.containsSuit(card.suit())) {
@@ -84,6 +78,16 @@ bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
         }
         return false;
     }
+}
+
+void Player::onSignal(Player*, const Trick::Signal, const Card::Suit)
+{
+}
+
+void Player::removeCard(Card card)
+{
+    m_hand.remove(card);
+    emit handChanged();
 }
 
 QDebug operator<<(QDebug dbg, const Player* player) {

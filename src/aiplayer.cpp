@@ -28,6 +28,12 @@ AiPlayer::AiPlayer(QString name, QObject* parent)
     connect(this, &AiPlayer::playRequested, this, &AiPlayer::requestTurn);
 }
 
+void AiPlayer::setHand(CardSet cards)
+{
+    Player::setHand(cards);
+    m_signals.clear();
+}
+
 void AiPlayer::requestTurn(const QVector< Card > legalMoves)
 {
     qCDebug(klaverjasAi) << "Player" << this << "cards" << m_hand;
@@ -124,4 +130,10 @@ QMap<Card::Suit,int> AiPlayer::handStrength(const QVector<Card::Suit> bidOptions
     }
     qCDebug(klaverjasAi) << "Strengths" << strengthMap;
     return strengthMap;
+}
+
+void AiPlayer::onSignal(Player* player, const Trick::Signal signal, const Card::Suit suit)
+{
+    if (player != this)
+        m_signals[player][suit] = signal;
 }

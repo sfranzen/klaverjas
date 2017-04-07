@@ -21,27 +21,41 @@
 #define AIPLAYER_H
 
 #include "player.h"
+#include "trick.h"
 
 #include <QObject>
 #include <QMap>
+#include <QVector>
 #include <QLoggingCategory>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasAi)
 
+/** AI Player class.
+ *
+ * This player takes note of the gameplay and is intended to make decisions
+ * similar to a human player.
+ */
 class AiPlayer : public Player
 {
     Q_OBJECT
+    typedef QMap<Player*,QMap<Card::Suit,Trick::Signal>> SignalMap;
+
 public:
     AiPlayer(QString name, QObject* parent = 0);
 
+    virtual void setHand(CardSet cards) override;
+
 public slots:
-    virtual void requestTurn(const QVector<Card> legalMoves);
+    virtual void onSignal(Player* player, const Trick::Signal signal, const Card::Suit suit) override;
 
 private slots:
     void selectBid(QVariantList options);
+    virtual void requestTurn(const QVector<Card> legalMoves);
 
 private:
     QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;
+
+    SignalMap m_signals;
 };
 
 #endif // AIPLAYER_H

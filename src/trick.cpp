@@ -47,6 +47,7 @@ void Trick::add(Player*& player, const Card& card)
 {
     m_cards << card;
     m_players << player;
+    connect(this, &Trick::playerSignal, player, &Player::onSignal);
     const Card::Suit suitPlayed = card.suit();
     m_points += suitPlayed == m_trumpSuit ? TrumpValues[card.rank()] : PlainValues[card.rank()];
     if (m_players.size() == 1) {
@@ -59,6 +60,29 @@ void Trick::add(Player*& player, const Card& card)
                 setWinner(player, card);
         } else if (suitPlayed == m_trumpSuit) {
             setWinner(player, card);
+        }
+    }
+
+    // Detect player signaling, which can only be done by the third or fourth
+    // player
+    const int count = m_players.size();
+    if (count > 2
+        && suitPlayed != m_suitLed
+        && suitPlayed != m_trumpSuit
+        && m_players.at(count - 3) == m_winner
+    ) {
+        Signal signal = Signal::None;
+        const auto rankPlayed = card.rank();
+        if (rankPlayed >= Card::Rank::Nine && rankPlayed <= Card::Rank::Seven)
+            signal = Signal::High;
+        else if (rankPlayed >= Card::Rank::King && rankPlayed <= Card::Rank::Jack)
+            signal = Signal::Low;
+        else if (rankPlayed == Card::Rank::Ace)
+            signal = Signal::Long;
+
+        if (signal != Signal::None) {
+            qCDebug(klaverjasTrick) << player << "potential signal" << signal << "in suit" << suitPlayed;
+            emit playerSignal(player, signal, suitPlayed);
         }
     }
 }

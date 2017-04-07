@@ -46,7 +46,7 @@ public:
     void setName(const QString& name);
 
     const CardSet& hand() const;
-    void setHand(CardSet cards);
+    virtual void setHand(CardSet cards);
 
     Team* team() const;
     void setTeam(Team* team);
@@ -58,6 +58,9 @@ signals:
     void handChanged();
     void playRequested(const QVector<Card> legalMoves);
     void cardPlayed(Card card);
+
+public slots:
+    virtual void onSignal(Player* player, const Trick::Signal signal, const Card::Suit suit);
 
 private slots:
     void removeCard(Card card);

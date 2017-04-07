@@ -27,6 +27,9 @@
 #include <QObject>
 #include <QVector>
 #include <QMap>
+#include <QLoggingCategory>
+
+Q_DECLARE_LOGGING_CATEGORY(klaverjasTrick)
 
 class Player;
 
@@ -52,7 +55,8 @@ public:
      * - Low: the partner has played a K, Q or J to signal that he has no
      *      valuable cards in that suit.
      */
-    enum class Signal { High, Long, Low };
+    enum class Signal { High, Long, Low, None };
+    Q_ENUM(Signal)
 
     void add(Player*& player, const Card& card);
     const CardSet* cards() const;
@@ -63,7 +67,7 @@ public:
     const Card* winningCard() const;
 
 signals:
-    void playerSignal(const Player* player, const Signal signal, const Card::Suit suit);
+    void playerSignal(Player* player, Signal signal, Card::Suit suit);
 
 private:
     void setWinner(Player* player, const Card& card);
