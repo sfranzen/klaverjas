@@ -53,6 +53,10 @@ public:
     QQmlListProperty<Player> players();
     QQmlListProperty<Team> teams();
     QVariantMap scores() const;
+    const Team* contractors() const;
+    const Team* defenders() const;
+    const CardSet& cardsInPlay() const;
+    const CardSet& cardsPlayed() const;
 
     enum Bid { Spades, Hearts, Diamonds, Clubs, Pass };
     Q_ENUM(Bid)
@@ -85,6 +89,8 @@ private:
     BidRule m_bidRule;
     Card::Suit m_trumpSuit;
     CardSet m_deck;
+    CardSet m_cardsInPlay;
+    CardSet m_cardsPlayed;
     bool m_biddingPhase;
     int m_bidCounter;
     int m_round;

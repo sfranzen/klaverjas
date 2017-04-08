@@ -73,6 +73,13 @@ void CardSet::remove(const Card& card)
     Q_ASSERT(removed);
 }
 
+void CardSet::clear()
+{
+    m_suitSets.clear();
+    m_suitCounts.clear();
+    QVector::clear();
+}
+
 bool CardSet::containsSuit(const Card::Suit suit) const
 {
     return m_suitSets.contains(suit) && !m_suitSets[suit].isEmpty();
@@ -149,6 +156,23 @@ int CardSet::score(const Card::Suit trumpSuit) const
             score += PlainValues[c.rank()];
     }
     return score;
+}
+
+Card::Rank CardSet::highestRank(const Card::Suit suit, const QVector< Card::Rank > order) const
+{
+    CardSet suitSet = m_suitSets.value(suit);
+    Card::Rank rank;
+    switch (suitSet.size()) {
+        case 0:
+            rank = order.last();
+            break;
+        default:
+            suitSet.suitSort(order);
+        case 1:
+            rank = suitSet.first().rank();
+            break;
+    }
+    return rank;
 }
 
 void CardSet::shuffle()

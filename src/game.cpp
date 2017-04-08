@@ -50,6 +50,7 @@ Game::Game(QObject* parent)
 
     for (int p = 0, t = 0; p < s_defaultPlayerNames.size(); ++p, t = p % 2) {
         Player* newPlayer = p == 0 ? new Player("You", this) : new AiPlayer(s_defaultPlayerNames[p], this);
+//         connect(newPlayer, &Player::cardPlayed, &m_cardsInPlay, &CardSet::remove);
         m_teams[t]->addPlayer(newPlayer);
         m_players.append(newPlayer);
     }
@@ -93,6 +94,26 @@ QQmlListProperty<Team> Game::teams()
     return QQmlListProperty<Team>(this, m_teams);
 }
 
+const Team* Game::contractors() const
+{
+    return m_contractors;
+}
+
+const Team* Game::defenders() const
+{
+    return m_defenders;
+}
+
+const CardSet& Game::cardsInPlay() const
+{
+    return m_cardsInPlay;
+}
+
+const CardSet& Game::cardsPlayed() const
+{
+    return m_cardsPlayed;
+}
+
 void Game::advance()
 {
     static QVector<Trick*> roundTricks;
@@ -110,6 +131,8 @@ void Game::advance()
         dealCards = false;
     }
     if (m_trick == 0 && turn == 0) {
+        m_cardsInPlay = m_deck;
+        m_cardsPlayed.clear();
         m_currentPlayer = m_eldest;
     }
     if (m_biddingPhase) {
@@ -125,7 +148,7 @@ void Game::advance()
             auto legalMoves = this->legalMoves(m_currentPlayer, m_currentTrick);
             m_awaitingTurn = true;
             connect(m_currentPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
-            emit m_currentPlayer->playRequested(legalMoves);
+            emit m_currentPlayer->moveRequested(legalMoves);
             ++turn;
         } else {
             turn = 0;
@@ -241,6 +264,8 @@ void Game::setContract(const Card::Suit suit, const Player* player)
 void Game::acceptTurn(Card card)
 {
     m_currentTrick->add(m_currentPlayer, card);
+    m_cardsInPlay.remove(card);
+    m_cardsPlayed.append(card);
     disconnect(m_currentPlayer, &Player::cardPlayed, this, &Game::acceptTurn);
     advancePlayer(m_currentPlayer);
     m_awaitingTurn = false;

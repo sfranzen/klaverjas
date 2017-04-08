@@ -85,7 +85,7 @@ void Player::onSignal(Player*, const Trick::Signal, const Card::Suit)
 {
 }
 
-void Player::removeCard(Card card)
+void Player::removeCard(const Card& card)
 {
     m_hand.remove(card);
     emit handChanged();

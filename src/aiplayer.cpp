@@ -18,14 +18,15 @@
  */
 
 #include "aiplayer.h"
+#include "team.h"
 
 #include <QTimer>
 
 AiPlayer::AiPlayer(QString name, Game* parent)
     : Player(name, parent)
 {
-    connect(this, &AiPlayer::bidRequested, this, &AiPlayer::selectBid);
-    connect(this, &AiPlayer::playRequested, this, &AiPlayer::requestTurn);
+    connect(this, &Player::bidRequested, this, &AiPlayer::selectBid);
+    connect(this, &Player::moveRequested, this, &AiPlayer::selectMove);
 }
 
 void AiPlayer::setHand(CardSet cards)
@@ -34,12 +35,36 @@ void AiPlayer::setHand(CardSet cards)
     m_signals.clear();
 }
 
-void AiPlayer::requestTurn(const QVector< Card > legalMoves)
+/* Select a move from the options provided.
+ *
+ * While the general objective is always to score points, the strategy for the
+ * contracting team is slightly different than that of the defenders. This is
+ * because trump cards are precious and the defending team can force you to
+ * dump these by exploiting lacking suits in your hand. Therefore the first
+ * priority of the contractors is to exploit their presumably stronger trump
+ * cards in order to limit the damage of forced trumping as well as exhaust the
+ * opponents' opportunities to do so.
+ *
+ * Apart from this, the strategy is the same:
+ * - Use high cards, preferably of a long suit
+ * - Try to make bonus combinations for own team, while trying to avoid this
+ *      on opponents' tricks
+ * - Try to keep an opportunity to secure the last trick for the extra points
+ */
+void AiPlayer::selectMove(const QVector< Card > legalMoves)
 {
     qCDebug(klaverjasAi) << "Player" << this << "cards" << m_hand;
     qCDebug(klaverjasAi) << "Legal moves: " << legalMoves;
+
+    if (m_game->contractors()->players().contains(this)) {
+    }
     Card move = legalMoves.first();
-    QTimer::singleShot(200, [this, move]{ emit cardPlayed(move); });
+    performMove(move);
+}
+
+void AiPlayer::performMove(Card& card, int msec)
+{
+    QTimer::singleShot(msec, [this, card]{ emit cardPlayed(card); });
 }
 
 /* Choose a bid from the options presented.

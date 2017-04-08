@@ -45,7 +45,6 @@ public:
     void append(const CardSet& set);
     CardSet& operator<<(const Card& card);
     CardSet& operator<<(const CardSet& set);
-    void remove(const Card& card);
 
     // Custom methods
     bool containsSuit(const Card::Suit suit) const;
@@ -54,9 +53,13 @@ public:
     QMap<Card::Suit,int> runLengths(const SortingMap sortingMap) const;
     QMap<Card::Suit,int> maxRunLengths(const SortingMap sortingMap) const;
     int score(Card::Suit trumpSuit) const;
+    Card::Rank highestRank(const Card::Suit suit, const QVector<Card::Rank> order) const;
+
     void shuffle();
     void sort(const QVector<Card::Rank> order, Card::Suit trumpSuit, bool trumpFirst = true);
     void sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder = Card::Suits);
+    void remove(const Card& card);
+    void clear();
 
 private:
     void suitSort(const QVector<Card::Rank> order);

@@ -30,7 +30,7 @@ ListView {
             }
             Connections {
                 target: player
-                onPlayRequested: {
+                onMoveRequested: {
                     mArea.enabled = true;
                     view.highlightItem.visible = true;
                 }

@@ -48,9 +48,13 @@ public:
 public slots:
     virtual void onSignal(Player* player, const Trick::Signal signal, const Card::Suit suit) override;
 
-private slots:
-    void selectBid(QVariantList options);
-    virtual void requestTurn(const QVector<Card> legalMoves);
+protected:
+    // Helper function that emits the card played signal after the given interval
+    void performMove(Card& card, int msec = 200);
+
+protected slots:
+    virtual void selectBid(QVariantList options);
+    virtual void selectMove(const QVector<Card> legalMoves);
 
 private:
     QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;
