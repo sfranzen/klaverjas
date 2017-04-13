@@ -21,57 +21,52 @@
 #define PLAYER_H
 
 #include "rules.h"
-#include "game.h"
+#include "card.h"
 #include "cardset.h"
-#include "trick.h"
+#include "game.h"
 
 #include <QObject>
 #include <QVector>
 #include <QMap>
-#include <QVariantList>
-#include <QList>
 
 class Team;
 
-class Player : public QObject
+class Player
 {
-    Q_OBJECT
-    Q_PROPERTY(CardSet hand READ hand NOTIFY handChanged)
+    Q_GADGET
     Q_PROPERTY(QString name READ name CONSTANT)
 
 public:
-    Player(QString name = "", Game* parent = 0);
+    Player(QString name = "", Game* game = nullptr);
+    virtual ~Player() = default;
+
+    virtual Card selectMove(const QVector<Card> legalMoves);
+    virtual Game::Bid selectBid(QVariantList options);
 
     const QString& name() const;
-    void setName(const QString& name);
+    virtual void setName(const QString& name);
 
-    const CardSet& hand() const;
+    CardSet hand();
     virtual void setHand(CardSet cards);
 
     Team* team() const;
-    void setTeam(Team* team);
+    virtual void setTeam(Team* team);
     bool canBeat(const Card& card, const QVector<Card::Rank> order) const;
 
-signals:
-    void bidRequested(QVariantList options);
-    void bidSelected(Game::Bid bid);
-    void handChanged();
-    void moveRequested(const QVector<Card> legalMoves);
-    void cardPlayed(Card card);
-
-public slots:
-    virtual void onSignal(Player* player, const Trick::Signal signal, const Card::Suit suit);
-
-private slots:
-    void removeCard(const Card& card);
+    virtual void removeCard(const Card& card);
 
 protected:
     QString m_name;
-    const Game* m_game;
+    Game* m_game;
     CardSet m_hand;
     Team* m_team;
+
+private:
+    QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;
 };
 
 QDebug operator<<(QDebug dbg, const Player* player);
+
+Q_DECLARE_METATYPE(Player)
 
 #endif // PLAYER_H

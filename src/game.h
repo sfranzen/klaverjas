@@ -22,6 +22,8 @@
 
 #include "rules.h"
 #include "cardset.h"
+#include "trick.h"
+#include "ismcts/solver.h"
 
 #include <QObject>
 #include <QVector>
@@ -33,54 +35,70 @@
 Q_DECLARE_LOGGING_CATEGORY(klaverjasGame)
 
 class Player;
+class HumanPlayer;
 class Team;
-class Trick;
 
 class Game : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int round READ round)
     Q_PROPERTY(Card::Suit trumpSuit READ trumpSuit NOTIFY trumpSuitChanged)
-    Q_PROPERTY(QQmlListProperty<Player> players READ players NOTIFY playersChanged)
+    Q_PROPERTY(QVariantList players READ players NOTIFY playersChanged)
+    Q_PROPERTY(HumanPlayer* humanPlayer READ humanPlayer CONSTANT)
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
     typedef QMap<Team*,int> Score;
 
 public:
-    Game(QObject* parent = 0);
+    Game(bool interactive = true, QObject* parent = 0);
 
     int round() const;
     Card::Suit trumpSuit() const;
-    QQmlListProperty<Player> players();
+    QVariantList players();
+    HumanPlayer* humanPlayer() const;
     QQmlListProperty<Team> teams();
     QVariantMap scores() const;
+    int currentPlayer() const;
+    int playerIndex(Player* player) const;
+    Player* playerAt(int index) const;
     const Team* contractors() const;
     const Team* defenders() const;
     const CardSet& cardsInPlay() const;
     const CardSet& cardsPlayed() const;
+    const QVector<Card> legalMoves() const;
+
+    // ISMCTS
+    // Return a copy of the game's state, but with the information that is
+    // hidden from the observer determinised.
+    Game* cloneAndRandomize(int observer) const;
+    // Return the outcome if the current game has not terminated, otherwise
+    // return -1.
+    int getResult(int playerIndex) const;
 
     enum Bid { Spades, Hearts, Diamonds, Clubs, Pass };
     Q_ENUM(Bid)
 
 signals:
+    void bidRequested(QVariantList options);
+    void moveRequested();
     void playersChanged();
     void scoresChanged();
     void teamsChanged();
     void newTrick();
+    void cardPlayed(int player, Card card);
     void trumpSuitChanged(Card::Suit newSuit);
 
 public slots:
     void advance();
+    void acceptBid(Bid bid);
+    Q_INVOKABLE void acceptMove(Card card);
 
 private slots:
-    void acceptBid(Bid bid);
-    void acceptTurn(Card card);
 
 private:
     void deal();
     void proposeBid();
     void setContract(const Card::Suit suit, const Player* player);
-    Score scoreRound(const QVector<Trick*> tricks) const;
-    const QVector<Card> legalMoves(const Player* player, const Trick* trick) const;
+    Score scoreRound(const QVector<Trick> tricks) const;
 
     Player* nextPlayer(Player* player) const;
     void advancePlayer(Player*& player) const;
@@ -91,13 +109,15 @@ private:
     CardSet m_deck;
     CardSet m_cardsInPlay;
     CardSet m_cardsPlayed;
+    bool m_interactive;
     bool m_biddingPhase;
+    bool m_waiting;
     int m_bidCounter;
     int m_round;
     int m_trick;
-    bool m_awaitingTurn;
-    Trick* m_currentTrick;
-    QVector<QVector<Trick*>> m_tricks;
+    int m_turn;
+    Trick m_currentTrick;
+    QVector<QVector<Trick>> m_tricks;
     QVector<Score> m_scores;
     QMap<Team*,QList<QVariant>> m_roundScores;
     QList<Player*> m_players;
@@ -107,6 +127,7 @@ private:
     Player* m_currentPlayer;
     Team* m_contractors;
     Team* m_defenders;
+    HumanPlayer* m_human;
 
     const static QStringList s_defaultPlayerNames;
 };

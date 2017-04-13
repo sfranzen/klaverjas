@@ -5,7 +5,7 @@ import org.kde.klaverjas 1.0
 
 Popup {
     id: root
-    default property Player player: game.players[0]
+    default property HumanPlayer player: game.humanPlayer
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     modal: true
@@ -36,14 +36,15 @@ Popup {
                         anchors.margins: 2
                     }
                     onClicked: {
-                        player.bidSelected(modelData);
+                        game.acceptBid(modelData);
                         root.close();
                     }
                 }
             }
             Connections {
-                target: player
+                target: game
                 onBidRequested: {
+                    console.log("request received");
                     optionList.model = options;
                     root.open();
                 }

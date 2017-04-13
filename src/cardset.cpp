@@ -33,7 +33,6 @@ QVariantList CardSet::cards()
     return list;
 }
 
-
 CardSet::CardSet(QVector<Card> cards)
 {
     for (const Card& c : cards)
@@ -71,6 +70,11 @@ void CardSet::remove(const Card& card)
     --m_suitCounts[card.suit()];
     const bool removed = removeOne(card);
     Q_ASSERT(removed);
+}
+
+void CardSet::remove(int i, int count)
+{
+    QVector::remove(i, count);
 }
 
 void CardSet::clear()

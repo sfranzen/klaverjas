@@ -59,6 +59,7 @@ public:
     void sort(const QVector<Card::Rank> order, Card::Suit trumpSuit, bool trumpFirst = true);
     void sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder = Card::Suits);
     void remove(const Card& card);
+    void remove(int i, int count);
     void clear();
 
 private:

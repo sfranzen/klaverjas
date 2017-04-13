@@ -42,8 +42,8 @@ Rectangle {
                 anchors.centerIn: parent
             }
             PlayerView {
+                player: game.humanPlayer
                 width: parent.width
-                player: game.players[0]
                 anchors.top: trick.bottom
                 anchors.left: parent.left
             }

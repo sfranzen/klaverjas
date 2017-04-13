@@ -66,6 +66,11 @@ QVariantList Team::scores()
     return newList;
 }
 
+int Team::score() const
+{
+    return std::accumulate(m_score.cbegin(), m_score.cend(), 0);
+}
+
 void Team::addPoints(const uint points)
 {
     m_score << points;

@@ -2,14 +2,17 @@ set(klaverjas_SRCS
     main.cpp
     klaverjaswindow.cpp
     game.cpp
+    gamestate.cpp
     rules.cpp
     card.cpp
     cardset.cpp
     trick.cpp
     player.cpp
-    aiplayer.cpp
+    humanplayer.cpp
     team.cpp
     cardimageprovider.cpp
+    ismcts/node.cpp
+    ismcts/solver.cpp
     qml/klaverjas.qrc
 )
 

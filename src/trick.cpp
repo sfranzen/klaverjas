@@ -29,9 +29,8 @@ const CardSet::SortingMap Trick::s_bonusSortingMap {
     {Card::Suit::Clubs, BonusRanks}
 };
 
-Trick::Trick(Card::Suit trumpSuit, QObject* parent)
-    : QObject(parent)
-    , m_trumpSuit(trumpSuit)
+Trick::Trick(Card::Suit trumpSuit)
+    : m_trumpSuit(trumpSuit)
     , m_points(0)
     , m_winner(nullptr)
 {
@@ -43,11 +42,10 @@ Trick::Trick(Card::Suit trumpSuit, QObject* parent)
  * The current card beats the previous one either if it follows suit and ranks
  * higher or if it is of a different suit and that suit is the trump suit.
  */
-void Trick::add(Player*& player, const Card& card)
+void Trick::add(Player* player, const Card& card)
 {
     m_cards << card;
     m_players << player;
-    connect(this, &Trick::playerSignal, player, &Player::onSignal);
     const Card::Suit suitPlayed = card.suit();
     m_points += suitPlayed == m_trumpSuit ? TrumpValues[card.rank()] : PlainValues[card.rank()];
     if (m_players.size() == 1) {
@@ -62,6 +60,7 @@ void Trick::add(Player*& player, const Card& card)
             setWinner(player, card);
         }
     }
+    return;
 
     // Detect player signaling, which can only be done by the third or fourth
     // player
@@ -82,7 +81,7 @@ void Trick::add(Player*& player, const Card& card)
 
         if (signal != Signal::None) {
             qCDebug(klaverjasTrick) << player << "potential signal" << signal << "in suit" << suitPlayed;
-            emit playerSignal(player, signal, suitPlayed);
+//             emit playerSignal(player, signal, suitPlayed);
         }
     }
 }

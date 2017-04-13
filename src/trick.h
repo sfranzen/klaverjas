@@ -33,11 +33,12 @@ Q_DECLARE_LOGGING_CATEGORY(klaverjasTrick)
 
 class Player;
 
-class Trick : public QObject
+class Trick
 {
-    Q_OBJECT
+    Q_GADGET
 public:
-    Trick(Card::Suit trumpSuit, QObject* parent = 0);
+    Trick() = default;
+    Trick(Card::Suit trumpSuit);
 
     /** Signal definitions
      *
@@ -58,7 +59,7 @@ public:
     enum class Signal { High, Long, Low, None };
     Q_ENUM(Signal)
 
-    void add(Player*& player, const Card& card);
+    void add(Player* player, const Card& card);
     const CardSet* cards() const;
     const QVector<Player*> players() const;
     int points() const;
@@ -66,8 +67,8 @@ public:
     Player* winner() const;
     const Card* winningCard() const;
 
-signals:
-    void playerSignal(Player* player, Signal signal, Card::Suit suit);
+// signals:
+//     void playerSignal(Player* player, Signal signal, Card::Suit suit);
 
 private:
     void setWinner(Player* player, const Card& card);

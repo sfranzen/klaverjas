@@ -44,6 +44,7 @@ public:
     void removePlayer(Player* p);
 
     QVariantList scores();
+    int score() const;
     void addPoints(const uint points);
     void resetScore();
 

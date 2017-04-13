@@ -40,9 +40,9 @@ KlaverjasWindow::KlaverjasWindow()
     m_klaverjasView->setSource(QUrl("qrc:/KlaverjasView.qml"));
     setCentralWidget(m_klaverjasView);
 
-    m_switchAction = actionCollection()->addAction(QStringLiteral("switch_action"), this, SLOT(slotSwitchColors()));
-    m_switchAction->setText(i18n("Switch Colors"));
-    m_switchAction->setIcon(QIcon::fromTheme(QStringLiteral("fill-color")));
+//     m_switchAction = actionCollection()->addAction(QStringLiteral("switch_action"), this, SLOT(slotSwitchColors()));
+//     m_switchAction->setText(i18n("Switch Colors"));
+//     m_switchAction->setIcon(QIcon::fromTheme(QStringLiteral("fill-color")));
 //     connect(m_switchAction, SIGNAL(triggered(bool)), m_klaverjasView, SLOT(slotSwitchColors()));
     KStandardAction::openNew(this, SLOT(fileNew()), actionCollection());
     KStandardAction::quit(qApp, SLOT(closeAllWindows()), actionCollection());

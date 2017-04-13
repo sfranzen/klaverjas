@@ -1,6 +1,7 @@
 
 import QtQuick 2.7
 import QtQuick.Controls 1.4
+import org.kde.klaverjas 1.0
 
 Item {
     height: rect.height + top.height + bottom.height
@@ -43,13 +44,11 @@ Item {
         delegate: CardImage {
             id: img
             Connections {
-                target: modelData
-                onCardPlayed: {
-                    img.card = card;
-                }
-            }
-            Connections {
                 target: game
+                onCardPlayed: {
+                    if (index == player)
+                        img.card = card;
+                }
                 onNewTrick: {
                     img.card = undefined;
                 }
