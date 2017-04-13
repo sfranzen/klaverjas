@@ -59,26 +59,26 @@ public:
     enum class Signal { High, Long, Low, None };
     Q_ENUM(Signal)
 
-    void add(Player* player, const Card& card);
+    void add(int player, const Card& card);
     const CardSet* cards() const;
-    const QVector<Player*> players() const;
+    const QVector<int> players() const;
     int points() const;
     Card::Suit suitLed() const;
-    Player* winner() const;
+    int winner() const;
     const Card* winningCard() const;
 
 // signals:
 //     void playerSignal(Player* player, Signal signal, Card::Suit suit);
 
 private:
-    void setWinner(Player* player, const Card& card);
+    void setWinner(int player, const Card& card);
 
     CardSet m_cards;
-    QVector<Player*> m_players;
+    QVector<int> m_players;
     Card::Suit m_trumpSuit;
     Card::Suit m_suitLed;
     int m_points;
-    Player* m_winner;
+    int m_winner;
     Card m_winningCard;
 
     const static CardSet::SortingMap s_bonusSortingMap;

@@ -32,7 +32,7 @@ const CardSet::SortingMap Trick::s_bonusSortingMap {
 Trick::Trick(Card::Suit trumpSuit)
     : m_trumpSuit(trumpSuit)
     , m_points(0)
-    , m_winner(nullptr)
+    , m_winner(-1)
 {
 }
 
@@ -42,7 +42,7 @@ Trick::Trick(Card::Suit trumpSuit)
  * The current card beats the previous one either if it follows suit and ranks
  * higher or if it is of a different suit and that suit is the trump suit.
  */
-void Trick::add(Player* player, const Card& card)
+void Trick::add(int player, const Card& card)
 {
     m_cards << card;
     m_players << player;
@@ -86,12 +86,12 @@ void Trick::add(Player* player, const Card& card)
     }
 }
 
-const CardSet * Trick::cards() const
+const CardSet* Trick::cards() const
 {
     return &m_cards;
 }
 
-const QVector<Player*> Trick::players() const
+const QVector<int> Trick::players() const
 {
     return m_players;
 }
@@ -148,14 +148,14 @@ Card::Suit Trick::suitLed() const
     return m_suitLed;
 }
 
-void Trick::setWinner(Player* player, const Card& card)
+void Trick::setWinner(int player, const Card& card)
 {
     m_winner = player;
     m_winningCard = card;
 }
 
 
-Player* Trick::winner() const
+int Trick::winner() const
 {
     return m_winner;
 }

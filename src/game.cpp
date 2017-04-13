@@ -162,6 +162,7 @@ Game* Game::cloneAndRandomize(int observer) const
     clone->m_turn = m_turn;
     clone->m_trumpSuit = m_trumpSuit;
     clone->m_cardsPlayed = m_cardsPlayed;
+    clone->m_currentTrick = m_currentTrick;
 
     // Current player
     const int pIdx = currentPlayer();
@@ -173,14 +174,6 @@ Game* Game::cloneAndRandomize(int observer) const
     const int cIdx = m_teams.indexOf(m_contractors);
     clone->m_contractors = clone->m_teams.at(cIdx);
     clone->m_defenders = clone->m_teams.at((cIdx + 1) % 2);
-
-    // Reassign trick
-    clone->m_currentTrick = Trick(m_trumpSuit);
-    for (int i = 0; i < m_currentTrick.players().size(); ++i) {
-        int p = playerIndex(m_currentTrick.players().at(i));
-        clone->m_currentTrick.add(clone->playerAt(p), m_currentTrick.cards()->at(i));
-    }
-    Q_ASSERT(m_currentTrick.points() == clone->m_currentTrick.points());
 
     // Randomly distribute the cards not known to the observer
     QVector<Card> seenCards;
@@ -350,7 +343,7 @@ void Game::acceptMove(Card card)
                 const int idx = m_players.indexOf(m_currentPlayer);
                 emit cardPlayed(idx, card);
             }
-            m_currentTrick.add(m_currentPlayer, card);
+            m_currentTrick.add(currentPlayer(), card);
             m_currentPlayer->removeCard(card);
 //             m_cardsInPlay.remove(card);
             m_cardsPlayed.append(card);
@@ -360,7 +353,7 @@ void Game::acceptMove(Card card)
             m_turn = 0;
             m_trick++;
             roundTricks << m_currentTrick;
-            m_currentPlayer = m_currentTrick.winner();
+            m_currentPlayer = playerAt(m_currentTrick.winner());
             qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
             qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
             m_currentTrick = Trick(m_trumpSuit);
@@ -397,10 +390,10 @@ Game::Score Game::scoreRound(const QVector<Trick> tricks) const
     for (Team* t : m_teams)
         newScore[t] = 0;
     for (const auto t : tricks) {
-        newScore[t.winner()->team()] += t.points();
+        newScore[playerAt(t.winner())->team()] += t.points();
         total += t.points();
     }
-    newScore[tricks.last().winner()->team()] += 10;
+    newScore[playerAt(tricks.last().winner())->team()] += 10;
     if (newScore[m_contractors] < total / 2 + 1) {
         newScore[m_contractors] = 0;
         newScore[m_defenders] = total;
@@ -438,7 +431,7 @@ const QVector<Card> Game::legalMoves() const
             // under Amsterdam rules if his partner is the current winner of
             // the trick.
             if (m_trumpRule == TrumpRule::Amsterdams
-                && m_currentPlayer->team()->players().contains(m_currentTrick.winner()))
+                && m_currentPlayer->team()->players().contains(playerAt(m_currentTrick.winner())))
             {
                 for (const Card::Suit suit : Card::Suits)
                     minRanks[suit] = suit == m_trumpSuit ? TrumpRanks.last() : PlainRanks.last();
