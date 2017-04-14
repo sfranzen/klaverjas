@@ -337,7 +337,6 @@ void Game::acceptMove(Card card)
         qCInfo(klaverjasGame) << "Game finished";
         return;
     }
-//     static QVector<Trick> roundTricks;
     if (m_trick < 8) {
         if (m_turn < 4) {
             m_turn++;
@@ -395,11 +394,20 @@ Game::Score Game::scoreRound(const QVector<Trick> tricks) const
     int total = 10;
     for (Team* t : m_teams)
         newScore[t] = 0;
+
+    // A "march" is achieved if all tricks are taken by a single team
+    Team* const first = playerAt(tricks.first().winner())->team();
+    bool march = true;
     for (const auto t : tricks) {
-        newScore[playerAt(t.winner())->team()] += t.points();
+        Team* winners = playerAt(t.winner())->team();
+        newScore[winners] += t.points();
         total += t.points();
+        if (march && winners != first)
+            march = false;
     }
     newScore[playerAt(tricks.last().winner())->team()] += 10;
+    if (march)
+        newScore[first] += 88;
     if (newScore[m_contractors] < total / 2 + 1) {
         newScore[m_contractors] = 0;
         newScore[m_defenders] = total;
