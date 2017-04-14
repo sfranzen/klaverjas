@@ -163,6 +163,7 @@ Game* Game::cloneAndRandomize(int observer) const
     clone->m_trumpSuit = m_trumpSuit;
     clone->m_cardsPlayed = m_cardsPlayed;
     clone->m_currentTrick = m_currentTrick;
+    clone->m_roundTricks = m_roundTricks;
 
     // Current player
     const int pIdx = currentPlayer();
@@ -174,6 +175,8 @@ Game* Game::cloneAndRandomize(int observer) const
     const int cIdx = m_teams.indexOf(m_contractors);
     clone->m_contractors = clone->m_teams.at(cIdx);
     clone->m_defenders = clone->m_teams.at((cIdx + 1) % 2);
+    for (int i = 0; i < m_teams.size(); ++i)
+        clone->m_teams[i]->addPoints(m_teams.at(i)->score());
 
     // Randomly distribute the cards not known to the observer
     QVector<Card> seenCards;
@@ -334,16 +337,15 @@ void Game::acceptMove(Card card)
         qCInfo(klaverjasGame) << "Game finished";
         return;
     }
-    static QVector<Trick> roundTricks;
+//     static QVector<Trick> roundTricks;
     if (m_trick < 8) {
         if (m_turn < 4) {
             m_turn++;
-            qCInfo(klaverjasGame) << m_currentPlayer << "played" << card;
-            if (m_interactive) {
-                const int idx = m_players.indexOf(m_currentPlayer);
-                emit cardPlayed(idx, card);
-            }
             m_currentTrick.add(currentPlayer(), card);
+            if (m_interactive) {
+                qCInfo(klaverjasGame) << m_currentPlayer << "played" << card;
+                emit cardPlayed(currentPlayer(), card);
+            }
             m_currentPlayer->removeCard(card);
 //             m_cardsInPlay.remove(card);
             m_cardsPlayed.append(card);
@@ -352,32 +354,36 @@ void Game::acceptMove(Card card)
         if (m_turn == 4) {
             m_turn = 0;
             m_trick++;
-            roundTricks << m_currentTrick;
+            m_roundTricks << m_currentTrick;
             m_currentPlayer = playerAt(m_currentTrick.winner());
-            qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
-            qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
+            if (m_interactive) {
+                qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
+                qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
+            }
             m_currentTrick = Trick(m_trumpSuit);
         }
     }
     if (m_trick == 8) {
         // One round (game) completed
-        m_tricks << roundTricks;
-        const auto score = scoreRound(roundTricks);
-        qCInfo(klaverjasGame) << "Round scores: " << score;
+        m_tricks << m_roundTricks;
+        const auto score = scoreRound(m_roundTricks);
+        if (m_interactive)
+            qCInfo(klaverjasGame) << "Round scores: " << score;
         for (Team* team : m_teams) {
             team->addPoints(score[team]);
         }
-        roundTricks.clear();
+        m_roundTricks.clear();
         m_trick = 0;
         m_turn = 0;
         m_round++;
+        advancePlayer(m_dealer);
+        advancePlayer(m_eldest);
+        m_currentPlayer = m_eldest;
+        // Set up for the next round only if we are interactive. Otherwise,
+        // stop advancing here to make the AI simulation terminate.
         if (m_interactive) {
             m_biddingPhase = true;
-            advancePlayer(m_dealer);
-            advancePlayer(m_eldest);
-            m_currentPlayer = m_eldest;
             deal();
-            proposeBid();
         }
     }
     m_waiting = false;

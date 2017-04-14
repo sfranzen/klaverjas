@@ -117,6 +117,7 @@ private:
     int m_trick;
     int m_turn;
     Trick m_currentTrick;
+    QVector<Trick> m_roundTricks;
     QVector<QVector<Trick>> m_tricks;
     QVector<Score> m_scores;
     QMap<Team*,QList<QVariant>> m_roundScores;
