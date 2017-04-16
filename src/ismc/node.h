@@ -46,30 +46,35 @@ class Game;
 class Node
 {
 public:
-    Node(const Card& move, Node* parent = nullptr, int playerJustMoved = -1);
+    Node(const Card move = Card(), Node* parent = nullptr, int playerJustMoved = -1);
 
     const Card& move() const;
     Node* parent() const;
-    QLinkedList<Node*> children() const;
+    QVector<Node> children() const;
     int visits() const;
 
-    Node* addChild(const Card& move, int playerJustMoved);
+    Node addChild(Card move, int player);
     void update(Game* terminalState);
     QVector<Card> untriedMoves(const QVector<Card> legalMoves) const;
     Node* ucbSelectChild(const QVector<Card> legalMoves, qreal exploration = 0.7);
 
+    bool operator==(const Node& other) const;
 private:
     qreal ucbScore(qreal exploration) const;
 
     Node* m_parent;
-    QLinkedList<Node*> m_children;
+    QVector<Node> m_children;
 
-    int m_score;
+    qreal m_score;
     int m_visits;
     int m_available;
 
     Card m_move;
     int m_playerJustMoved;
 };
+
+inline uint qHash(const Node &key, uint seed) {
+    return qHash(key.parent(), seed);
+}
 
 #endif // NODE_H

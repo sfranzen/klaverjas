@@ -106,7 +106,7 @@ Card Player::selectMove(const QVector<Card> legalMoves)
 
     //     if (m_game->contractors()->players().contains(this)) {
     //     }
-    Card move = ISMCSolver::treeSearch(m_game, 1000);
+    Card move = ISMCSolver::treeSearch(m_game, 2500);
 //     QThread::msleep(500);
 //     Card move = legalMoves.at(std::rand() % legalMoves.size());
     return move;

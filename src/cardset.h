@@ -56,16 +56,19 @@ public:
     Card::Rank highestRank(const Card::Suit suit, const QVector<Card::Rank> order) const;
 
     void shuffle();
-    void sort(const QVector<Card::Rank> order, Card::Suit trumpSuit, bool trumpFirst = true);
     void sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder = Card::Suits);
     void remove(const Card& card);
     void remove(int i, int count);
     void clear();
 
+    // In-place sort of a single suit vector of cards
+    static void sort(QVector<Card>& cards, const QVector< Card::Rank > order);
+
 private:
     void suitSort(const QVector<Card::Rank> order);
 
     QMap<Card::Suit,QVector<Card>> m_suitSets;
+
     QMap<Card::Suit,int> m_suitCounts;
 
 };

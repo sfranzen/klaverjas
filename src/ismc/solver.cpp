@@ -23,10 +23,14 @@
 #include "player.h"
 
 #include <QDebug>
+#include <QMultiHash>
 
 Card ISMCSolver::treeSearch(Game* rootState, int iterMax)
 {
     Node rootNode = Node(Card());
+    QMultiHash<Node,Node> tree;
+    tree.reserve(iterMax + 1);
+//     nodes << Node();
 
     for (int i = 0; i < iterMax; ++i) {
         Node* node = &rootNode;
@@ -52,7 +56,8 @@ Card ISMCSolver::treeSearch(Game* rootState, int iterMax)
             Card move = untriedMoves.at(std::rand() % untriedMoves.size());
             int player = state->currentPlayer();
             state->acceptMove(move);
-            node = node->addChild(move, player);
+            auto child = tree.insert(*node, Node(move, node, player));
+            node = &*child;
         }
 
         // Simulate
@@ -76,7 +81,8 @@ Card ISMCSolver::treeSearch(Game* rootState, int iterMax)
     }
 
     // Return move of most-visited child node
-    auto compareVisits = [](const Node* a, const Node* b){ return a->visits() < b->visits(); };
-    const auto mostVisited = *std::max_element(rootNode.children().cbegin(), rootNode.children().cend(), compareVisits);
-    return mostVisited->move();
+    auto compareVisits = [](const Node& a, const Node& b){ return a.visits() < b.visits(); };
+    auto rootList = tree.values(rootNode);
+    const auto mostVisited = *std::max_element(rootList.cbegin(), rootList.cend(), compareVisits);
+    return mostVisited.move();
 }

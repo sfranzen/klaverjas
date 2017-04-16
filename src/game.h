@@ -62,8 +62,7 @@ public:
     Player* playerAt(int index) const;
     const Team* contractors() const;
     const Team* defenders() const;
-    const CardSet& cardsInPlay() const;
-    const CardSet& cardsPlayed() const;
+    const QVector<Card> cardsPlayed() const;
     const QVector<Card> legalMoves() const;
 
     // ISMCTS
@@ -72,7 +71,7 @@ public:
     Game* cloneAndRandomize(int observer) const;
     // Return the outcome if the current game has not terminated, otherwise
     // return -1.
-    int getResult(int playerIndex) const;
+    qreal getResult(int playerIndex) const;
 
     enum Bid { Spades, Hearts, Diamonds, Clubs, Pass };
     Q_ENUM(Bid)
@@ -106,9 +105,8 @@ private:
     TrumpRule m_trumpRule;
     BidRule m_bidRule;
     Card::Suit m_trumpSuit;
-    CardSet m_deck;
-    CardSet m_cardsInPlay;
-    CardSet m_cardsPlayed;
+    QVector<Card> m_deck;
+    QVector<Card> m_cardsPlayed;
     bool m_interactive;
     bool m_biddingPhase;
     bool m_waiting;

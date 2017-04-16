@@ -22,7 +22,7 @@
 
 #include <math.h>
 
-Node::Node(const Card& move, Node* parent, int playerJustMoved)
+Node::Node(const Card move, Node* parent, int playerJustMoved)
     : m_parent(parent)
     , m_score(0)
     , m_visits(0)
@@ -42,7 +42,7 @@ Node* Node::parent() const
     return m_parent;
 }
 
-QLinkedList< Node* > Node::children() const
+QVector<Node> Node::children() const
 {
     return m_children;
 }
@@ -52,9 +52,9 @@ int Node::visits() const
     return m_visits;
 }
 
-Node* Node::addChild(const Card& move, int playerJustMoved)
+Node Node::addChild(Card move, int player)
 {
-    Node* child = new Node(move, this, playerJustMoved);
+    Node child = Node(move, this, player);
     m_children << child;
     return child;
 }
@@ -70,7 +70,7 @@ QVector<Card> Node::untriedMoves(const QVector<Card> legalMoves) const
 {
     QVector<Card> tried, untried;
     for (auto node = m_children.cbegin(); node != m_children.cend(); ++node)
-        tried << (*node)->m_move;
+        tried << node->m_move;
     for (auto move = legalMoves.cbegin(); move != legalMoves.cend(); ++move)
         if (!tried.contains(*move))
             untried << *move;
@@ -81,9 +81,9 @@ Node* Node::ucbSelectChild(const QVector<Card> legalMoves, qreal exploration)
 {
     QVector<Node*> legalChildren;
     for (auto node = m_children.begin(); node != m_children.end(); ++node) {
-        if (legalMoves.contains((*node)->m_move)) {
-            legalChildren << *node;
-            (*node)->m_available++;
+        if (legalMoves.contains(node->m_move)) {
+            legalChildren << node;
+            node->m_available++;
         }
     }
     auto compare = [exploration](const Node* a, const Node* b){ return a->ucbScore(exploration) < b->ucbScore(exploration); };
@@ -93,4 +93,11 @@ Node* Node::ucbSelectChild(const QVector<Card> legalMoves, qreal exploration)
 qreal Node::ucbScore(qreal exploration) const
 {
     return qreal(m_score)/qreal(m_visits) + exploration * std::sqrt(std::log(m_available) / qreal(m_visits));
+}
+
+bool Node::operator==(const Node& other) const
+{
+    return m_parent == other.m_parent
+        && m_move == other.m_move
+        && m_playerJustMoved == other.m_playerJustMoved;
 }

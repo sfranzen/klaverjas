@@ -74,13 +74,9 @@ Game::Game(bool interactive, QObject* parent)
     m_currentPlayer = m_eldest;
 
     deal();
-    m_biddingPhase = true;
 
-
-    if (!m_interactive) {
-//         m_biddingPhase = true;
-        proposeBid();
-    }
+    if (m_interactive)
+        m_biddingPhase = true;
 }
 
 int Game::round() const
@@ -144,12 +140,7 @@ const Team* Game::defenders() const
     return m_defenders;
 }
 
-const CardSet& Game::cardsInPlay() const
-{
-    return m_cardsInPlay;
-}
-
-const CardSet& Game::cardsPlayed() const
+const QVector<Card> Game::cardsPlayed() const
 {
     return m_cardsPlayed;
 }
@@ -179,14 +170,13 @@ Game* Game::cloneAndRandomize(int observer) const
         clone->m_teams[i]->addPoints(m_teams.at(i)->score());
 
     // Randomly distribute the cards not known to the observer
-    QVector<Card> seenCards;
-    CardSet unseenCards;
+    QVector<Card> seenCards, unseenCards;
     seenCards << playerAt(observer)->hand();
     seenCards << m_cardsPlayed;
     for (auto card = m_deck.cbegin(); card != m_deck.cend(); ++card)
         if (!seenCards.contains(*card))
             unseenCards << *card;
-    unseenCards.shuffle();
+    std::random_shuffle(unseenCards.begin(), unseenCards.end());
     for (int i = 0; i < m_players.size(); ++i) {
         Player* player = clone->m_players.at(i);
         if (i == observer) {
@@ -200,11 +190,12 @@ Game* Game::cloneAndRandomize(int observer) const
     return clone;
 }
 
-int Game::getResult(int playerIndex) const
+qreal Game::getResult(int playerIndex) const
 {
-    int result = -1;
-    if (true)
-        result = m_players.at(playerIndex)->team()->score();
+    qreal result = -1;
+    if (m_roundTricks.isEmpty())
+        result = playerAt(playerIndex)->team()->score() /
+            (m_teams.first()->score() + m_teams.last()->score());
     return result;
 }
 
@@ -238,8 +229,7 @@ void Game::advance()
 
 void Game::deal()
 {
-    m_deck.shuffle();
-    m_cardsInPlay = m_deck;
+    std::random_shuffle(m_deck.begin(), m_deck.end());
     m_cardsPlayed.clear();
     for (int i = 0; i < m_players.size(); ++i)
         m_players[i]->setHand(m_deck.mid(i*8, 8));
@@ -400,8 +390,9 @@ Game::Score Game::scoreRound(const QVector<Trick> tricks) const
     bool march = true;
     for (const auto t : tricks) {
         Team* winners = playerAt(t.winner())->team();
-        newScore[winners] += t.points();
-        total += t.points();
+        const int points = t.points();
+        newScore[winners] += points;
+        total += points;
         if (march && winners != first)
             march = false;
     }
@@ -467,13 +458,13 @@ const QVector<Card> Game::legalMoves() const
 
     // Compile the list of moves
     const auto suitSets = m_currentPlayer->hand().suitSets();
-    for (auto set = suitSets.constBegin(); set != suitSets.constEnd(); ++set) {
+    for (auto set = suitSets.cbegin(); set != suitSets.cend(); ++set) {
         Card::Suit suit = set.key();
         QVector<Card::Rank> order = suit == m_trumpSuit ? TrumpRanks : PlainRanks;
         if (minRanks.contains(suit)) {
-            for (const Card& c : *set) {
-                if (rankDifference(c.rank(), minRanks[suit], order) >= 0)
-                    moves << c;
+            for (auto c = set.value().cbegin(); c != set.value().cend(); ++c) {
+                if (rankDifference(c->rank(), minRanks[suit], order) >= 0)
+                    moves << *c;
             }
         }
     }

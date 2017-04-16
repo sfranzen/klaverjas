@@ -35,14 +35,17 @@ QVariantList CardSet::cards()
 
 CardSet::CardSet(QVector<Card> cards)
 {
-    for (const Card& c : cards)
-        append(c);
+    QVector::append(cards);
+    for (auto c = cards.cbegin(); c != cards.cend(); ++c) {
+        m_suitSets[c->suit()] << *c;
+        m_suitCounts[c->suit()]++;
+    }
 }
 
 void CardSet::append(const Card& card)
 {
     QVector::append(card);
-    m_suitSets[card.suit()].append(card);
+    m_suitSets[card.suit()] << card;
     ++m_suitCounts[card.suit()];
 }
 
@@ -110,15 +113,15 @@ QMap<Card::Suit,int> CardSet::runLengths(const SortingMap sortingMap) const
 
     for (auto set = m_suitSets.constBegin(); set != m_suitSets.constEnd(); ++set) {
         Card::Suit suit = set.key();
-        CardSet cards = set.value();
+        QVector<Card> cards = set.value();
         runLengths[suit] = 0;
 
         const auto order = sortingMap.value(suit);
         auto rank = order.constBegin();
-        cards.suitSort(order);
+        sort(cards, order);
 
         for (auto card = cards.constBegin(); card != cards.constEnd(); ++card, ++rank) {
-            if ((*card).rank() == *rank)
+            if (card->rank() == *rank)
                 ++runLengths[suit];
             else
                 break;
@@ -133,10 +136,10 @@ QMap<Card::Suit,int> CardSet::maxRunLengths(const SortingMap sortingMap) const
 
     for (auto set = m_suitSets.constBegin(); set != m_suitSets.constEnd(); ++set) {
         Card::Suit suit = set.key();
-        CardSet cards = set.value();
+        QVector<Card> cards = set.value();
 
         auto order = sortingMap[suit];
-        cards.suitSort(order);
+        sort(cards, order);
         int currentLength = 1;
 
         for (auto c = cards.constBegin(); c < cards.constEnd() - 1; ++c) {
@@ -164,14 +167,14 @@ int CardSet::score(const Card::Suit trumpSuit) const
 
 Card::Rank CardSet::highestRank(const Card::Suit suit, const QVector< Card::Rank > order) const
 {
-    CardSet suitSet = m_suitSets.value(suit);
+    QVector<Card> suitSet = m_suitSets.value(suit);
     Card::Rank rank;
     switch (suitSet.size()) {
         case 0:
             rank = order.last();
             break;
         default:
-            suitSet.suitSort(order);
+            sort(suitSet, order);
         case 1:
             rank = suitSet.first().rank();
             break;
@@ -182,25 +185,6 @@ Card::Rank CardSet::highestRank(const Card::Suit suit, const QVector< Card::Rank
 void CardSet::shuffle()
 {
     std::random_shuffle(begin(), end());
-}
-
-void CardSet::sort(const QVector<Card::Rank> order, Card::Suit trumpSuit, bool trumpFirst)
-{
-    CardSet sorted, set;
-    QQueue<Card::Suit> suitOrder;
-
-    suitOrder.enqueue(trumpFirst ? trumpSuit : Card::Suits.first());
-    for (Card::Suit s : Card::Suits)
-        if (s != suitOrder.first())
-            suitOrder.enqueue(s);
-
-    while (!suitOrder.isEmpty()) {
-        Card::Suit current = suitOrder.dequeue();
-        set = m_suitSets.value(current);
-        set.suitSort(order);
-        sorted.append(set);
-    }
-    swap(sorted);
 }
 
 void CardSet::sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder)
@@ -218,4 +202,10 @@ void CardSet::suitSort(const QVector<Card::Rank> order)
 {
     const auto compare = [&] (const Card& card1, const Card& card2) { return card1.beats(card2, order); };
     std::sort(begin(), end(), compare);
+}
+
+void CardSet::sort(QVector< Card >& cards, const QVector< Card::Rank > order)
+{
+    const auto compare = [&order] (const Card& card1, const Card& card2) { return card1.beats(card2, order); };
+    return std::sort(cards.begin(), cards.end(), compare);
 }

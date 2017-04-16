@@ -113,13 +113,15 @@ int Trick::points() const
     const int maxLength = *std::max_element(suitLengthMap.constBegin(), suitLengthMap.constEnd());
 
     if (maxLength == 1) {
-        const Card::Rank rank = sets.first().first().rank();
+        auto iSet = sets.cbegin();
+        const Card::Rank rank = iSet.value().first().rank();
         bool sameRank = true;
-        for (const auto cards : sets) {
-            if (cards.first().rank() != rank) {
+        while (iSet != sets.cend()) {
+            if (iSet.value().first().rank() != rank) {
                 sameRank = false;
                 break;
             }
+            ++iSet;
         }
         if (sameRank)
             total += rank == Card::Rank::Jack ? 200 : 100;
@@ -128,10 +130,9 @@ int Trick::points() const
         for (auto set = sets.constBegin(); set != sets.constEnd(); ++set) {
             const Card::Suit suit = set.key();
             const int length = maxRunMap[suit];
-            const QVector<Card>* cards = &set.value();
             if (length >= 2
-                && cards->contains(Card(m_trumpSuit, Card::Rank::King))
-                && cards->contains(Card(m_trumpSuit, Card::Rank::Queen))) {
+                && m_cards.contains(Card(m_trumpSuit, Card::Rank::King))
+                && m_cards.contains(Card(m_trumpSuit, Card::Rank::Queen))) {
                 total += 20;
             }
             if (length == 3)
