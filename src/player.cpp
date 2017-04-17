@@ -18,7 +18,7 @@
  */
 
 #include "player.h"
-#include "ismcts/solver.h"
+#include "ismc/solver.h"
 
 #include <QDebug>
 #include <QLoggingCategory>
@@ -81,35 +81,6 @@ bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
 void Player::removeCard(const Card& card)
 {
     m_hand.remove(card);
-}
-
-/* Select a move from the options provided.
- *
- * While the general objective is always to score points, the strategy for the
- * contracting team is slightly different than that of the defenders. This is
- * because trump cards are precious and the defending team can force you to
- * dump these by exploiting lacking suits in your hand. Therefore the first
- * priority of the contractors is to exploit their presumably stronger trump
- * cards in order to limit the damage of forced trumping as well as exhaust the
- * opponents' opportunities to do so.
- *
- * Apart from this, the strategy is the same:
- * - Use high cards, preferably of a long suit
- * - Try to make bonus combinations for own team, while trying to avoid this
- *      on opponents' tricks
- * - Try to keep an opportunity to secure the last trick for the extra points
- */
-Card Player::selectMove(const QVector<Card> legalMoves)
-{
-    qCDebug(klaverjasPlayer) << "Player" << this << "cards" << m_hand;
-    qCDebug(klaverjasPlayer) << "Legal moves: " << legalMoves;
-
-    //     if (m_game->contractors()->players().contains(this)) {
-    //     }
-    Card move = ISMCSolver::treeSearch(m_game, 2500);
-//     QThread::msleep(500);
-//     Card move = legalMoves.at(std::rand() % legalMoves.size());
-    return move;
 }
 
 /* Choose a bid from the options presented.

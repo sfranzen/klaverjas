@@ -11,8 +11,8 @@ set(klaverjas_SRCS
     humanplayer.cpp
     team.cpp
     cardimageprovider.cpp
-    ismcts/node.cpp
-    ismcts/solver.cpp
+    ismc/node.cpp
+    ismc/solver.cpp
     qml/klaverjas.qrc
 )
 

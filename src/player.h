@@ -40,7 +40,6 @@ public:
     Player(QString name = "", Game* game = nullptr);
     virtual ~Player() = default;
 
-    virtual Card selectMove(const QVector<Card> legalMoves);
     virtual Game::Bid selectBid(QVariantList options);
 
     const QString& name() const;

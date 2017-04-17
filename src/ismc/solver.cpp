@@ -18,22 +18,23 @@
  */
 
 #include "solver.h"
-#include "node.h"
 #include "game.h"
 #include "player.h"
 
 #include <QDebug>
-#include <QMultiHash>
 
-Card ISMCSolver::treeSearch(Game* rootState, int iterMax)
+ISMC::Solver::Solver(int iterMax, QObject* parent)
+    : QObject(parent)
+    , m_iterMax(iterMax)
+    , m_root(Node())
 {
-    Node rootNode = Node(Card());
-    QMultiHash<Node,Node> tree;
-    tree.reserve(iterMax + 1);
-//     nodes << Node();
+    m_tree.reserve(iterMax);
+}
 
-    for (int i = 0; i < iterMax; ++i) {
-        Node* node = &rootNode;
+Card ISMC::Solver::treeSearch(Game* rootState)
+{
+    for (int i = 0; i < m_iterMax; ++i) {
+        Node* node = &m_root;
 
         // Determinize
         Game* state = rootState->cloneAndRandomize(rootState->currentPlayer());
@@ -56,8 +57,7 @@ Card ISMCSolver::treeSearch(Game* rootState, int iterMax)
             Card move = untriedMoves.at(std::rand() % untriedMoves.size());
             int player = state->currentPlayer();
             state->acceptMove(move);
-            auto child = tree.insert(*node, Node(move, node, player));
-            node = &*child;
+            node = &*m_tree.insert(*node, Node(move, node, player));
         }
 
         // Simulate
@@ -82,7 +82,7 @@ Card ISMCSolver::treeSearch(Game* rootState, int iterMax)
 
     // Return move of most-visited child node
     auto compareVisits = [](const Node& a, const Node& b){ return a.visits() < b.visits(); };
-    auto rootList = tree.values(rootNode);
+    auto rootList = m_tree.values(m_root);
     const auto mostVisited = *std::max_element(rootList.cbegin(), rootList.cend(), compareVisits);
     return mostVisited.move();
 }

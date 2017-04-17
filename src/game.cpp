@@ -194,8 +194,7 @@ qreal Game::getResult(int playerIndex) const
 {
     qreal result = -1;
     if (m_roundTricks.isEmpty())
-        result = playerAt(playerIndex)->team()->score() /
-            (m_teams.first()->score() + m_teams.last()->score());
+        result = playerAt(playerIndex)->team()->score() / 162.0;
     return result;
 }
 
@@ -217,12 +216,12 @@ void Game::advance()
         if (m_currentTrick.players().isEmpty()) {
             emit newTrick();
             while (m_currentPlayer != m_human) {
-                acceptMove(m_currentPlayer->selectMove(legalMoves()));
+                acceptMove(m_solver.treeSearch(this));
             }
             emit moveRequested();
         } else {
             while (!m_currentTrick.players().isEmpty())
-                acceptMove(m_currentPlayer->selectMove(legalMoves()));
+                acceptMove(m_solver.treeSearch(this));
         }
     }
 }

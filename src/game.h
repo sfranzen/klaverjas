@@ -23,7 +23,7 @@
 #include "rules.h"
 #include "cardset.h"
 #include "trick.h"
-#include "ismcts/solver.h"
+#include "ismc/solver.h"
 
 #include <QObject>
 #include <QVector>
@@ -127,6 +127,7 @@ private:
     Team* m_contractors;
     Team* m_defenders;
     HumanPlayer* m_human;
+    ISMC::Solver m_solver;
 
     const static QStringList s_defaultPlayerNames;
 };
