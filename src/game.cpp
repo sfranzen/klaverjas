@@ -212,12 +212,12 @@ void Game::advance()
     if (m_biddingPhase)
         proposeBid();
     else {
-        m_waiting = true;
         if (m_currentTrick.players().isEmpty()) {
             emit newTrick();
             while (m_currentPlayer != m_human) {
                 acceptMove(m_solver.treeSearch(this));
             }
+            m_waiting = true;
             emit moveRequested();
         } else {
             while (!m_currentTrick.players().isEmpty())
