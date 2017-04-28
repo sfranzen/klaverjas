@@ -293,13 +293,13 @@ void Game::proposeBid()
     qCDebug(klaverjasGame) << "Requesting a bid";
     m_waiting = true;
     emit bidRequested(options, m_currentPlayer);
-
 }
 
 void Game::acceptBid(Game::Bid bid)
 {
     if (!m_biddingPhase)
         return;
+    disconnect(this, &Game::bidRequested, 0, 0);
     if (bid == Bid::Pass) {
         if (m_interactive)
             qCInfo(klaverjasGame) << "Player" << m_currentPlayer << "passed";
@@ -315,7 +315,6 @@ void Game::acceptBid(Game::Bid bid)
         m_currentTrick = Trick(m_trumpSuit);
         emit newTrick();
     }
-    disconnect(this, &Game::bidRequested, 0, 0);
     m_waiting = false;
 }
 
