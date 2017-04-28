@@ -24,7 +24,7 @@
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
 
-HumanPlayer::HumanPlayer(QString name, Game* parent)
-    : Player(name, parent)
+void HumanPlayer::selectBid(QVariantList options)
 {
+    Q_UNUSED(options)
 }

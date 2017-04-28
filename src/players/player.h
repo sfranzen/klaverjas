@@ -58,12 +58,11 @@ signals:
     void handChanged();
 
 public slots:
-    void removeCard(const Card& card);
-    virtual void selectBid(QVariantList options);
+    virtual void selectBid(QVariantList options) = 0;
+    virtual void removeCard(const Card& card);
 
 protected:
     QString m_name;
-    Game* m_game;
     CardSet m_hand;
     Team* m_team;
 };

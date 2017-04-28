@@ -33,7 +33,8 @@ class Game;
 class AiPlayer : public Player
 {
 public:
-    AiPlayer(QString name = "", Game* game = nullptr);
+    using Player::Player;
+
     void selectBid(QVariantList options) override;
 
 private:

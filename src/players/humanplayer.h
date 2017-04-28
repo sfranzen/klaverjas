@@ -30,8 +30,9 @@ class HumanPlayer : public Player
     Q_OBJECT
 
 public:
-    HumanPlayer(QString name = "", Game* parent = 0);
+    using Player::Player;
 
+    void selectBid(QVariantList options) override;
 };
 
 #endif // HUMANPLAYER_H

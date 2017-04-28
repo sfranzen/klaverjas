@@ -67,13 +67,13 @@ int main(int argc, char **argv)
     KAboutData::setApplicationData(aboutData);
 
     qRegisterMetaType<CardSet>("CardSet");
-    qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Enum/property access only.");
-    qmlRegisterUncreatableType<Game>("org.kde.klaverjas", 1, 0, "Game", "For Enum access.");
     qRegisterMetaType<Game::Bid>("Bid");
     qRegisterMetaType<Card::Suit>("Suit");
-    qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
-    qmlRegisterType<Player>("org.kde.klaverjas", 1, 0, "Player");
+    qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Enum/property access only.");
+    qmlRegisterUncreatableType<Game>("org.kde.klaverjas", 1, 0, "Game", "Enum/property access only.");
+    qmlRegisterUncreatableType<Player>("org.kde.klaverjas", 1, 0, "Player", "Abstract class.");
     qmlRegisterType<HumanPlayer>("org.kde.klaverjas", 1, 0, "HumanPlayer");
+    qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
 
     QLoggingCategory::setFilterRules("*.debug=false\n"
                                         "qml=true"
