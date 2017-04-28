@@ -28,7 +28,8 @@
 Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
 
 Player::Player(QString name, Game* game)
-    : m_name(name)
+    : QObject(game)
+    , m_name(name)
     , m_game(game)
     , m_team(nullptr)
 {

@@ -24,7 +24,7 @@
 
 #include <QObject>
 
-class HumanPlayer : public QObject, public Player
+class HumanPlayer : public Player
 {
     Q_OBJECT
     Q_PROPERTY(CardSet hand READ hand NOTIFY handChanged)

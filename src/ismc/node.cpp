@@ -42,7 +42,7 @@ Node* Node::parent() const
     return m_parent;
 }
 
-QVector<Node> Node::children() const
+const QVector<std::shared_ptr<Node>>& Node::children() const
 {
     return m_children;
 }
@@ -52,11 +52,15 @@ int Node::visits() const
     return m_visits;
 }
 
-Node Node::addChild(Card move, int player)
+Node* Node::addChild(Card move, int player)
 {
-    Node child = Node(move, this, player);
-    m_children << child;
-    return child;
+    m_children << std::make_shared<Node>(move, this, player);
+    return m_children.last().get();
+}
+
+void Node::incrementAvailable()
+{
+    m_available++;
 }
 
 void Node::update(Game* terminalState)
@@ -70,7 +74,7 @@ QVector<Card> Node::untriedMoves(const QVector<Card> legalMoves) const
 {
     QVector<Card> tried, untried;
     for (auto node = m_children.cbegin(); node != m_children.cend(); ++node)
-        tried << node->m_move;
+        tried << (*node)->m_move;
     for (auto move = legalMoves.cbegin(); move != legalMoves.cend(); ++move)
         if (!tried.contains(*move))
             untried << *move;
@@ -79,14 +83,15 @@ QVector<Card> Node::untriedMoves(const QVector<Card> legalMoves) const
 
 Node* Node::ucbSelectChild(const QVector<Card> legalMoves, qreal exploration)
 {
+    static auto compare = [exploration](const Node* a, const Node* b){ return a->ucbScore(exploration) < b->ucbScore(exploration); };
+
     QVector<Node*> legalChildren;
     for (auto node = m_children.begin(); node != m_children.end(); ++node) {
-        if (legalMoves.contains(node->m_move)) {
-            legalChildren << node;
-            node->m_available++;
+        if (legalMoves.contains((*node)->m_move)) {
+            legalChildren << node->get();
+            (*node)->m_available++;
         }
     }
-    auto compare = [exploration](const Node* a, const Node* b){ return a->ucbScore(exploration) < b->ucbScore(exploration); };
     return *std::max_element(legalChildren.cbegin(), legalChildren.cend(), compare);
 }
 

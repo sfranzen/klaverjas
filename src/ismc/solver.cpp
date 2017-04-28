@@ -22,67 +22,84 @@
 #include "player.h"
 
 #include <QDebug>
+#include <QtConcurrent>
+#include <QFutureSynchronizer>
 
 ISMC::Solver::Solver(int iterMax, QObject* parent)
     : QObject(parent)
     , m_iterMax(iterMax)
     , m_root(Node())
 {
-    m_tree.reserve(iterMax);
 }
 
 Card ISMC::Solver::treeSearch(Game* rootState)
 {
+    QFutureSynchronizer<void> sync;
+    Node rootNode = Node();
+
     for (int i = 0; i < m_iterMax; ++i) {
-        Node* node = &m_root;
-
-        // Determinize
-        Game* state = rootState->cloneAndRandomize(rootState->currentPlayer());
-
-        // Select
-        bool selected = false;
-        while (!selected) {
-            auto legalMoves = state->legalMoves();
-            if (!legalMoves.isEmpty() && node->untriedMoves(legalMoves).isEmpty()) {
-                node = node->ucbSelectChild(legalMoves);
-                state->acceptMove(node->move());
-            } else {
-                selected = true;
-            }
-        }
-
-        // Expand
-        const auto untriedMoves = node->untriedMoves(state->legalMoves());
-        if (!untriedMoves.isEmpty()) {
-            Card move = untriedMoves.at(std::rand() % untriedMoves.size());
-            int player = state->currentPlayer();
-            state->acceptMove(move);
-            node = &*m_tree.insert(*node, Node(move, node, player));
-        }
-
-        // Simulate
-        bool terminal = false;
-        while (!terminal) {
-            const auto moves = state->legalMoves();
-            if (!moves.isEmpty()) {
-                Card move = moves.at(std::rand() % moves.size());
-                state->acceptMove(move);
-            } else {
-                terminal = true;
-            }
-        }
-
-        // Backpropagate
-        while (node) {
-            node->update(state);
-            node = node->parent();
-        }
-        delete state;
+        sync.addFuture(QtConcurrent::run(&*this, &Solver::search, &rootNode, rootState));
     }
+    sync.waitForFinished();
 
     // Return move of most-visited child node
-    auto compareVisits = [](const Node& a, const Node& b){ return a.visits() < b.visits(); };
-    auto rootList = m_tree.values(m_root);
+//     auto compareVisits = [](const Node* a, const Node* b){ return a->visits() < b->visits(); };
+    auto compareVisits = [](const std::shared_ptr<Node> a, const std::shared_ptr<Node> b){ return a->visits() < b->visits(); };
+    auto rootList = rootNode.children();
+
     const auto mostVisited = *std::max_element(rootList.cbegin(), rootList.cend(), compareVisits);
-    return mostVisited.move();
+    emit searchComplete(mostVisited->move());
+    return mostVisited->move();
+}
+
+void ISMC::Solver::search(Node* rootNode, Game* rootState)
+{
+    Node* node = rootNode;
+
+    // Determinize
+    Game* state = rootState->cloneAndRandomize(rootState->currentPlayer());
+
+    // Select
+    bool selected = false;
+    m_mutex.lock();
+    while (!selected) {
+        auto legalMoves = state->legalMoves();
+        if (!legalMoves.isEmpty() && node->untriedMoves(legalMoves).isEmpty()) {
+            node = node->ucbSelectChild( legalMoves);
+            state->acceptMove(node->move());
+        } else {
+            selected = true;
+        }
+    }
+
+    // Expand
+    const auto untriedMoves = node->untriedMoves(state->legalMoves());
+    if (!untriedMoves.isEmpty()) {
+        Card move = untriedMoves.at(std::rand() % untriedMoves.size());
+        int player = state->currentPlayer();
+        state->acceptMove(move);
+        node = node->addChild(move, player);
+    }
+    m_mutex.unlock();
+
+    // Simulate
+    bool terminal = false;
+    while (!terminal) {
+        const auto moves = state->legalMoves();
+        if (!moves.isEmpty()) {
+            Card move = moves.at(std::rand() % moves.size());
+            state->acceptMove(move);
+        } else {
+            terminal = true;
+        }
+    }
+
+    // Backpropagate
+    m_mutex.lock();
+    while (node) {
+        node->update(state);
+        node = node->parent();
+    }
+    m_mutex.unlock();
+    delete state;
 }

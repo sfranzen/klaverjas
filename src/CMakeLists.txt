@@ -27,6 +27,7 @@ target_link_libraries(klaverjas
     Qt5::QuickWidgets
     Qt5::Quick
     Qt5::Svg
+    Qt5::Concurrent
     KF5::CoreAddons
     KF5::I18n
     KF5::XmlGui

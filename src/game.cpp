@@ -36,6 +36,7 @@ Game::Game(bool interactive, QObject* parent)
     , m_interactive(interactive)
     , m_biddingPhase(false)
     , m_waiting(false)
+    , m_paused(false)
     , m_bidCounter(0)
     , m_round(0)
     , m_trick(0)
@@ -77,6 +78,10 @@ Game::Game(bool interactive, QObject* parent)
 
     if (m_interactive)
         m_biddingPhase = true;
+
+    m_solver.moveToThread(&m_solverThread);
+    connect(&m_solver, &ISMC::Solver::searchComplete, this, &Game::acceptMove);
+    connect(&m_solver, &ISMC::Solver::searchComplete, this, &Game::advance);
 }
 
 int Game::round() const
@@ -97,12 +102,9 @@ Card::Suit Game::trumpSuit() const
     return m_trumpSuit;
 }
 
-QVariantList Game::players()
+QQmlListProperty<Player> Game::players()
 {
-    QVariantList players;
-    for (const auto p : m_players)
-        players << QVariant::fromValue(*p);
-    return players;
+    return QQmlListProperty<Player>(this, m_players);
 }
 
 HumanPlayer* Game::humanPlayer() const
@@ -207,21 +209,28 @@ qreal Game::getResult(int playerIndex) const
  */
 void Game::advance()
 {
+    // Block further calls
     if (m_waiting)
         return;
+
     if (m_biddingPhase)
         proposeBid();
     else {
-        if (m_currentTrick.players().isEmpty()) {
+        // Trick-taking phase, proceed automatically until it is the human
+        // player's turn or a new trick is about to start.
+        if (m_paused) {
+            m_paused = false;
+            return;
+        }
+        if (m_currentTrick.players().isEmpty())
             emit newTrick();
-            while (m_currentPlayer != m_human) {
-                acceptMove(m_solver.treeSearch(this));
-            }
-            m_waiting = true;
+
+        m_waiting = true;
+        if (m_currentPlayer == m_human) {
             emit moveRequested();
         } else {
-            while (!m_currentTrick.players().isEmpty())
-                acceptMove(m_solver.treeSearch(this));
+            m_paused = m_turn == 3;
+            m_solver.treeSearch(this);
         }
     }
 }

@@ -72,8 +72,8 @@ int main(int argc, char **argv)
     qRegisterMetaType<Game::Bid>("Bid");
     qRegisterMetaType<Card::Suit>("Suit");
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
+    qmlRegisterType<Player>("org.kde.klaverjas", 1, 0, "Player");
     qmlRegisterType<HumanPlayer>("org.kde.klaverjas", 1, 0, "HumanPlayer");
-//     qmlRegisterUncreatableType<Player>("org.kde.klaverjas", 1, 0, "Player", "Enum/property access only.");
 
     QLoggingCategory::setFilterRules("*.debug=false\n"
                                         "qml=true"

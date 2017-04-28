@@ -31,9 +31,9 @@
 
 class Team;
 
-class Player
+class Player : public QObject
 {
-    Q_GADGET
+    Q_OBJECT
     Q_PROPERTY(QString name READ name CONSTANT)
 
 public:
@@ -65,7 +65,5 @@ private:
 };
 
 QDebug operator<<(QDebug dbg, const Player* player);
-
-Q_DECLARE_METATYPE(Player)
 
 #endif // PLAYER_H

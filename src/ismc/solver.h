@@ -24,7 +24,9 @@
 #include "card.h"
 
 #include <QObject>
-#include <QMultiHash>
+#include <QVector>
+#include <QList>
+#include <QMutex>
 
 class Game;
 
@@ -34,7 +36,7 @@ namespace ISMC
     {
         Q_OBJECT
     public:
-        Solver(int iterMax = 2500, QObject* parent = 0);
+        Solver(int iterMax = 10000, QObject* parent = 0);
 
     public slots:
         Card treeSearch(Game* rootState);
@@ -43,9 +45,11 @@ namespace ISMC
         void searchComplete(Card card);
 
     private:
+        void search(Node* rootNode, Game* rootState);
+
         int m_iterMax;
         Node m_root;
-        QMultiHash<Node,Node> m_tree;
+        QMutex m_mutex;
     };
 };
 

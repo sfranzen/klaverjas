@@ -31,6 +31,7 @@
 #include <QMap>
 #include <QQmlListProperty>
 #include <QLoggingCategory>
+#include <QThread>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasGame)
 
@@ -43,7 +44,7 @@ class Game : public QObject
     Q_OBJECT
     Q_PROPERTY(int round READ round)
     Q_PROPERTY(Card::Suit trumpSuit READ trumpSuit NOTIFY trumpSuitChanged)
-    Q_PROPERTY(QVariantList players READ players NOTIFY playersChanged)
+    Q_PROPERTY(QQmlListProperty<Player> players READ players NOTIFY playersChanged)
     Q_PROPERTY(HumanPlayer* humanPlayer READ humanPlayer CONSTANT)
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
     typedef QMap<Team*,int> Score;
@@ -53,7 +54,7 @@ public:
 
     int round() const;
     Card::Suit trumpSuit() const;
-    QVariantList players();
+    QQmlListProperty<Player> players();
     HumanPlayer* humanPlayer() const;
     QQmlListProperty<Team> teams();
     QVariantMap scores() const;
@@ -110,6 +111,7 @@ private:
     bool m_interactive;
     bool m_biddingPhase;
     bool m_waiting;
+    bool m_paused;
     int m_bidCounter;
     int m_round;
     int m_trick;
@@ -128,6 +130,7 @@ private:
     Team* m_defenders;
     HumanPlayer* m_human;
     ISMC::Solver m_solver;
+    QThread m_solverThread;
 
     const static QStringList s_defaultPlayerNames;
 };
