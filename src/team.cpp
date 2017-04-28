@@ -28,7 +28,7 @@ Team::Team(QString name, QObject* parent)
 {
 }
 
-QString Team::name() const
+const QString& Team::name() const
 {
     return m_name;
 }

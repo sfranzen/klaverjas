@@ -21,6 +21,7 @@
 #define CARD_H
 
 #include <QObject>
+#include <QString>
 #include <QVector>
 #include <QMap>
 
@@ -40,7 +41,7 @@ public:
 
     bool operator==(const Card& other) const;
 
-    QString name() const { return m_name; };
+    const QString& name() const { return m_name; };
     Suit suit() const { return m_suit; };
     Rank rank() const { return m_rank; };
 

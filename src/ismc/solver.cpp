@@ -21,6 +21,7 @@
 #include "game.h"
 
 #include <QDebug>
+#include <QVector>
 #include <QtConcurrent>
 #include <QFutureSynchronizer>
 

@@ -18,13 +18,12 @@
  */
 
 #include "game.h"
-#include "card.h"
 #include "players/humanplayer.h"
 #include "players/aiplayer.h"
 #include "team.h"
-#include "trick.h"
 
 #include <algorithm>
+#include <QString>
 #include <QTime>
 #include <QTimer>
 

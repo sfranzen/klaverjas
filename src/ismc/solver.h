@@ -24,8 +24,6 @@
 #include "card.h"
 
 #include <QObject>
-#include <QVector>
-#include <QList>
 #include <QMutex>
 
 class Game;

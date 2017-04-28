@@ -23,6 +23,7 @@
 #include "player.h"
 #include "card.h"
 
+#include <QString>
 #include <QMap>
 #include <QVector>
 #include <QVariantList>

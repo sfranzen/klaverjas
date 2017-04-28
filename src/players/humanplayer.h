@@ -23,6 +23,7 @@
 #include "player.h"
 
 #include <QObject>
+#include <QString>
 
 class HumanPlayer : public Player
 {

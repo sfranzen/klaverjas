@@ -21,14 +21,17 @@
 #define GAME_H
 
 #include "rules.h"
+#include "card.h"
 #include "cardset.h"
 #include "trick.h"
 #include "ismc/solver.h"
 
 #include <QObject>
+#include <QStringList>
 #include <QVector>
 #include <QList>
 #include <QMap>
+#include <QVariantMap>
 #include <QQmlListProperty>
 #include <QLoggingCategory>
 #include <QThread>
@@ -90,7 +93,7 @@ signals:
 public slots:
     void advance();
     void acceptBid(Bid bid);
-    Q_INVOKABLE void acceptMove(Card card);
+    void acceptMove(Card card);
 
 private slots:
 

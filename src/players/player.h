@@ -26,6 +26,7 @@
 #include "game.h"
 
 #include <QObject>
+#include <QString>
 #include <QVector>
 #include <QMap>
 #include <QVariantList>

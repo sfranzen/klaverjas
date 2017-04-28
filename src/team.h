@@ -21,6 +21,7 @@
 #define TEAM_H
 
 #include <QObject>
+#include <QString>
 #include <QVector>
 #include <QVariantList>
 
@@ -36,7 +37,7 @@ public:
     Team(QObject* parent = 0) : QObject(parent) {};
     Team(QString name, QObject* parent = 0);
 
-    QString name() const;
+    const QString& name() const;
     void setName(QString name);
 
     const QVector<Player*>& players() const;
