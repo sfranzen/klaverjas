@@ -18,7 +18,6 @@
  */
 
 #include "trick.h"
-#include "player.h"
 
 #include <QDebug>
 

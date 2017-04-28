@@ -28,15 +28,3 @@ HumanPlayer::HumanPlayer(QString name, Game* parent)
     : Player(name, parent)
 {
 }
-
-void HumanPlayer::setHand(CardSet cards)
-{
-    Player::setHand(cards);
-    emit handChanged();
-}
-
-void HumanPlayer::removeCard(const Card& card)
-{
-    Player::removeCard(card);
-    emit handChanged();
-}

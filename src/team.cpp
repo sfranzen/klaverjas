@@ -18,7 +18,7 @@
  */
 
 #include "team.h"
-#include "player.h"
+#include "players/player.h"
 
 #include <QDebug>
 

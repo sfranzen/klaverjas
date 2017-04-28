@@ -7,10 +7,11 @@ set(klaverjas_SRCS
     card.cpp
     cardset.cpp
     trick.cpp
-    player.cpp
-    humanplayer.cpp
     team.cpp
     cardimageprovider.cpp
+    players/player.cpp
+    players/humanplayer.cpp
+    players/aiplayer.cpp
     ismc/node.cpp
     ismc/solver.cpp
     qml/klaverjas.qrc

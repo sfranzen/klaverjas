@@ -36,7 +36,7 @@ Popup {
                         anchors.margins: 2
                     }
                     onClicked: {
-                        game.acceptBid(modelData);
+                        player.bidSelected(modelData);
                         root.close();
                     }
                 }
@@ -44,9 +44,10 @@ Popup {
             Connections {
                 target: game
                 onBidRequested: {
-                    console.log("request received");
-                    optionList.model = options;
-                    root.open();
+                    if (player == root.player) {
+                        optionList.model = options;
+                        root.open();
+                    }
                 }
             }
         }

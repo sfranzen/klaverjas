@@ -19,7 +19,6 @@
 
 #include "solver.h"
 #include "game.h"
-#include "player.h"
 
 #include <QDebug>
 #include <QtConcurrent>

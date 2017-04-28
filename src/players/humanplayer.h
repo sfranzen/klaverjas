@@ -27,21 +27,10 @@
 class HumanPlayer : public Player
 {
     Q_OBJECT
-    Q_PROPERTY(CardSet hand READ hand NOTIFY handChanged)
 
 public:
     HumanPlayer(QString name = "", Game* parent = 0);
-    virtual void setHand(CardSet cards) override;
 
-signals:
-    void bidRequested(QVariantList options);
-    void bidSelected(Game::Bid bid);
-    void handChanged();
-    void moveRequested(const QVector<Card> legalMoves);
-    void cardPlayed(Card card);
-
-protected slots:
-    virtual void removeCard(const Card& card) override;
 };
 
 #endif // HUMANPLAYER_H

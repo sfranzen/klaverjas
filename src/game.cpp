@@ -19,7 +19,8 @@
 
 #include "game.h"
 #include "card.h"
-#include "humanplayer.h"
+#include "players/humanplayer.h"
+#include "players/aiplayer.h"
 #include "team.h"
 #include "trick.h"
 
@@ -61,10 +62,11 @@ Game::Game(bool interactive, QObject* parent)
             newPlayer = m_human;
         }
         else
-            newPlayer = new Player(s_defaultPlayerNames[p], this);
+            newPlayer = new AiPlayer(s_defaultPlayerNames[p], this);
 
         m_teams[t]->addPlayer(newPlayer);
         m_players.append(newPlayer);
+        connect(newPlayer, &Player::bidSelected, this, &Game::acceptBid);
     }
     emit teamsChanged();
 
@@ -288,13 +290,11 @@ void Game::proposeBid()
         }
     }
     ++m_bidCounter;
-    if (m_interactive && m_currentPlayer == m_players.first()) {
-        qCDebug(klaverjasGame) << "Requesting a bid";
-        m_waiting = true;
-        emit bidRequested(options);
-    }
-    else
-        acceptBid(m_currentPlayer->selectBid(options));
+    connect(this, &Game::bidRequested, m_currentPlayer, &Player::selectBid);
+    qCDebug(klaverjasGame) << "Requesting a bid";
+    m_waiting = true;
+    emit bidRequested(options, m_currentPlayer);
+
 }
 
 void Game::acceptBid(Game::Bid bid)
@@ -316,6 +316,7 @@ void Game::acceptBid(Game::Bid bid)
         m_currentTrick = Trick(m_trumpSuit);
         emit newTrick();
     }
+    disconnect(this, &Game::bidRequested, 0, 0);
     m_waiting = false;
 }
 

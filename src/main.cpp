@@ -23,8 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cardset.h"
 #include "game.h"
 #include "team.h"
-#include "player.h"
-#include "humanplayer.h"
+#include "players/player.h"
+#include "players/humanplayer.h"
 
 // KDE headers
 #include <KAboutData>

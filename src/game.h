@@ -78,7 +78,7 @@ public:
     Q_ENUM(Bid)
 
 signals:
-    void bidRequested(QVariantList options);
+    void bidRequested(QVariantList options, Player* player);
     void moveRequested();
     void playersChanged();
     void scoresChanged();
