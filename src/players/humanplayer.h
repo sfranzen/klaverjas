@@ -32,6 +32,7 @@ class HumanPlayer : public Player
 public:
     using Player::Player;
 
+public slots:
     void selectBid(QVariantList options) override;
 };
 
