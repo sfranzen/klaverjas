@@ -180,12 +180,12 @@ Game* Game::cloneAndRandomize(int observer) const
             unseenCards << *card;
     std::random_shuffle(unseenCards.begin(), unseenCards.end());
     for (int i = 0; i < m_players.size(); ++i) {
-        Player* player = clone->m_players.at(i);
+        Player* player = clone->playerAt(i);
         if (i == observer) {
-            player->setHand(m_players.at(i)->hand());
+            player->setHand(playerAt(i)->hand());
         } else {
-            int numCards = m_players.at(i)->hand().size();
-            player->setHand(unseenCards.mid(0,numCards));
+            int numCards = playerAt(i)->hand().size();
+            player->setHand(unseenCards.mid(0, numCards));
             unseenCards.remove(0, numCards);
         }
     }
