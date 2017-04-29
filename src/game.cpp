@@ -65,7 +65,6 @@ Game::Game(bool interactive, QObject* parent)
 
         m_teams[t]->addPlayer(newPlayer);
         m_players.append(newPlayer);
-        connect(newPlayer, &Player::bidSelected, this, &Game::acceptBid);
     }
     emit teamsChanged();
 
@@ -290,6 +289,7 @@ void Game::proposeBid()
     }
     ++m_bidCounter;
     connect(this, &Game::bidRequested, m_currentPlayer, &Player::selectBid);
+    connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
     qCDebug(klaverjasGame) << "Requesting a bid";
     m_waiting = true;
     emit bidRequested(options, m_currentPlayer);
@@ -300,6 +300,7 @@ void Game::acceptBid(Game::Bid bid)
     if (!m_biddingPhase)
         return;
     disconnect(this, &Game::bidRequested, 0, 0);
+    disconnect(m_currentPlayer, &Player::bidSelected, 0, 0);
     if (bid == Bid::Pass) {
         if (m_interactive)
             qCInfo(klaverjasGame) << "Player" << m_currentPlayer << "passed";
