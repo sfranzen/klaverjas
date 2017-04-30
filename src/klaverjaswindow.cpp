@@ -34,14 +34,14 @@ KlaverjasWindow::KlaverjasWindow()
     : KXmlGuiWindow()
     , m_game(this)
 {
+    m_game.addPlayer(new HumanPlayer("You"));
+    m_game.start();
     m_klaverjasView = new QQuickWidget(this);
     m_klaverjasView->engine()->addImageProvider("cards", new CardImageProvider);
     m_klaverjasView->rootContext()->setContextProperty("game", &m_game);
     m_klaverjasView->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_klaverjasView->setSource(QUrl("qrc:/KlaverjasView.qml"));
     setCentralWidget(m_klaverjasView);
-    m_game.addPlayer(new HumanPlayer("You"));
-    m_game.start();
 
 //     m_switchAction = actionCollection()->addAction(QStringLiteral("switch_action"), this, SLOT(slotSwitchColors()));
 //     m_switchAction->setText(i18n("Switch Colors"));

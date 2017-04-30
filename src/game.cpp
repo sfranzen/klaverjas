@@ -60,9 +60,6 @@ Game::Game(QObject* parent, bool interactive, bool verbose)
     for (int i = 1; i <= 2; ++i)
         m_teams.append(new Team(QString::number(i), this));
 
-    if (m_verbose)
-        qCDebug(klaverjasGame) << "Teams: " << m_teams;
-
     if (m_interactive)
         m_biddingPhase = true;
     else
@@ -72,6 +69,9 @@ Game::Game(QObject* parent, bool interactive, bool verbose)
 void Game::addPlayer(Player* player)
 {
     if (m_players.size() <= 4) {
+        auto human = dynamic_cast<HumanPlayer*>(player);
+        if (human)
+            m_human = human;
         player->setParent(this);
         m_players << player;
         m_teams[playerIndex(player) % 2]->addPlayer(player);
@@ -149,6 +149,9 @@ void Game::start() {
     const int numPlayers = m_players.size();
     for (int i = 0; i < 4 - numPlayers; ++i)
         addPlayer(new AiPlayer(s_defaultPlayerNames.at(i)));
+
+    if (m_verbose)
+        qCDebug(klaverjasGame) << "Teams: " << m_teams;
 
     m_dealer = m_players.last();
     m_eldest = nextPlayer(m_dealer);
