@@ -34,7 +34,7 @@ KlaverjasWindow::KlaverjasWindow()
     : KXmlGuiWindow()
     , m_game(this)
 {
-    m_game.addPlayer(new HumanPlayer("You"));
+    m_game.addPlayer(new HumanPlayer("You", &m_game));
     m_game.start();
     m_klaverjasView = new QQuickWidget(this);
     m_klaverjasView->engine()->addImageProvider("cards", new CardImageProvider);

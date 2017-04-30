@@ -147,7 +147,7 @@ void Game::setStatus(Game::Status newStatus)
 void Game::start() {
     const int numPlayers = m_players.size();
     for (int i = 0; i < 4 - numPlayers; ++i)
-        addPlayer(new AiPlayer(s_defaultPlayerNames.at(i)));
+        addPlayer(new AiPlayer(s_defaultPlayerNames.at(i), this));
 
     if (m_verbose)
         qCDebug(klaverjasGame) << "Teams: " << m_teams;
