@@ -31,6 +31,7 @@ Player::Player(QString name, Game* game)
     , m_game(game)
     , m_team(nullptr)
 {
+    m_hand.reserve(8);
 }
 
 const QString& Player::name() const

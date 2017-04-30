@@ -49,6 +49,10 @@ Game::Game(bool interactive, QObject* parent)
     // Initialise PRNG
     std::srand(QTime::currentTime().msec());
 
+    // Reserve vector space
+    m_deck.reserve(32);
+    m_cardsPlayed.reserve(32);
+
     for (int  i = 0; i < 32; ++i)
         m_deck.append(Card(Card::Suit(i/8), Card::Rank(i%8)));
 
@@ -170,6 +174,8 @@ Game* Game::cloneAndRandomize(int observer) const
 
     // Randomly distribute the cards not known to the observer
     QVector<Card> seenCards, unseenCards;
+    seenCards.reserve(32);
+    unseenCards.reserve(32);
     seenCards << playerAt(observer)->hand();
     seenCards << m_cardsPlayed;
     for (auto card = m_deck.cbegin(); card != m_deck.cend(); ++card)
@@ -415,6 +421,7 @@ Game::Score Game::scoreRound(const QVector<Trick> tricks) const
 const QVector<Card> Game::legalMoves() const
 {
     QVector<Card> moves;
+    moves.reserve(8);
     if (m_currentTrick.players().isEmpty()) {
         for (const auto card : m_currentPlayer->hand())
             moves << card;
