@@ -206,9 +206,9 @@ qreal Game::getResult(int playerIndex) const
 /** Advance the state of the current game.
  *
  * This slot controls the state of an interactive game, which must be able to
- * wait for human input. It halts and sets the waiting flag to true whenever it
- * is the human player's turn, blocking further calls until this flag is reset
- * by acceptBid or acceptMove.
+ * wait for player input. It sets the waiting flag to true when expecting a
+ * signal from a player, blocking further calls until this flag is reset by the
+ * acceptBid or acceptMove slots.
  */
 void Game::advance()
 {
@@ -216,9 +216,10 @@ void Game::advance()
     if (m_waiting)
         return;
 
-    if (m_biddingPhase)
+    if (m_biddingPhase) {
+        m_waiting = true;
         proposeBid();
-    else {
+    } else {
         disconnect(m_currentPlayer, &Player::moveSelected, 0, 0);
         // Trick-taking phase, proceed automatically until it is the human
         // player's turn or a new trick is about to start.
@@ -228,12 +229,11 @@ void Game::advance()
         }
         if (m_currentTrick.players().isEmpty())
             emit newTrick();
-
-        m_waiting = true;
         m_paused = m_turn == 3;
         connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::advance);
+        m_waiting = true;
         emit moveRequested(legalMoves());
     }
 }
@@ -294,7 +294,6 @@ void Game::proposeBid()
     connect(this, &Game::bidRequested, m_currentPlayer, &Player::selectBid);
     connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
     qCDebug(klaverjasGame) << "Requesting a bid";
-    m_waiting = true;
     emit bidRequested(options, m_currentPlayer);
 }
 
