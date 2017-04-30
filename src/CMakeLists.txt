@@ -9,6 +9,7 @@ set(klaverjas_SRCS
     trick.cpp
     team.cpp
     cardimageprovider.cpp
+    aitest.cpp
     players/player.cpp
     players/humanplayer.cpp
     players/aiplayer.cpp
