@@ -30,10 +30,9 @@
 #include <QVector>
 #include <QList>
 #include <QMap>
-#include <QVariantMap>
+#include <QVariantList>
 #include <QQmlListProperty>
 #include <QLoggingCategory>
-#include <QThread>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasGame)
 
@@ -68,10 +67,11 @@ public:
     const Team* defenders() const;
     int round() const;
     Card::Suit trumpSuit() const;
-    QVariantMap scores() const;
     const QVector<Card> cardsPlayed() const;
     const QVector<Card> legalMoves() const;
     Status status() const;
+    void start();
+    void restart();
 
     // ISMCTS
     // Return a copy of the game's state, but with the information that is
@@ -129,7 +129,6 @@ private:
     QVector<Trick> m_roundTricks;
     QVector<QVector<Trick>> m_tricks;
     QVector<Score> m_scores;
-    QMap<Team*,QList<QVariant>> m_roundScores;
     QList<Player*> m_players;
     QList<Team*> m_teams;
     Player* m_dealer;

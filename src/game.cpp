@@ -60,31 +60,13 @@ Game::Game(QObject* parent, bool interactive, bool verbose)
     for (int i = 1; i <= 2; ++i)
         m_teams.append(new Team(QString::number(i), this));
 
-    for (int p = 0, t = 0; p < 4; ++p, t = p % 2) {
-        Player* newPlayer;
-        if (interactive && p == 0) {
-            m_human = new HumanPlayer("You", this);
-            newPlayer = m_human;
-        }
-        else
-            newPlayer = new AiPlayer(s_defaultPlayerNames[p], this);
-
-        m_teams[t]->addPlayer(newPlayer);
-        m_players.append(newPlayer);
-    }
-    emit teamsChanged();
-
     if (m_verbose)
         qCDebug(klaverjasGame) << "Teams: " << m_teams;
 
-    m_dealer = m_players.last();
-    m_eldest = nextPlayer(m_dealer);
-    m_currentPlayer = m_eldest;
-
-    deal();
-
     if (m_interactive)
         m_biddingPhase = true;
+    else
+        start();
 }
 
 void Game::addPlayer(Player* player)
@@ -93,6 +75,7 @@ void Game::addPlayer(Player* player)
         player->setParent(this);
         m_players << player;
         m_teams[playerIndex(player) % 2]->addPlayer(player);
+        emit playersChanged();
     }
 }
 
@@ -146,13 +129,6 @@ Card::Suit Game::trumpSuit() const
     return m_trumpSuit;
 }
 
-QVariantMap Game::scores() const
-{
-    QVariantMap result;
-    for (const auto team : m_teams)
-        result[team->name()] = m_roundScores[team];
-    return result;
-}
 const QVector<Card> Game::cardsPlayed() const
 {
     return m_cardsPlayed;
@@ -167,6 +143,32 @@ void Game::setStatus(Game::Status newStatus)
 {
     m_status = newStatus;
     emit statusChanged(newStatus);
+}
+
+void Game::start() {
+    const int numPlayers = m_players.size();
+    for (int i = 0; i < 4 - numPlayers; ++i)
+        addPlayer(new AiPlayer(s_defaultPlayerNames.at(i)));
+
+    m_dealer = m_players.last();
+    m_eldest = nextPlayer(m_dealer);
+    m_currentPlayer = m_eldest;
+
+    deal();
+}
+
+void Game::restart()
+{
+    m_round = 0;
+    m_trick = 0;
+    m_turn = 0;
+
+    m_tricks.clear();
+
+    for (Team* t : m_teams)
+        t->resetScore();
+
+    start();
 }
 
 Game* Game::cloneAndRandomize(int observer) const

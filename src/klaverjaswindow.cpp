@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // application headers
 #include "klaverjaswindow.h"
 #include "cardimageprovider.h"
+#include "players/humanplayer.h"
 
 // KDE headers
 #include <KActionCollection>
@@ -39,6 +40,8 @@ KlaverjasWindow::KlaverjasWindow()
     m_klaverjasView->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_klaverjasView->setSource(QUrl("qrc:/KlaverjasView.qml"));
     setCentralWidget(m_klaverjasView);
+    m_game.addPlayer(new HumanPlayer("You"));
+    m_game.start();
 
 //     m_switchAction = actionCollection()->addAction(QStringLiteral("switch_action"), this, SLOT(slotSwitchColors()));
 //     m_switchAction->setText(i18n("Switch Colors"));
