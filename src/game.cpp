@@ -30,11 +30,12 @@
 
 const QStringList Game::s_defaultPlayerNames {"South", "West", "North", "East"};
 
-Game::Game(bool interactive, QObject* parent)
+Game::Game(QObject* parent, bool interactive, bool verbose)
     : QObject(parent)
     , m_trumpRule(TrumpRule::Amsterdams)
     , m_bidRule(BidRule::Random)
     , m_interactive(interactive)
+    , m_verbose(verbose)
     , m_biddingPhase(false)
     , m_paused(false)
     , m_bidCounter(0)
@@ -73,7 +74,8 @@ Game::Game(bool interactive, QObject* parent)
     }
     emit teamsChanged();
 
-    qCDebug(klaverjasGame) << "Teams: " << m_teams;
+    if (m_verbose)
+        qCDebug(klaverjasGame) << "Teams: " << m_teams;
 
     m_dealer = m_players.last();
     m_eldest = nextPlayer(m_dealer);
@@ -169,7 +171,7 @@ void Game::setStatus(Game::Status newStatus)
 
 Game* Game::cloneAndRandomize(int observer) const
 {
-    Game* clone = new Game(false);
+    Game* clone = new Game(0, false, false);
     // Main state
     clone->m_trick = m_trick;
     clone->m_turn = m_turn;
@@ -312,8 +314,9 @@ void Game::proposeBid()
     ++m_bidCounter;
     connect(this, &Game::bidRequested, m_currentPlayer, &Player::selectBid);
     connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
-    qCDebug(klaverjasGame) << "Requesting a bid";
     emit bidRequested(options, m_currentPlayer);
+    if (m_verbose)
+        qCDebug(klaverjasGame) << "Requesting a bid";
 }
 
 void Game::acceptBid(Game::Bid bid)
@@ -323,13 +326,13 @@ void Game::acceptBid(Game::Bid bid)
     disconnect(this, &Game::bidRequested, 0, 0);
     disconnect(m_currentPlayer, &Player::bidSelected, 0, 0);
     if (bid == Bid::Pass) {
-        if (m_interactive)
+        if (m_interactive && m_verbose)
             qCInfo(klaverjasGame) << "Player" << m_currentPlayer << "passed";
         advancePlayer(m_currentPlayer);
         proposeBid();
     } else {
         setContract((Card::Suit) bid, m_currentPlayer);
-        if (m_interactive)
+        if (m_interactive && m_verbose)
             qCInfo(klaverjasGame) << "Player" << m_currentPlayer << "elected" << m_trumpSuit;
         m_currentPlayer = m_eldest;
         m_biddingPhase = false;
@@ -354,7 +357,8 @@ void Game::acceptMove(Card card)
         return;
     if (m_round == 16) {
         setStatus(Finished);
-        qCInfo(klaverjasGame) << "Game finished";
+        if (m_verbose)
+            qCInfo(klaverjasGame) << "Game finished";
         return;
     }
     disconnect(this, &Game::moveRequested, 0, 0);
@@ -362,7 +366,7 @@ void Game::acceptMove(Card card)
         if (m_turn < 4) {
             m_turn++;
             m_currentTrick.add(currentPlayer(), card);
-            if (m_interactive) {
+            if (m_interactive && m_verbose) {
                 qCInfo(klaverjasGame) << m_currentPlayer << "played" << card;
                 emit cardPlayed(currentPlayer(), card);
             }
@@ -376,7 +380,7 @@ void Game::acceptMove(Card card)
             m_trick++;
             m_roundTricks << m_currentTrick;
             m_currentPlayer = playerAt(m_currentTrick.winner());
-            if (m_interactive) {
+            if (m_interactive && m_verbose) {
                 qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
                 qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
             }
@@ -387,7 +391,7 @@ void Game::acceptMove(Card card)
         // One round (game) completed
         m_tricks << m_roundTricks;
         const auto score = scoreRound(m_roundTricks);
-        if (m_interactive)
+        if (m_interactive && m_verbose)
             qCInfo(klaverjasGame) << "Round scores: " << score;
         for (Team* team : m_teams) {
             team->addPoints(score[team]);

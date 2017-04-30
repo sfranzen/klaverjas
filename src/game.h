@@ -52,7 +52,7 @@ class Game : public QObject
     typedef QMap<Team*,int> Score;
 
 public:
-    Game(bool interactive = true, QObject* parent = 0);
+    Game(QObject* parent = 0, bool interactive = true, bool verbose = true);
 
     enum Status { Ready, Waiting, Finished };
     Q_ENUM(Status)
@@ -118,6 +118,7 @@ private:
     QVector<Card> m_deck;
     QVector<Card> m_cardsPlayed;
     bool m_interactive;
+    bool m_verbose;
     bool m_biddingPhase;
     bool m_paused;
     int m_bidCounter;
