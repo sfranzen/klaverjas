@@ -72,7 +72,6 @@ void Game::addPlayer(Player* player)
         auto human = dynamic_cast<HumanPlayer*>(player);
         if (human)
             m_human = human;
-        player->setParent(this);
         m_players << player;
         m_teams[playerIndex(player) % 2]->addPlayer(player);
         emit playersChanged();
