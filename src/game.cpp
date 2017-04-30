@@ -88,6 +88,7 @@ Game::Game(bool interactive, QObject* parent)
 void Game::addPlayer(Player* player)
 {
     if (m_players.size() <= 4) {
+        player->setParent(this);
         m_players << player;
         m_teams[playerIndex(player) % 2]->addPlayer(player);
     }
