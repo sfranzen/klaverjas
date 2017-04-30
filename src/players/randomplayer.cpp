@@ -17,19 +17,10 @@
  * 
  */
 
-#include "humanplayer.h"
-#include "player.h"
+#include "randomplayer.h"
 
-#include <QLoggingCategory>
-
-Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
-
-void HumanPlayer::selectBid(QVariantList options)
+void RandomPlayer::selectMove(QVector<Card> legalMoves)
 {
-    Q_UNUSED(options)
-}
-
-void HumanPlayer::selectMove(QVector<Card> legalMoves)
-{
-    Q_UNUSED(legalMoves)
+    const int idx = std::rand() % legalMoves.size();
+    emit moveSelected(legalMoves.at(idx));
 }

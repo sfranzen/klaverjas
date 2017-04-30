@@ -55,16 +55,19 @@ public:
 
 signals:
     void bidSelected(Game::Bid bid);
+    void moveSelected(Card card);
     void handChanged();
 
 public slots:
     virtual void selectBid(QVariantList options) = 0;
+    virtual void selectMove(QVector<Card> legalMoves) = 0;
     virtual void removeCard(const Card& card);
 
 protected:
     QString m_name;
-    CardSet m_hand;
+    const Game* m_game;
     Team* m_team;
+    CardSet m_hand;
 };
 
 QDebug operator<<(QDebug dbg, const Player* player);

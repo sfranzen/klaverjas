@@ -12,6 +12,7 @@ set(klaverjas_SRCS
     players/player.cpp
     players/humanplayer.cpp
     players/aiplayer.cpp
+    players/randomplayer.cpp
     ismc/node.cpp
     ismc/solver.cpp
     qml/klaverjas.qrc

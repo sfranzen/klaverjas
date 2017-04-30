@@ -17,19 +17,23 @@
  * 
  */
 
-#include "humanplayer.h"
-#include "player.h"
+#ifndef RANDOMPLAYER_H
+#define RANDOMPLAYER_H
 
-#include <QLoggingCategory>
+#include "aiplayer.h"
+#include "card.h"
 
-Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
+#include <QString>
+#include <QVector>
+#include <QVariantList>
 
-void HumanPlayer::selectBid(QVariantList options)
+class RandomPlayer : public AiPlayer
 {
-    Q_UNUSED(options)
-}
+public:
+    using AiPlayer::AiPlayer;
 
-void HumanPlayer::selectMove(QVector<Card> legalMoves)
-{
-    Q_UNUSED(legalMoves)
-}
+public slots:
+    virtual void selectMove(QVector<Card> legalMoves) override;
+};
+
+#endif // RANDOMPLAYER_H

@@ -20,6 +20,7 @@
 #include "game.h"
 #include "players/humanplayer.h"
 #include "players/aiplayer.h"
+#include "players/randomplayer.h"
 #include "team.h"
 
 #include <algorithm>
@@ -78,10 +79,6 @@ Game::Game(bool interactive, QObject* parent)
 
     if (m_interactive)
         m_biddingPhase = true;
-
-    m_solver.moveToThread(&m_solverThread);
-    connect(&m_solver, &ISMC::Solver::searchComplete, this, &Game::acceptMove);
-    connect(&m_solver, &ISMC::Solver::searchComplete, this, &Game::advance);
 }
 
 int Game::round() const
@@ -216,6 +213,7 @@ void Game::advance()
     if (m_biddingPhase)
         proposeBid();
     else {
+        disconnect(m_currentPlayer, &Player::moveSelected, 0, 0);
         // Trick-taking phase, proceed automatically until it is the human
         // player's turn or a new trick is about to start.
         if (m_paused) {
@@ -226,12 +224,11 @@ void Game::advance()
             emit newTrick();
 
         m_waiting = true;
-        if (m_currentPlayer == m_human) {
-            emit moveRequested();
-        } else {
-            m_paused = m_turn == 3;
-            m_solver.treeSearch(this);
-        }
+        m_paused = m_turn == 3;
+        connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
+        connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
+        connect(m_currentPlayer, &Player::moveSelected, this, &Game::advance);
+        emit moveRequested(legalMoves());
     }
 }
 
@@ -335,6 +332,7 @@ void Game::acceptMove(Card card)
         qCInfo(klaverjasGame) << "Game finished";
         return;
     }
+    disconnect(this, &Game::moveRequested, 0, 0);
     if (m_trick < 8) {
         if (m_turn < 4) {
             m_turn++;

@@ -23,27 +23,22 @@
 #include "node.h"
 #include "card.h"
 
-#include <QObject>
 #include <QMutex>
 
 class Game;
 
 namespace ISMC
 {
-    class Solver : public QObject
+    class Solver
     {
-        Q_OBJECT
     public:
-        Solver(int iterMax = 10000, QObject* parent = 0);
+        Solver(int iterMax = 10000);
 
-    public slots:
-        Card treeSearch(Game* rootState);
-
-    signals:
-        void searchComplete(Card card);
+    public:
+        Card treeSearch(const Game* rootState);
 
     private:
-        void search(Node* rootNode, Game* rootState);
+        void search(Node* rootNode, const Game* rootState);
 
         int m_iterMax;
         Node m_root;

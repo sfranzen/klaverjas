@@ -24,7 +24,6 @@
 #include "card.h"
 #include "cardset.h"
 #include "trick.h"
-#include "ismc/solver.h"
 
 #include <QObject>
 #include <QStringList>
@@ -82,7 +81,7 @@ public:
 
 signals:
     void bidRequested(QVariantList options, Player* player);
-    void moveRequested();
+    void moveRequested(QVector<Card> legalMoves);
     void playersChanged();
     void scoresChanged();
     void teamsChanged();
@@ -132,7 +131,6 @@ private:
     Team* m_contractors;
     Team* m_defenders;
     HumanPlayer* m_human;
-    ISMC::Solver m_solver;
     QThread m_solverThread;
 
     const static QStringList s_defaultPlayerNames;

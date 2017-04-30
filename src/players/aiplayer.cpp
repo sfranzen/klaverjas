@@ -116,3 +116,10 @@ QMap<Card::Suit,int> AiPlayer::handStrength(const QVector<Card::Suit> bidOptions
     qCDebug(klaverjasAi) << "Strengths" << strengthMap;
     return strengthMap;
 }
+
+void AiPlayer::selectMove(QVector<Card> legalMoves)
+{
+    Q_UNUSED(legalMoves)
+    Card move = m_solver.treeSearch(m_game);
+    emit moveSelected(move);
+}

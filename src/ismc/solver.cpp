@@ -25,14 +25,13 @@
 #include <QtConcurrent>
 #include <QFutureSynchronizer>
 
-ISMC::Solver::Solver(int iterMax, QObject* parent)
-    : QObject(parent)
-    , m_iterMax(iterMax)
+ISMC::Solver::Solver(int iterMax)
+    : m_iterMax(iterMax)
     , m_root(Node())
 {
 }
 
-Card ISMC::Solver::treeSearch(Game* rootState)
+Card ISMC::Solver::treeSearch(const Game* rootState)
 {
     QFutureSynchronizer<void> sync;
     Node rootNode = Node();
@@ -48,11 +47,10 @@ Card ISMC::Solver::treeSearch(Game* rootState)
     auto rootList = rootNode.children();
 
     const auto mostVisited = *std::max_element(rootList.cbegin(), rootList.cend(), compareVisits);
-    emit searchComplete(mostVisited->move());
     return mostVisited->move();
 }
 
-void ISMC::Solver::search(Node* rootNode, Game* rootState)
+void ISMC::Solver::search(Node* rootNode, const Game* rootState)
 {
     Node* node = rootNode;
 

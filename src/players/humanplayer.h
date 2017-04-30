@@ -34,6 +34,7 @@ public:
 
 public slots:
     void selectBid(QVariantList options) override;
+    void selectMove(QVector<Card> legalMoves) override;
 };
 
 #endif // HUMANPLAYER_H
