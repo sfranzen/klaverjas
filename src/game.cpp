@@ -36,7 +36,6 @@ Game::Game(bool interactive, QObject* parent)
     , m_bidRule(BidRule::Random)
     , m_interactive(interactive)
     , m_biddingPhase(false)
-    , m_waiting(false)
     , m_paused(false)
     , m_bidCounter(0)
     , m_round(0)
@@ -45,6 +44,7 @@ Game::Game(bool interactive, QObject* parent)
     , m_contractors(nullptr)
     , m_defenders(nullptr)
     , m_human(nullptr)
+    , m_status(Ready)
 {
     // Initialise PRNG
     std::srand(QTime::currentTime().msec());
@@ -156,6 +156,17 @@ const QVector<Card> Game::cardsPlayed() const
     return m_cardsPlayed;
 }
 
+Game::Status Game::status() const
+{
+    return m_status;
+}
+
+void Game::setStatus(Game::Status newStatus)
+{
+    m_status = newStatus;
+    emit statusChanged(newStatus);
+}
+
 Game* Game::cloneAndRandomize(int observer) const
 {
     Game* clone = new Game(false);
@@ -221,11 +232,11 @@ qreal Game::getResult(int playerIndex) const
 void Game::advance()
 {
     // Block further calls
-    if (m_waiting)
+    if (m_status != Ready)
         return;
 
     if (m_biddingPhase) {
-        m_waiting = true;
+        setStatus(Waiting);
         proposeBid();
     } else {
         disconnect(m_currentPlayer, &Player::moveSelected, 0, 0);
@@ -241,7 +252,7 @@ void Game::advance()
         connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::advance);
-        m_waiting = true;
+        setStatus(Waiting);
         emit moveRequested(legalMoves());
     }
 }
@@ -326,7 +337,7 @@ void Game::acceptBid(Game::Bid bid)
         m_currentTrick = Trick(m_trumpSuit);
         emit newTrick();
     }
-    m_waiting = false;
+    setStatus(Ready);
 }
 
 void Game::setContract(const Card::Suit suit, const Player* player)
@@ -342,6 +353,7 @@ void Game::acceptMove(Card card)
     if (m_biddingPhase)
         return;
     if (m_round == 16) {
+        setStatus(Finished);
         qCInfo(klaverjasGame) << "Game finished";
         return;
     }
@@ -394,7 +406,7 @@ void Game::acceptMove(Card card)
             deal();
         }
     }
-    m_waiting = false;
+    setStatus(Ready);
 }
 
 Game::Score Game::scoreRound(const QVector<Trick> tricks) const

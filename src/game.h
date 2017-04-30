@@ -54,6 +54,9 @@ class Game : public QObject
 public:
     Game(bool interactive = true, QObject* parent = 0);
 
+    enum Status { Ready, Waiting, Finished };
+    Q_ENUM(Status)
+
     void addPlayer(Player* player);
     int currentPlayer() const;
     int playerIndex(Player* player) const;
@@ -68,6 +71,7 @@ public:
     QVariantMap scores() const;
     const QVector<Card> cardsPlayed() const;
     const QVector<Card> legalMoves() const;
+    Status status() const;
 
     // ISMCTS
     // Return a copy of the game's state, but with the information that is
@@ -89,6 +93,7 @@ signals:
     void newTrick();
     void cardPlayed(int player, Card card);
     void trumpSuitChanged(Card::Suit newSuit);
+    void statusChanged(Status status);
 
 public slots:
     void advance();
@@ -102,6 +107,7 @@ private:
     void proposeBid();
     void setContract(const Card::Suit suit, const Player* player);
     Score scoreRound(const QVector<Trick> tricks) const;
+    void setStatus(Status newStatus);
 
     Player* nextPlayer(Player* player) const;
     void advancePlayer(Player*& player) const;
@@ -113,7 +119,6 @@ private:
     QVector<Card> m_cardsPlayed;
     bool m_interactive;
     bool m_biddingPhase;
-    bool m_waiting;
     bool m_paused;
     int m_bidCounter;
     int m_round;
@@ -132,7 +137,7 @@ private:
     Team* m_contractors;
     Team* m_defenders;
     HumanPlayer* m_human;
-    QThread m_solverThread;
+    Status m_status;
 
     const static QStringList s_defaultPlayerNames;
 };
