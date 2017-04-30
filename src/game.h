@@ -54,17 +54,18 @@ class Game : public QObject
 public:
     Game(bool interactive = true, QObject* parent = 0);
 
-    int round() const;
-    Card::Suit trumpSuit() const;
-    QQmlListProperty<Player> players();
-    HumanPlayer* humanPlayer() const;
-    QQmlListProperty<Team> teams();
-    QVariantMap scores() const;
+    void addPlayer(Player* player);
     int currentPlayer() const;
     int playerIndex(Player* player) const;
     Player* playerAt(int index) const;
+    HumanPlayer* humanPlayer() const;
+    QQmlListProperty<Player> players();
+    QQmlListProperty<Team> teams();
     const Team* contractors() const;
     const Team* defenders() const;
+    int round() const;
+    Card::Suit trumpSuit() const;
+    QVariantMap scores() const;
     const QVector<Card> cardsPlayed() const;
     const QVector<Card> legalMoves() const;
 

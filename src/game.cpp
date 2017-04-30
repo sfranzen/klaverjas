@@ -85,37 +85,12 @@ Game::Game(bool interactive, QObject* parent)
         m_biddingPhase = true;
 }
 
-int Game::round() const
+void Game::addPlayer(Player* player)
 {
-    return m_round;
-}
-
-QVariantMap Game::scores() const
-{
-    QVariantMap result;
-    for (const auto team : m_teams)
-        result[team->name()] = m_roundScores[team];
-    return result;
-}
-
-Card::Suit Game::trumpSuit() const
-{
-    return m_trumpSuit;
-}
-
-QQmlListProperty<Player> Game::players()
-{
-    return QQmlListProperty<Player>(this, m_players);
-}
-
-HumanPlayer* Game::humanPlayer() const
-{
-    return m_human;
-}
-
-QQmlListProperty<Team> Game::teams()
-{
-    return QQmlListProperty<Team>(this, m_teams);
+    if (m_players.size() <= 4) {
+        m_players << player;
+        m_teams[playerIndex(player) % 2]->addPlayer(player);
+    }
 }
 
 int Game::currentPlayer() const
@@ -133,6 +108,21 @@ Player* Game::playerAt(int index) const
     return m_players.at(index);
 }
 
+HumanPlayer* Game::humanPlayer() const
+{
+    return m_human;
+}
+
+QQmlListProperty<Player> Game::players()
+{
+    return QQmlListProperty<Player>(this, m_players);
+}
+
+QQmlListProperty<Team> Game::teams()
+{
+    return QQmlListProperty<Team>(this, m_teams);
+}
+
 const Team* Game::contractors() const
 {
     return m_contractors;
@@ -143,6 +133,23 @@ const Team* Game::defenders() const
     return m_defenders;
 }
 
+int Game::round() const
+{
+    return m_round;
+}
+
+Card::Suit Game::trumpSuit() const
+{
+    return m_trumpSuit;
+}
+
+QVariantMap Game::scores() const
+{
+    QVariantMap result;
+    for (const auto team : m_teams)
+        result[team->name()] = m_roundScores[team];
+    return result;
+}
 const QVector<Card> Game::cardsPlayed() const
 {
     return m_cardsPlayed;
