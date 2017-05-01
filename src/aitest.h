@@ -20,17 +20,30 @@
 #ifndef AITEST_H
 #define AITEST_H
 
-#include <QObject>
+#include "game.h"
 
-class Game;
+#include <QObject>
+#include <QLoggingCategory>
+
+Q_DECLARE_LOGGING_CATEGORY(klaverjasTest)
+
+class Team;
 
 class AiTest : public QObject
 {
 public:
-    AiTest(QObject* parent = 0);
+    AiTest(QObject* parent = 0, int maxIterations = 1000);
+
+    void run();
 
 private:
+    void proceed(Game::Status status);
+    void result() const;
+
     Game* m_game;
+    int m_iteration;
+    int m_maxIterations;
+    Game::Score m_score;
 };
 
 #endif // AITEST_H

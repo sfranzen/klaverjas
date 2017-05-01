@@ -43,6 +43,7 @@ Q_LOGGING_CATEGORY(klaverjasGame, "klaverjas.game")
 Q_LOGGING_CATEGORY(klaverjasPlayer, "klaverjas.player")
 Q_LOGGING_CATEGORY(klaverjasAi, "klaverjas.ai")
 Q_LOGGING_CATEGORY(klaverjasTrick, "klaverjas.trick")
+Q_LOGGING_CATEGORY(klaverjasTest, "klaverjas.aitest")
 
 int main(int argc, char **argv)
 {
