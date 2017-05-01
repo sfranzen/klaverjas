@@ -48,10 +48,11 @@ class Game : public QObject
     Q_PROPERTY(QQmlListProperty<Player> players READ players NOTIFY playersChanged)
     Q_PROPERTY(HumanPlayer* humanPlayer READ humanPlayer CONSTANT)
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
-    typedef QMap<Team*,int> Score;
 
 public:
     Game(QObject* parent = 0, bool interactive = true, bool verbose = true);
+
+    typedef QMap<Team*,int> Score;
 
     enum Status { Ready, Waiting, Finished };
     Q_ENUM(Status)
@@ -69,6 +70,7 @@ public:
     Card::Suit trumpSuit() const;
     const QVector<Card> cardsPlayed() const;
     const QVector<Card> legalMoves() const;
+    const Score& score() const;
     Status status() const;
     void start();
     void restart();
@@ -128,7 +130,7 @@ private:
     Trick m_currentTrick;
     QVector<Trick> m_roundTricks;
     QVector<QVector<Trick>> m_tricks;
-    QVector<Score> m_scores;
+    Score m_scores;
     QList<Player*> m_players;
     QList<Team*> m_teams;
     Player* m_dealer;

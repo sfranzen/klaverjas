@@ -57,8 +57,11 @@ Game::Game(QObject* parent, bool interactive, bool verbose)
     for (int  i = 0; i < 32; ++i)
         m_deck.append(Card(Card::Suit(i/8), Card::Rank(i%8)));
 
-    for (int i = 1; i <= 2; ++i)
-        m_teams.append(new Team(QString::number(i), this));
+    for (int i = 1; i <= 2; ++i) {
+        Team* team = new Team(QString::number(i), this);
+        m_teams.append(team);
+        m_scores[team] = 0;
+    }
 
     if (m_interactive)
         m_biddingPhase = true;
@@ -133,6 +136,11 @@ const QVector<Card> Game::cardsPlayed() const
     return m_cardsPlayed;
 }
 
+const Game::Score & Game::score() const
+{
+    return m_scores;
+}
+
 Game::Status Game::status() const
 {
     return m_status;
@@ -166,6 +174,8 @@ void Game::restart()
     m_turn = 0;
 
     m_tricks.clear();
+    for (auto score : m_scores)
+        score = 0;
 
     for (Team* t : m_teams)
         t->resetScore();
@@ -399,6 +409,7 @@ void Game::acceptMove(Card card)
             qCInfo(klaverjasGame) << "Round scores: " << score;
         for (Team* team : m_teams) {
             team->addPoints(score[team]);
+            m_scores[team] += score[team];
         }
         m_roundTricks.clear();
         m_trick = 0;
