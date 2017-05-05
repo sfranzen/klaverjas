@@ -41,7 +41,7 @@ AiTest::AiTest(QObject* parent, int numRounds)
 
 void AiTest::run()
 {
-        m_game->advance();
+    m_game->advance();
 }
 
 void AiTest::proceed(Game::Status status)
