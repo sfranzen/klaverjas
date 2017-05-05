@@ -26,7 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "players/player.h"
 #include "players/humanplayer.h"
 #include "aitest.h"
-#include <math.h>
 
 // KDE headers
 #include <KAboutData>
@@ -38,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QIcon>
 #include <QLoggingCategory>
 #include <QDebug>
+#include <QTime>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjas)
 Q_LOGGING_CATEGORY(klaverjas, "klaverjas")
@@ -82,6 +82,10 @@ int main(int argc, char **argv)
                                         "klaverjas.aitest.debug=true\n"
                                         "qml=true"
     );
+
+    // Initialise PRNG
+    std::srand(QTime::currentTime().msec());
+
 //     KlaverjasWindow *appwindow = new KlaverjasWindow;
 //     appwindow->show();
 //     return application.exec();

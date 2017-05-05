@@ -25,8 +25,6 @@
 
 #include <algorithm>
 #include <QString>
-#include <QTime>
-#include <QTimer>
 
 const QStringList Game::s_defaultPlayerNames {"South", "West", "North", "East"};
 
@@ -48,8 +46,6 @@ Game::Game(QObject* parent, bool interactive, bool verbose, int numRounds)
     , m_human(nullptr)
     , m_status(Ready)
 {
-    // Initialise PRNG
-    std::srand(QTime::currentTime().msec());
 
     // Reserve vector space
     m_deck.reserve(32);
