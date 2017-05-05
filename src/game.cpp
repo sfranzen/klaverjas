@@ -30,7 +30,7 @@
 
 const QStringList Game::s_defaultPlayerNames {"South", "West", "North", "East"};
 
-Game::Game(QObject* parent, bool interactive, bool verbose)
+Game::Game(QObject* parent, bool interactive, bool verbose, int numRounds)
     : QObject(parent)
     , m_trumpRule(TrumpRule::Amsterdams)
     , m_bidRule(BidRule::Random)
@@ -39,6 +39,7 @@ Game::Game(QObject* parent, bool interactive, bool verbose)
     , m_biddingPhase(false)
     , m_paused(false)
     , m_bidCounter(0)
+    , m_numRounds(numRounds)
     , m_round(0)
     , m_trick(0)
     , m_turn(0)
@@ -148,11 +149,14 @@ Game::Status Game::status() const
 
 void Game::setStatus(Game::Status newStatus)
 {
-    m_status = newStatus;
-    emit statusChanged(newStatus);
+    if (newStatus != m_status) {
+        m_status = newStatus;
+        emit statusChanged(newStatus);
+    }
 }
 
-void Game::start() {
+void Game::start()
+{
     const int numPlayers = m_players.size();
     for (int i = 0; i < 4 - numPlayers; ++i)
         addPlayer(new AiPlayer(s_defaultPlayerNames.at(i), this));
@@ -174,7 +178,7 @@ void Game::restart()
     m_turn = 0;
 
     m_tricks.clear();
-    for (auto score : m_scores)
+    for (int& score : m_scores)
         score = 0;
 
     for (Team* t : m_teams)
@@ -255,7 +259,6 @@ void Game::advance()
         setStatus(Waiting);
         proposeBid();
     } else {
-        disconnect(m_currentPlayer, &Player::moveSelected, 0, 0);
         // Trick-taking phase, proceed automatically until it is the human
         // player's turn or a new trick is about to start.
         if (m_paused) {
@@ -267,9 +270,9 @@ void Game::advance()
         m_paused = m_turn == 3;
         connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
-        connect(m_currentPlayer, &Player::moveSelected, this, &Game::advance);
         setStatus(Waiting);
         emit moveRequested(legalMoves());
+        advance();
     }
 }
 
@@ -367,15 +370,12 @@ void Game::setContract(const Card::Suit suit, const Player* player)
 
 void Game::acceptMove(Card card)
 {
+    disconnect(this, &Game::moveRequested, 0, 0);
+    disconnect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
+    if (m_interactive && m_status != Waiting)
+        return;
     if (m_biddingPhase)
         return;
-    if (m_round == 16) {
-        setStatus(Finished);
-        if (m_verbose)
-            qCInfo(klaverjasGame) << "Game finished";
-        return;
-    }
-    disconnect(this, &Game::moveRequested, 0, 0);
     if (m_trick < 8) {
         if (m_turn < 4) {
             m_turn++;
@@ -425,7 +425,13 @@ void Game::acceptMove(Card card)
             deal();
         }
     }
-    setStatus(Ready);
+    if (m_round == m_numRounds) {
+        setStatus(Finished);
+        if (m_verbose)
+            qCInfo(klaverjasGame) << "Game finished";
+    } else {
+        setStatus(Ready);
+    }
 }
 
 Game::Score Game::scoreRound(const QVector<Trick> tricks) const

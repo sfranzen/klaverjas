@@ -50,7 +50,7 @@ class Game : public QObject
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
 
 public:
-    Game(QObject* parent = 0, bool interactive = true, bool verbose = true);
+    Game(QObject* parent = 0, bool interactive = true, bool verbose = true, int numRounds = 16);
 
     typedef QMap<Team*,int> Score;
 
@@ -74,6 +74,7 @@ public:
     Status status() const;
     void start();
     void restart();
+    void autoRun();
 
     // ISMCTS
     // Return a copy of the game's state, but with the information that is
@@ -124,6 +125,7 @@ private:
     bool m_biddingPhase;
     bool m_paused;
     int m_bidCounter;
+    int m_numRounds;
     int m_round;
     int m_trick;
     int m_turn;

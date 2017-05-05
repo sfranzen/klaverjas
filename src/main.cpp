@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "team.h"
 #include "players/player.h"
 #include "players/humanplayer.h"
+#include "aitest.h"
+#include <math.h>
 
 // KDE headers
 #include <KAboutData>
@@ -77,9 +79,13 @@ int main(int argc, char **argv)
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
 
     QLoggingCategory::setFilterRules("*.debug=false\n"
+                                        "klaverjas.aitest.debug=true\n"
                                         "qml=true"
     );
-    KlaverjasWindow *appwindow = new KlaverjasWindow;
-    appwindow->show();
-    return application.exec();
+//     KlaverjasWindow *appwindow = new KlaverjasWindow;
+//     appwindow->show();
+//     return application.exec();
+    AiTest* tester = new AiTest(0, 100);
+    tester->run();
+    return 0;
 }

@@ -25,6 +25,12 @@
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasAi);
 
+AiPlayer::AiPlayer(QString name, Game* parent)
+    : Player(name, parent)
+    , m_solver(2500)
+{
+}
+
 /* Choose a bid from the options presented.
  *
  * The bid options are scored according to the run lengths, which give an

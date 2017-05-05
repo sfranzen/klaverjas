@@ -21,6 +21,7 @@
 #define AITEST_H
 
 #include "game.h"
+#include "ismc/solver.h"
 
 #include <QObject>
 #include <QLoggingCategory>
@@ -31,19 +32,21 @@ class Team;
 
 class AiTest : public QObject
 {
+    Q_OBJECT
 public:
-    AiTest(QObject* parent = 0, int maxIterations = 1000);
+    AiTest(QObject* parent = 0, int numRounds = 1000);
 
     void run();
 
-private:
+private slots:
     void proceed(Game::Status status);
-    void result() const;
+
+private:
+    void showResult() const;
 
     Game* m_game;
-    int m_iteration;
-    int m_maxIterations;
     Game::Score m_score;
+    int m_numRounds;
 };
 
 #endif // AITEST_H

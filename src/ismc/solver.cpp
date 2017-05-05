@@ -37,12 +37,11 @@ Card ISMC::Solver::treeSearch(const Game* rootState)
     Node rootNode = Node();
 
     for (int i = 0; i < m_iterMax; ++i) {
-        sync.addFuture(QtConcurrent::run(&*this, &Solver::search, &rootNode, rootState));
+        sync.addFuture(QtConcurrent::run(this, &Solver::search, &rootNode, rootState));
     }
     sync.waitForFinished();
 
     // Return move of most-visited child node
-//     auto compareVisits = [](const Node* a, const Node* b){ return a->visits() < b->visits(); };
     auto compareVisits = [](const std::shared_ptr<Node> a, const std::shared_ptr<Node> b){ return a->visits() < b->visits(); };
     auto rootList = rootNode.children();
 

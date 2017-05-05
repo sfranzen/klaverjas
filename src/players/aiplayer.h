@@ -34,7 +34,7 @@ class Game;
 class AiPlayer : public Player
 {
 public:
-    using Player::Player;
+    AiPlayer(QString name = "", Game* parent = 0);
 
 public slots:
     virtual void selectBid(QVariantList options) override;

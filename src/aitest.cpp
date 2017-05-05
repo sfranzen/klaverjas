@@ -24,34 +24,24 @@
 
 #include <QString>
 
-AiTest::AiTest(QObject* parent, int maxIterations)
+AiTest::AiTest(QObject* parent, int numRounds)
     : QObject(parent)
-    , m_maxIterations(maxIterations)
+    , m_numRounds(numRounds)
 {
     // Construct the game with two AI players in the first team
-    m_game = new Game(this, true, false);
+    m_game = new Game(this, true, false, numRounds);
     for (int i = 0; i < 4; ++i) {
-        Player* player = i % 2 ? new AiPlayer("", m_game) : new RandomPlayer("", m_game);
+        Player* player = i % 2 ? new RandomPlayer("", m_game) : new AiPlayer("", m_game);
         m_game->addPlayer(player);
     }
-    m_game->start();
     m_score = m_game->score();
     connect(m_game, &Game::statusChanged, this, &AiTest::proceed);
+    m_game->start();
 }
 
 void AiTest::run()
 {
-
-    if (m_iteration < m_maxIterations)
         m_game->advance();
-    else {
-        result();
-        m_iteration = 0;
-        for (auto score : m_score)
-            score = 0;
-        m_game->restart();
-    }
-
 }
 
 void AiTest::proceed(Game::Status status)
@@ -59,15 +49,13 @@ void AiTest::proceed(Game::Status status)
     if (status == Game::Ready) {
         run();
     } else if (status == Game::Finished) {
-        m_iteration++;
-        auto score = m_game->score();
-        for (auto s = score.cbegin(); s != score.cend(); ++s)
-            m_score[s.key()] += s.value();
-        m_game->restart();
+        disconnect(m_game, &Game::statusChanged, this, &AiTest::proceed);
+        m_score = m_game->score();
+        showResult();
     }
 }
 
-void AiTest::result() const
+void AiTest::showResult() const
 {
     const auto teams = m_score.keys();
 
@@ -76,7 +64,6 @@ void AiTest::result() const
         QString teamName = team == teams.first() ? "Ai" : "Random";
         qCInfo(klaverjasTest) << teamName + " Team:";
         qCInfo(klaverjasTest) << "Total " << total
-            << " Game average " << qreal(total) / m_maxIterations
-            << " Round average " << qreal(total) / m_maxIterations / 16;
+            << " Round average " << qreal(total) / m_numRounds;
     }
 }
