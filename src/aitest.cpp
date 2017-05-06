@@ -61,7 +61,7 @@ void AiTest::showResult() const
 
     for (auto team : teams) {
         int total = m_score.value(team);
-        QString teamName = team == teams.first() ? "Ai" : "Random";
+        QString teamName = team->name() == "1" ? "Ai" : "Random";
         qCInfo(klaverjasTest) << teamName + " Team:";
         qCInfo(klaverjasTest) << "Total " << total
             << " Round average " << qreal(total) / m_numRounds;
