@@ -21,6 +21,7 @@
 #include "game.h"
 
 #include <math.h>
+#include <QMutexLocker>
 
 Node::Node(const Card move, Node* parent, int playerJustMoved)
     : m_parent(parent)
@@ -54,17 +55,14 @@ int Node::visits() const
 
 Node* Node::addChild(Card move, int player)
 {
+    QMutexLocker lock(&m_mutex);
     m_children << std::make_shared<Node>(move, this, player);
     return m_children.last().get();
 }
 
-void Node::incrementAvailable()
-{
-    m_available++;
-}
-
 void Node::update(Game* terminalState)
 {
+    QMutexLocker lock(&m_mutex);
     m_visits++;
     if (m_playerJustMoved != -1)
         m_score += terminalState->getResult(m_playerJustMoved);
@@ -73,6 +71,7 @@ void Node::update(Game* terminalState)
 QVector<Card> Node::untriedMoves(const QVector<Card> legalMoves) const
 {
     QVector<Card> tried, untried;
+    QMutexLocker lock(&m_mutex);
     for (auto node = m_children.cbegin(); node != m_children.cend(); ++node)
         tried << (*node)->m_move;
     for (auto move = legalMoves.cbegin(); move != legalMoves.cend(); ++move)
@@ -85,6 +84,7 @@ Node* Node::ucbSelectChild(const QVector<Card> legalMoves, qreal exploration)
 {
     static auto compare = [exploration](const Node* a, const Node* b){ return a->ucbScore(exploration) < b->ucbScore(exploration); };
 
+    QMutexLocker lock(&m_mutex);
     QVector<Node*> legalChildren;
     for (auto node = m_children.begin(); node != m_children.end(); ++node) {
         if (legalMoves.contains((*node)->m_move)) {
@@ -97,6 +97,7 @@ Node* Node::ucbSelectChild(const QVector<Card> legalMoves, qreal exploration)
 
 qreal Node::ucbScore(qreal exploration) const
 {
+    QMutexLocker lock(&m_mutex);
     return qreal(m_score)/qreal(m_visits) + exploration * std::sqrt(std::log(m_available) / qreal(m_visits));
 }
 

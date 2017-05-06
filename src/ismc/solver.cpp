@@ -27,23 +27,23 @@
 
 ISMC::Solver::Solver(int iterMax)
     : m_iterMax(iterMax)
-    , m_root(Node())
+    , m_root()
 {
 }
 
 Card ISMC::Solver::treeSearch(const Game* rootState)
 {
     QFutureSynchronizer<void> sync;
-    Node rootNode = Node();
+    Node* root = new Node();
 
     for (int i = 0; i < m_iterMax; ++i) {
-        sync.addFuture(QtConcurrent::run(this, &Solver::search, &rootNode, rootState));
+        sync.addFuture(QtConcurrent::run(&*this, &Solver::search, root, rootState));
     }
     sync.waitForFinished();
 
     // Return move of most-visited child node
     auto compareVisits = [](const std::shared_ptr<Node> a, const std::shared_ptr<Node> b){ return a->visits() < b->visits(); };
-    auto rootList = rootNode.children();
+    auto rootList = root->children();
 
     const auto mostVisited = *std::max_element(rootList.cbegin(), rootList.cend(), compareVisits);
     return mostVisited->move();
@@ -58,7 +58,6 @@ void ISMC::Solver::search(Node* rootNode, const Game* rootState)
 
     // Select
     bool selected = false;
-    m_mutex.lock();
     while (!selected) {
         auto legalMoves = state->legalMoves();
         if (!legalMoves.isEmpty() && node->untriedMoves(legalMoves).isEmpty()) {
@@ -77,7 +76,6 @@ void ISMC::Solver::search(Node* rootNode, const Game* rootState)
         state->acceptMove(move);
         node = node->addChild(move, player);
     }
-    m_mutex.unlock();
 
     // Simulate
     bool terminal = false;
@@ -92,11 +90,9 @@ void ISMC::Solver::search(Node* rootNode, const Game* rootState)
     }
 
     // Backpropagate
-    m_mutex.lock();
     while (node) {
         node->update(state);
         node = node->parent();
     }
-    m_mutex.unlock();
     delete state;
 }

@@ -23,8 +23,8 @@
 #include "card.h"
 
 #include <memory>
-
 #include <QVector>
+#include <QMutex>
 
 class Player;
 class Game;
@@ -55,15 +55,14 @@ public:
 
     const QVector<std::shared_ptr<Node>>& children() const;
     Node* addChild(Card move, int player);
-    void incrementAvailable();
     void update(Game* terminalState);
     QVector<Card> untriedMoves(const QVector<Card> legalMoves) const;
     qreal ucbScore(qreal exploration) const;
     Node* ucbSelectChild(const QVector<Card> legalMoves, qreal exploration = 0.7);
 
     bool operator==(const Node& other) const;
-private:
 
+private:
     Node* m_parent;
     QVector<std::shared_ptr<Node>> m_children;
 
@@ -73,6 +72,7 @@ private:
 
     Card m_move;
     int m_playerJustMoved;
+    mutable QMutex m_mutex;
 };
 
 inline uint qHash(const Node &key, uint seed) {

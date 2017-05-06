@@ -40,9 +40,8 @@ namespace ISMC
     private:
         void search(Node* rootNode, const Game* rootState);
 
-        int m_iterMax;
         Node m_root;
-        QMutex m_mutex;
+        int m_iterMax;
     };
 };
 
