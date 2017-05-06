@@ -89,7 +89,12 @@ int main(int argc, char **argv)
 //     KlaverjasWindow *appwindow = new KlaverjasWindow;
 //     appwindow->show();
 //     return application.exec();
-    AiTest* tester = new AiTest(0, 100);
+
+    AiTest* tester = new AiTest(0, 10);
+    QTime timer;
+    timer.start();
     tester->run();
+    qreal t = timer.elapsed();
+    qInfo() << 1e-3 * t;
     return 0;
 }
