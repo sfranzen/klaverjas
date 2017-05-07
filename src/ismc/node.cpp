@@ -101,6 +101,18 @@ qreal Node::ucbScore(qreal exploration) const
     return qreal(m_score)/qreal(m_visits) + exploration * std::sqrt(std::log(m_available) / qreal(m_visits));
 }
 
+void Node::addVirtualLoss()
+{
+    QMutexLocker lock(&m_mutex);
+    m_visits++;
+}
+
+void Node::removeVirtualLoss()
+{
+    QMutexLocker lock(&m_mutex);
+    m_visits--;
+}
+
 bool Node::operator==(const Node& other) const
 {
     return m_parent == other.m_parent

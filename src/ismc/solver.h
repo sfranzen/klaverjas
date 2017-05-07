@@ -40,7 +40,6 @@ namespace ISMC
     private:
         void search(Node* rootNode, const Game* rootState);
 
-        Node m_root;
         int m_iterMax;
     };
 };

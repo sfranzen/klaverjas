@@ -60,6 +60,9 @@ public:
     qreal ucbScore(qreal exploration) const;
     Node* ucbSelectChild(const QVector<Card> legalMoves, qreal exploration = 0.7);
 
+    void addVirtualLoss();
+    void removeVirtualLoss();
+
     bool operator==(const Node& other) const;
 
 private:

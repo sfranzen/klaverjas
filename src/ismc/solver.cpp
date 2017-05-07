@@ -27,7 +27,6 @@
 
 ISMC::Solver::Solver(int iterMax)
     : m_iterMax(iterMax)
-    , m_root()
 {
 }
 
@@ -44,8 +43,8 @@ Card ISMC::Solver::treeSearch(const Game* rootState)
     // Return move of most-visited child node
     auto compareVisits = [](const std::shared_ptr<Node> a, const std::shared_ptr<Node> b){ return a->visits() < b->visits(); };
     auto rootList = root->children();
-
     const auto mostVisited = *std::max_element(rootList.cbegin(), rootList.cend(), compareVisits);
+    delete root;
     return mostVisited->move();
 }
 
@@ -62,6 +61,7 @@ void ISMC::Solver::search(Node* rootNode, const Game* rootState)
         auto legalMoves = state->legalMoves();
         if (!legalMoves.isEmpty() && node->untriedMoves(legalMoves).isEmpty()) {
             node = node->ucbSelectChild( legalMoves);
+            node->addVirtualLoss();
             state->acceptMove(node->move());
         } else {
             selected = true;
@@ -92,6 +92,7 @@ void ISMC::Solver::search(Node* rootNode, const Game* rootState)
     // Backpropagate
     while (node) {
         node->update(state);
+        node->removeVirtualLoss();
         node = node->parent();
     }
     delete state;
