@@ -71,7 +71,8 @@ bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
     if (!m_hand.containsSuit(card.suit())) {
         return false;
     } else {
-        for (const auto myCard : m_hand.suitSets()[card.suit()]) {
+        auto sets = m_hand.suitSets();
+        for (const auto myCard : sets.value(card.suit())) {
             if (myCard.beats(card, order))
                 return true;
         }
