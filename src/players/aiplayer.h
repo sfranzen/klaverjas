@@ -20,7 +20,7 @@
 #ifndef AIPLAYER_H
 #define AIPLAYER_H
 
-#include "player.h"
+#include "randomplayer.h"
 #include "card.h"
 #include "ismc/solver.h"
 
@@ -31,17 +31,15 @@
 
 class Game;
 
-class AiPlayer : public Player
+class AiPlayer : public RandomPlayer
 {
 public:
     AiPlayer(QString name = "", Game* parent = 0);
 
 public slots:
-    virtual void selectBid(QVariantList options) override;
     virtual void selectMove(QVector<Card> legalMoves) override;
 
 private:
-    QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;
 
     ISMC::Solver m_solver;
 };

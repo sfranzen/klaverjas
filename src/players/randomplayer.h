@@ -20,20 +20,24 @@
 #ifndef RANDOMPLAYER_H
 #define RANDOMPLAYER_H
 
-#include "aiplayer.h"
+#include "player.h"
 #include "card.h"
 
 #include <QString>
 #include <QVector>
 #include <QVariantList>
 
-class RandomPlayer : public AiPlayer
+class RandomPlayer : public Player
 {
 public:
-    using AiPlayer::AiPlayer;
+    using Player::Player;
 
 public slots:
+    virtual void selectBid(QVariantList options) override;
     virtual void selectMove(QVector<Card> legalMoves) override;
+
+private:
+    QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;
 };
 
 #endif // RANDOMPLAYER_H
