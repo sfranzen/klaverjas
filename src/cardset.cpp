@@ -92,7 +92,7 @@ bool CardSet::containsSuit(const Card::Suit suit) const
     return m_suitSets.contains(suit) && !m_suitSets[suit].isEmpty();
 }
 
-const QMap<Card::Suit, QVector<Card>> CardSet::suitSets() const
+const QMap<Card::Suit, QVector<Card>>& CardSet::suitSets() const
 {
     return m_suitSets;
 }

@@ -48,7 +48,7 @@ public:
 
     // Custom methods
     bool containsSuit(const Card::Suit suit) const;
-    const QMap<Card::Suit,QVector<Card>> suitSets() const;
+    const QMap<Card::Suit, QVector<Card>>& suitSets() const;
     QMap<Card::Suit,int> cardsPerSuit(const QVector<Card::Suit> suits = Card::Suits) const;
     QMap<Card::Suit,int> runLengths(const SortingMap sortingMap) const;
     QMap<Card::Suit,int> maxRunLengths(const SortingMap sortingMap) const;
