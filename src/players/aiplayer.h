@@ -25,23 +25,23 @@
 #include "ismc/solver.h"
 
 #include <QString>
-#include <QMap>
 #include <QVector>
 #include <QVariantList>
 
 class Game;
+class GameEngine;
 
 class AiPlayer : public RandomPlayer
 {
 public:
-    AiPlayer(QString name = "", Game* parent = 0);
+    explicit AiPlayer(GameEngine *engine, QString name = "", Game *parent = 0);
 
 public slots:
-    virtual void selectMove(QVector<Card> legalMoves) override;
+    void selectMove(QVector<Card> legalMoves) override;
 
 private:
-
-    ISMC::Solver m_solver;
+    ISMC::Solver<Card> m_solver;
+    GameEngine *m_engine;
 };
 
 #endif // AIPLAYER_H

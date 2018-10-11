@@ -1,8 +1,8 @@
 set(klaverjas_SRCS
     main.cpp
     klaverjaswindow.cpp
+    gameengine.cpp
     game.cpp
-    gamestate.cpp
     rules.cpp
     card.cpp
     cardset.cpp
@@ -14,8 +14,6 @@ set(klaverjas_SRCS
     players/humanplayer.cpp
     players/aiplayer.cpp
     players/randomplayer.cpp
-    ismc/node.cpp
-    ismc/solver.cpp
     qml/klaverjas.qrc
 )
 

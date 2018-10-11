@@ -1,85 +1,138 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Steven Franzen <sfranzen85@gmail.com>
- * 
- * This program is free software: you can redistribute it and/or modify
+ * This file is part of Klaverjas.
+ * Copyright (C) 2018  Steven Franzen <sfranzen85@gmail.com>
+ *
+ * Klaverjas is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
+ *
+ * Klaverjas is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
-#ifndef NODE_H
-#define NODE_H
+#ifndef ISMC_NODE_H
+#define ISMC_NODE_H
 
-#include "card.h"
+#include "game.h"
 
-#include <memory>
 #include <QVector>
 #include <QMutex>
+#include <QMutexLocker>
 
-class Player;
-class Game;
+#include <memory>
+#include <math.h>
 
-/* For a game to be playable by ISMCTS, only one data field and four functions
- * need to be defined:
+namespace ISMC {
+
+/**
+ * ISMC node class.
  *
- * - playerToMove: The player making a move from this state.
- * - CloneAndRandomize(observer): Create a copy of the state, then determinize
- *      the hidden information from observer's point of view.
- * - GetMoves(): Get a list of the legal moves from this state, or return an
- *      empty list if the state is terminal.
- * - DoMove(move): Apply the given move to the state, and update playerToMove
- *      to specify whose turn is next.
- * - GetResult(player): If the state is terminal, return 1 if the given player
- *      has won or 0 if not. For other games, this function could return 0.5
- *      for a draw, or some other score between 0 and 1 for other outcomes. If
- *      the state is not terminal, the result is undefined.
+ * Nodes are used by ISMC::Solver to create an information tree about a
+ * sequence of simulated games.
  */
-class Node
+template<class Move> class Node
 {
 public:
-    Node(const Card move = Card(), Node* parent = nullptr, int playerJustMoved = -1);
+    explicit Node(const Move move = Move(), Node *parent = nullptr, int playerJustMoved = -1)
+        : m_parent(parent)
+        , m_score(0)
+        , m_visits(0)
+        , m_available(1)
+        , m_move(move)
+        , m_playerJustMoved(playerJustMoved)
+    {}
 
-    const Card& move() const;
-    Node* parent() const;
-    int visits() const;
+    const Move &move() const { return m_move; }
+    Node *parent() const { return m_parent; }
+    int visits() const { return m_visits; }
+    const QVector<std::shared_ptr<Node>> &children() const { return m_children; }
 
-    const QVector<std::shared_ptr<Node>>& children() const;
-    Node* addChild(Card move, int player);
-    void update(Game* terminalState);
-    QVector<Card> untriedMoves(const QVector<Card> legalMoves) const;
-    qreal ucbScore(qreal exploration) const;
-    Node* ucbSelectChild(const QVector<Card> legalMoves, qreal exploration = 0.7);
+    Node *addChild(Move move, int player)
+    {
+        QMutexLocker lock(&m_mutex);
+        m_children << std::make_shared<Node>(move, this, player);
+        return m_children.last().get();
+    }
 
-    void addVirtualLoss();
-    void removeVirtualLoss();
+    void update(const Game<Move> *terminalState)
+    {
+        QMutexLocker lock(&m_mutex);
+        ++m_visits;
+        if (m_playerJustMoved != -1)
+            m_score += terminalState->getResult(m_playerJustMoved);
+    }
 
-    bool operator==(const Node& other) const;
+    QVector<Move> untriedMoves(const QVector<Move> legalMoves) const
+    {
+        QVector<Move> tried, untried;
+        QMutexLocker lock(&m_mutex);
+        for (const auto &node : m_children)
+            tried << node->m_move;
+        for (const auto &move : legalMoves)
+            if (!tried.contains(move))
+                untried << move;
+        return untried;
+    }
+
+    Node *ucbSelectChild(const QVector<Move> legalMoves, qreal exploration = 0.7)
+    {
+        static auto compare = [=](const Node *a, const Node *b){ return a->ucbScore(exploration) < b->ucbScore(exploration); };
+
+        QMutexLocker lock(&m_mutex);
+        QVector<Node*> legalChildren;
+
+        for (const auto &node : m_children) {
+            if (legalMoves.contains(node->m_move)) {
+                legalChildren.append(&*node);
+                Q_ASSERT(&*node == legalChildren.last());
+                ++(node->m_available);
+            }
+        }
+        return *std::max_element(legalChildren.cbegin(), legalChildren.cend(), compare);
+    }
+
+    void addVirtualLoss()
+    {
+        QMutexLocker lock(&m_mutex);
+        ++m_visits;
+    }
+
+    void removeVirtualLoss()
+    {
+        QMutexLocker lock(&m_mutex);
+        --m_visits;
+    }
 
 private:
-    Node* m_parent;
+    Node *m_parent;
     QVector<std::shared_ptr<Node>> m_children;
 
     qreal m_score;
     int m_visits;
     int m_available;
 
-    Card m_move;
+    Move m_move;
     int m_playerJustMoved;
     mutable QMutex m_mutex;
+
+    qreal ucbScore(qreal exploration) const
+    {
+        QMutexLocker lock(&m_mutex);
+        return m_score / qreal(m_visits) + exploration * std::sqrt(std::log(m_available) / m_visits);
+    }
 };
 
-inline uint qHash(const Node &key, uint seed) {
+template<class Move> inline uint qHash(const Node<Move> &key, uint seed = 0) {
     return qHash(key.parent(), seed);
 }
 
-#endif // NODE_H
+} // ISMC
+
+#endif // ISMC_NODE_H

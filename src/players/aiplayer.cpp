@@ -18,18 +18,18 @@
  */
 
 #include "aiplayer.h"
-#include "game.h"
-#include "cardset.h"
+#include "gameengine.h"
 
-AiPlayer::AiPlayer(QString name, Game* parent)
+AiPlayer::AiPlayer(GameEngine *engine, QString name, Game *parent)
     : RandomPlayer(name, parent)
     , m_solver(2500)
+    , m_engine(engine)
 {
 }
 
 void AiPlayer::selectMove(QVector<Card> legalMoves)
 {
     Q_UNUSED(legalMoves)
-    Card move = m_solver.treeSearch(m_game);
+    Card move = m_solver(m_engine);
     emit moveSelected(move);
 }
