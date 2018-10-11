@@ -1,13 +1,13 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Steven Franzen <sfranzen85@gmail.com>
+ * This file is part of Klaverjas.
+ * Copyright (C) 2018  Steven Franzen <sfranzen85@gmail.com>
  *
- * This program is free software: you can redistribute it and/or modify
+ * Klaverjas is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * Klaverjas is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -20,38 +20,42 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "rules.h"
-#include "card.h"
-#include "cardset.h"
+#include "baseplayer.h"
 #include "game.h"
 
 #include <QObject>
 #include <QString>
-#include <QVector>
-#include <QMap>
 #include <QVariantList>
 
+class Card;
+class CardSet;
 class Team;
 
-class Player : public QObject
+/**
+ * Abstract base class for interactive players.
+ *
+ * The Player class provides the common QObject interface for players in an
+ * interactive game of klaverjas. It leaves the slots selectBid and selectMove
+ * to be implemented by the derived player types.
+ */
+class Player : public QObject, public BasePlayer
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(CardSet hand READ hand NOTIFY handChanged)
 
 public:
-    Player(QString name = "", Game* game = nullptr);
+    explicit Player(QString name = "", QObject *parent = nullptr);
     virtual ~Player() = default;
 
-    const QString& name() const;
-    virtual void setName(const QString& name);
+    const QString &name() const;
+    void setName(const QString &name);
 
-    const CardSet& hand() const;
-    virtual void setHand(CardSet cards);
+    virtual void setHand(const CardSet &cards) override;
 
-    Team* team() const;
-    virtual void setTeam(Team* team);
-    bool canBeat(const Card& card, const QVector<Card::Rank> order) const;
+    Team *team() const;
+    virtual void setTeam(Team *team);
+    bool canBeat(Card card, const QVector<Card::Rank> order) const;
 
 signals:
     void bidSelected(Game::Bid bid);
@@ -60,14 +64,12 @@ signals:
 
 public slots:
     virtual void selectBid(QVariantList options) = 0;
-    virtual void selectMove(QVector<Card> legalMoves) = 0;
-    virtual void removeCard(const Card& card);
+    virtual void selectMove(const QVector<Card> legalMoves) = 0;
+    virtual void removeCard(Card card) override;
 
 protected:
     QString m_name;
-    const Game* m_game;
-    Team* m_team;
-    CardSet m_hand;
+    Team *m_team;
 };
 
 QDebug operator<<(QDebug dbg, const Player* player);

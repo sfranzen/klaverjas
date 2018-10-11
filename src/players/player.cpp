@@ -1,13 +1,13 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Steven Franzen <sfranzen85@gmail.com>
+ * This file is part of Klaverjas.
+ * Copyright (C) 2018  Steven Franzen <sfranzen85@gmail.com>
  *
- * This program is free software: you can redistribute it and/or modify
+ * Klaverjas is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * Klaverjas is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -18,41 +18,36 @@
  */
 
 #include "player.h"
-#include "ismc/solver.h"
+#include "card.h"
+#include "cardset.h"
 
+#include <QVector>
 #include <QDebug>
 #include <QLoggingCategory>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
 
-Player::Player(QString name, Game* game)
-    : QObject(game)
+Player::Player(QString name, QObject *parent)
+    : QObject(parent)
     , m_name(name)
-    , m_game(game)
     , m_team(nullptr)
 {
     m_hand.reserve(8);
 }
 
-const QString& Player::name() const
+const QString &Player::name() const
 {
     return m_name;
 }
 
-void Player::setName(const QString& name)
+void Player::setName(const QString &name)
 {
     m_name = name;
 }
 
-const CardSet& Player::hand() const
+void Player::setHand(const CardSet &cards)
 {
-    return m_hand;
-}
-
-void Player::setHand(CardSet cards)
-{
-    m_hand.clear();
-    m_hand << cards;
+    BasePlayer::setHand(cards);
     emit handChanged();
 }
 
@@ -61,12 +56,12 @@ void Player::setTeam(Team* team)
     m_team = team;
 }
 
-Team* Player::team() const
+Team *Player::team() const
 {
     return m_team;
 }
 
-bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
+bool Player::canBeat(Card card, const QVector<Card::Rank> order) const
 {
     if (!m_hand.containsSuit(card.suit())) {
         return false;
@@ -80,9 +75,9 @@ bool Player::canBeat(const Card& card, const QVector<Card::Rank> order) const
     }
 }
 
-void Player::removeCard(const Card& card)
+void Player::removeCard(Card card)
 {
-    m_hand.remove(card);
+    BasePlayer::removeCard(card);
     emit handChanged();
 }
 
