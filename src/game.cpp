@@ -43,7 +43,7 @@ QVariantList bidOptions(const QVector<Suit> suits = Card::Suits) {
 
 }
 
-Game::Game(QObject* parent, int numRounds, bool verbose)
+Game::Game(QObject *parent, int numRounds, bool verbose)
     : QObject(parent)
     , m_trumpRule(TrumpRule::Amsterdams)
     , m_bidRule(BidRule::Random)
@@ -90,7 +90,7 @@ int Game::currentPlayer() const
     return playerIndex(m_currentPlayer);
 }
 
-int Game::playerIndex(Player* player) const
+int Game::playerIndex(const Player *player) const
 {
     const auto target = std::find_if(m_players.begin(), m_players.end(), [&](const GameEngine::Player &p){
         return p.get() == player;
@@ -98,32 +98,42 @@ int Game::playerIndex(Player* player) const
     return m_players.indexOf(*target);
 }
 
-Player* Game::playerAt(int index) const
+Player *Game::playerAt(int index) const
 {
     return dynamic_cast<Player*>(m_players[index].get());
 }
 
-HumanPlayer* Game::humanPlayer() const
+HumanPlayer *Game::humanPlayer() const
 {
     return m_human;
 }
 
 QQmlListProperty<Player> Game::players()
 {
-    return QQmlListProperty<Player>(this, m_players);
+    using ListPtr = QQmlListProperty<Player>*;
+    return QQmlListProperty<Player>(this, this,
+        [](ListPtr l, Player *p){ reinterpret_cast<Game*>(l->data)->addPlayer(p); },
+        [](ListPtr l){ return reinterpret_cast<Game*>(l->data)->m_players.size(); },
+        [](ListPtr l, int i){ return reinterpret_cast<Game*>(l->data)->playerAt(i); },
+        [](ListPtr l){ reinterpret_cast<Game*>(l->data)->m_players.clear(); }
+    );
 }
 
 QQmlListProperty<Team> Game::teams()
 {
-    return QQmlListProperty<Team>(this, m_teams);
+    using ListPtr = QQmlListProperty<Team>*;
+    return QQmlListProperty<Team>(this, this,
+        [](ListPtr){ return 2; },
+        [](ListPtr l, int i){ return reinterpret_cast<Game*>(l->data)->m_teams.at(i); }
+    );
 }
 
-const Team* Game::contractors() const
+const Team *Game::contractors() const
 {
     return m_contractors;
 }
 
-const Team* Game::defenders() const
+const Team *Game::defenders() const
 {
     return m_defenders;
 }
@@ -337,7 +347,7 @@ void Game::acceptBid(QVariant bid)
     setStatus(Ready);
 }
 
-void Game::setContract(const Card::Suit suit, const Player* player)
+void Game::setContract(const Card::Suit suit, const Player *player)
 {
     if (m_verbose)
         qCInfo(klaverjasGame) << "Player" << player << "elected" << suit;
@@ -477,13 +487,13 @@ const QVector<Card> Game::legalMoves() const
     return moves;
 }
 
-Player* Game::nextPlayer(Player* player) const
+Player *Game::nextPlayer(Player *player) const
 {
     int index = playerIndex(player);
     return dynamic_cast<Player*>(m_players.at(++index % 4).get());
 }
 
-void Game::advancePlayer(Player*& player) const
+void Game::advancePlayer(Player *&player) const
 {
     player = nextPlayer(player);
 }

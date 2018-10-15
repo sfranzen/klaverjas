@@ -53,7 +53,7 @@ class Game : public QObject
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
 
 public:
-    explicit Game(QObject* parent = 0, int numRounds = 16, bool verbose = true);
+    explicit Game(QObject *parent = 0, int numRounds = 16, bool verbose = true);
 
     typedef QMap<Team*,int> Score;
 
@@ -64,24 +64,24 @@ public:
     void removePlayer(Player *player);
     int currentPlayer() const;
     int playerIndex(const Player* player) const;
-    Player* playerAt(int index) const;
-    HumanPlayer* humanPlayer() const;
+    Player *playerAt(int index) const;
+    HumanPlayer *humanPlayer() const;
     QQmlListProperty<Player> players();
     QQmlListProperty<Team> teams();
-    const Team* contractors() const;
-    const Team* defenders() const;
+    const Team *contractors() const;
+    const Team *defenders() const;
     int round() const;
     Card::Suit trumpSuit() const;
     const QVector<Card> cardsPlayed() const;
     const QVector<Card> legalMoves() const;
-    const Score& score() const;
+    const Score &score() const;
     Status status() const;
     const Trick& currentTrick() const;
     void start();
     void restart();
 
 signals:
-    void bidRequested(QVariantList options, Player* player);
+    void bidRequested(QVariantList options, Player *player);
     void moveRequested(QVector<Card> legalMoves);
     void playersChanged();
     void scoresChanged();
@@ -101,12 +101,12 @@ private slots:
 private:
     void deal();
     void proposeBid();
-    void setContract(const Card::Suit suit, const Player* player);
+    void setContract(const Card::Suit suit, const Player *player);
     Score scoreRound(const QVector<Trick> tricks) const;
     void setStatus(Status newStatus);
 
-    Player* nextPlayer(Player* player) const;
-    void advancePlayer(Player*& player) const;
+    Player *nextPlayer(Player *player) const;
+    void advancePlayer(Player *&player) const;
 
     GameEngine::TrumpRule m_trumpRule;
     BidRule m_bidRule;
@@ -127,12 +127,12 @@ private:
     Score m_scores;
     GameEngine::PlayerList m_players;
     QList<Team*> m_teams;
-    Player* m_dealer;
-    Player* m_eldest;
-    Player* m_currentPlayer;
-    Team* m_contractors;
-    Team* m_defenders;
-    HumanPlayer* m_human;
+    Player *m_dealer;
+    Player *m_eldest;
+    Player *m_currentPlayer;
+    Team *m_contractors;
+    Team *m_defenders;
+    HumanPlayer *m_human;
     Status m_status;
 
     std::unique_ptr<GameEngine> m_engine;
