@@ -42,10 +42,9 @@ void RandomPlayer::selectBid(QVariantList options) const
         map[s] = PlainRanks;
 
     QVector<Card::Suit> bidOptions;
-    for (const QVariant b : options) {
-        Game::Bid bid = b.value<Game::Bid>();
-        if (bid != Game::Bid::Pass)
-            bidOptions << (Card::Suit) bid;
+    for (const auto &b : options) {
+        if (!b.isNull())
+            bidOptions << b.value<Card::Suit>();
     }
     const QMap<Card::Suit,int> strengthMap = handStrength(bidOptions);
 
@@ -88,11 +87,11 @@ void RandomPlayer::selectBid(QVariantList options) const
     }
 
     // Decide
-    Game::Bid choice;
+    QVariant choice;
     if (shortList.isEmpty())
-        choice = options.last() == Game::Bid::Pass ? Game::Bid::Pass : (Game::Bid) maxStrength.key();
+        choice = options.last().isNull() ? options.last() : QVariant::fromValue(maxStrength.key());
     else
-        choice = (Game::Bid) shortList.first();
+        choice = QVariant::fromValue(shortList.first());
 
     emit bidSelected(choice);
 }

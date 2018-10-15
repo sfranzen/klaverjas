@@ -80,9 +80,6 @@ public:
     void start();
     void restart();
 
-    enum Bid { Spades, Hearts, Diamonds, Clubs, Pass };
-    Q_ENUM(Bid)
-
 signals:
     void bidRequested(QVariantList options, Player* player);
     void moveRequested(QVector<Card> legalMoves);
@@ -96,7 +93,7 @@ signals:
 
 public slots:
     void advance();
-    void acceptBid(Bid bid);
+    void acceptBid(QVariant bid);
     void acceptMove(Card card);
 
 private slots:
@@ -118,6 +115,7 @@ private:
     bool m_verbose;
     bool m_biddingPhase;
     bool m_paused;
+    QVariantList m_bidOptions;
     int m_bidCounter;
     int m_numRounds;
     int m_round;
@@ -139,7 +137,5 @@ private:
 
     std::unique_ptr<GameEngine> m_engine;
 };
-
-Q_DECLARE_METATYPE(Game::Bid)
 
 #endif // GAME_H
