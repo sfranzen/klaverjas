@@ -69,32 +69,32 @@ int main(int argc, char **argv)
     aboutData.processCommandLine(&parser);
     KAboutData::setApplicationData(aboutData);
 
-    qRegisterMetaType<CardSet>("CardSet");
-    qRegisterMetaType<Game::Bid>("Bid");
-    qRegisterMetaType<Card::Suit>("Suit");
     qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Enum/property access only.");
+    qRegisterMetaType<CardSet>("CardSet");
+    qRegisterMetaType<Card::Suit>("Suit");
+    qRegisterMetaType<Card::Rank>("Rank");
     qmlRegisterUncreatableType<Game>("org.kde.klaverjas", 1, 0, "Game", "Enum/property access only.");
     qmlRegisterUncreatableType<Player>("org.kde.klaverjas", 1, 0, "Player", "Abstract class.");
     qmlRegisterType<HumanPlayer>("org.kde.klaverjas", 1, 0, "HumanPlayer");
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
 
-    QLoggingCategory::setFilterRules("*.debug=false\n"
-                                        "klaverjas.aitest.debug=true\n"
-                                        "qml=true"
+    QLoggingCategory::setFilterRules("debug=true\n"
+        "klaverjas.*.debug=true\n"
+        "qml=true"
     );
 
     // Initialise PRNG
     std::srand(QTime::currentTime().msec());
 
-//     KlaverjasWindow *appwindow = new KlaverjasWindow;
-//     appwindow->show();
-//     return application.exec();
+    KlaverjasWindow *appwindow = new KlaverjasWindow;
+    appwindow->show();
+    return application.exec();
 
-    AiTest* tester = new AiTest(0, 10);
-    QTime timer;
-    timer.start();
-    tester->run();
-    qreal t = timer.elapsed();
-    qInfo() << 1e-3 * t;
-    return 0;
+//     AiTest* tester = new AiTest(0, 10);
+//     QTime timer;
+//     timer.start();
+//     tester->run();
+//     qreal t = timer.elapsed();
+//     qInfo() << 1e-3 * t;
+//     return 0;
 }

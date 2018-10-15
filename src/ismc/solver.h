@@ -71,9 +71,10 @@ public:
         auto *root = new Node<Move>();
 
         for (uint i = 0; i < m_iterMax; ++i) {
-            sync.addFuture(QtConcurrent::run(&*this, &Solver::search, root, rootState));
+//             sync.addFuture(QtConcurrent::run(&*this, &Solver::search, root, rootState));
+            search(root, rootState);
         }
-        sync.waitForFinished();
+//         sync.waitForFinished();
 
         // Return move of most-visited child node
         auto compareVisits = [](const NodePtr a, const NodePtr b){ return a->visits() < b->visits(); };

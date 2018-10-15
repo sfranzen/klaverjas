@@ -236,7 +236,6 @@ QVector<Card> GameEngine::validMoves() const
         // had to beat a trump but cannot; he may then play a lower trump
         moves = higherCards(currentHand, {m_trumpSuit, TrumpOrder.firstKey()}, TrumpOrder);
     }
-    Q_ASSERT(!moves.isEmpty());
     return moves;
 }
 
@@ -254,7 +253,7 @@ QVector<Card> GameEngine::minimumRank(const CardSet& hand, uint position) const
 
     // Player must always follow suit if possible, otherwise the rules and
     // state of the game determine whether he must trump if possible
-    const auto leadingCard = m_cardsPlayed.end() - 1 - position;
+    const auto leadingCard = m_cardsPlayed.end() - position;
     if (hand.containsSuit(leadingCard->suit())) {
         // Player can follow suit
         if (leadingCard->suit() != m_trumpSuit)
@@ -294,7 +293,7 @@ void GameEngine::doMove(const Card move)
     } else { // Trick complete
         auto trick = m_cardsPlayed.mid(numCards - 4, 4);
         const auto winnerCard = trickWinner(trick.begin(), trick.end(), m_trumpSuit);
-        const auto winner = m_currentPlayer + (winnerCard - trick.cbegin());
+        const auto winner = m_currentPlayer + (winnerCard - trick.cbegin() + 1);
         teamScore(winner) += trickScore(trick, m_trumpSuit);
         m_currentPlayer = winner;
         // A "march" is scored if the contracting team wins all tricks and
@@ -337,3 +336,9 @@ void GameEngine::reset(Position firstPlayer, Position contractor, Card::Suit tru
     m_trumpSuit = trumpSuit;
     m_cardsPlayed.clear();
 }
+
+GameEngine::Position &operator++(GameEngine::Position& p)
+{
+    return p += 1;
+}
+

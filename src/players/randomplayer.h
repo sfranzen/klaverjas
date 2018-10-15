@@ -33,8 +33,8 @@ public:
     using Player::Player;
 
 public slots:
-    virtual void selectBid(QVariantList options) override;
-    virtual void selectMove(QVector<Card> legalMoves) override;
+    virtual void selectBid(QVariantList options) const override;
+    virtual void selectMove(const QVector<Card> legalMoves) const override;
 
 private:
     QMap<Card::Suit,int> handStrength(const QVector<Card::Suit> bidOptions) const;

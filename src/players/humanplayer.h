@@ -33,8 +33,8 @@ public:
     using Player::Player;
 
 public slots:
-    void selectBid(QVariantList options) override;
-    void selectMove(QVector<Card> legalMoves) override;
+    void selectBid(QVariantList options) const override;
+    void selectMove(const QVector<Card> legalMoves) const override;
 };
 
 #endif // HUMANPLAYER_H

@@ -9,14 +9,6 @@
 
 
 // Game rules and definitions
-enum class TrumpRule {
-    //! A player who cannot follow suit is not required to trump his partner's
-    //! trick.
-    Amsterdams,
-    //! A player who cannot follow suit must always (over)trump if he can.
-    Rotterdams
-};
-
 enum class BidRule {
     Official,
     Random,

@@ -20,16 +20,19 @@
 #include "aiplayer.h"
 #include "gameengine.h"
 
-AiPlayer::AiPlayer(GameEngine *engine, QString name, Game *parent)
+#include <QString>
+#include <QVector>
+
+AiPlayer::AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name, Game *parent)
     : RandomPlayer(name, parent)
     , m_solver(2500)
     , m_engine(engine)
 {
 }
 
-void AiPlayer::selectMove(QVector<Card> legalMoves)
+void AiPlayer::selectMove(const QVector<Card> legalMoves) const
 {
     Q_UNUSED(legalMoves)
-    Card move = m_solver(m_engine);
+    Card move = m_solver(m_engine.get());
     emit moveSelected(move);
 }

@@ -25,16 +25,23 @@
 
 #include <algorithm>
 #include <QString>
+#include <QStringList>
 
-const QStringList Game::s_defaultPlayerNames {"South", "West", "North", "East"};
+namespace {
 
-Game::Game(QObject* parent, bool interactive, bool verbose, int numRounds)
+using TrumpRule = GameEngine::TrumpRule;
+using Suit = Card::Suit;
+using Rank = Card::Rank;
+const QStringList DefaultNames {"South", "West", "North", "East"};
+
+}
+
+Game::Game(QObject* parent, int numRounds, bool verbose)
     : QObject(parent)
     , m_trumpRule(TrumpRule::Amsterdams)
     , m_bidRule(BidRule::Random)
-    , m_interactive(interactive)
     , m_verbose(verbose)
-    , m_biddingPhase(false)
+    , m_biddingPhase(true)
     , m_paused(false)
     , m_bidCounter(0)
     , m_numRounds(numRounds)
@@ -45,35 +52,28 @@ Game::Game(QObject* parent, bool interactive, bool verbose, int numRounds)
     , m_defenders(nullptr)
     , m_human(nullptr)
     , m_status(Ready)
+    , m_engine(nullptr)
 {
-
     // Reserve vector space
     m_deck.reserve(32);
-    m_cardsPlayed.reserve(32);
 
     for (int  i = 0; i < 32; ++i)
-        m_deck.append(Card(Card::Suit(i/8), Card::Rank(i%8)));
+        m_deck.append(Card(Card::Suits[i/8], Card::Ranks[i%8]));
 
     for (int i = 1; i <= 2; ++i) {
         Team* team = new Team(QString::number(i), this);
         m_teams.append(team);
         m_scores[team] = 0;
     }
-
-    if (m_interactive)
-        m_biddingPhase = true;
-    else
-        start();
 }
 
-void Game::addPlayer(Player* player)
+void Game::addPlayer(Player *player)
 {
     if (m_players.size() <= 4) {
         auto human = dynamic_cast<HumanPlayer*>(player);
         if (human)
             m_human = human;
-        m_players << player;
-        m_teams[playerIndex(player) % 2]->addPlayer(player);
+        m_players << std::shared_ptr<Player>(player);
         emit playersChanged();
     }
 }
@@ -85,12 +85,15 @@ int Game::currentPlayer() const
 
 int Game::playerIndex(Player* player) const
 {
-    return m_players.indexOf(player);
+    const auto target = std::find_if(m_players.begin(), m_players.end(), [&](const GameEngine::Player &p){
+        return p.get() == player;
+    });
+    return m_players.indexOf(*target);
 }
 
 Player* Game::playerAt(int index) const
 {
-    return m_players.at(index);
+    return dynamic_cast<Player*>(m_players[index].get());
 }
 
 HumanPlayer* Game::humanPlayer() const
@@ -128,11 +131,6 @@ Card::Suit Game::trumpSuit() const
     return m_trumpSuit;
 }
 
-const QVector<Card> Game::cardsPlayed() const
-{
-    return m_cardsPlayed;
-}
-
 const Game::Score & Game::score() const
 {
     return m_scores;
@@ -151,16 +149,27 @@ void Game::setStatus(Game::Status newStatus)
     }
 }
 
+const Trick& Game::currentTrick() const
+{
+    return m_currentTrick;
+}
+
 void Game::start()
 {
-    const int numPlayers = m_players.size();
-    for (int i = 0; i < 4 - numPlayers; ++i)
-        addPlayer(new AiPlayer(s_defaultPlayerNames.at(i), this));
+    for (int i = m_players.size(); i < 4; ++i)
+        addPlayer(new AiPlayer(m_engine, DefaultNames[i], this));
+
+    // Make human player 3rd position
+    if (m_human)
+        std::rotate(m_players.begin(), m_players.begin() + 2, m_players.end());
+
+    for (int i = 0; i < 4; ++i)
+        m_teams[i % 2]->addPlayer(playerAt(i));
 
     if (m_verbose)
         qCDebug(klaverjasGame) << "Teams: " << m_teams;
 
-    m_dealer = m_players.last();
+    m_dealer = dynamic_cast<Player*>(m_players.at(1).get());
     m_eldest = nextPlayer(m_dealer);
     m_currentPlayer = m_eldest;
 
@@ -172,70 +181,14 @@ void Game::restart()
     m_round = 0;
     m_trick = 0;
     m_turn = 0;
-
     m_tricks.clear();
-    for (int& score : m_scores)
-        score = 0;
 
-    for (Team* t : m_teams)
+    for (auto &score : m_scores)
+        score = 0;
+    for (auto t : m_teams)
         t->resetScore();
 
     start();
-}
-
-Game* Game::cloneAndRandomize(int observer) const
-{
-    Game* clone = new Game(0, false, false);
-    // Main state
-    clone->m_trick = m_trick;
-    clone->m_turn = m_turn;
-    clone->m_trumpSuit = m_trumpSuit;
-    clone->m_cardsPlayed = m_cardsPlayed;
-    clone->m_currentTrick = m_currentTrick;
-    clone->m_roundTricks = m_roundTricks;
-
-    // Current player
-    const int pIdx = currentPlayer();
-    clone->m_currentPlayer = clone->playerAt(pIdx);
-    clone->m_dealer = clone->playerAt(playerIndex(m_dealer));
-    clone->m_eldest = clone->nextPlayer(clone->m_dealer);
-
-    // Team setup
-    const int cIdx = m_teams.indexOf(m_contractors);
-    clone->m_contractors = clone->m_teams.at(cIdx);
-    clone->m_defenders = clone->m_teams.at((cIdx + 1) % 2);
-    for (int i = 0; i < m_teams.size(); ++i)
-        clone->m_teams[i]->addPoints(m_teams.at(i)->score());
-
-    // Randomly distribute the cards not known to the observer
-    QVector<Card> seenCards, unseenCards;
-    seenCards.reserve(32);
-    unseenCards.reserve(32);
-    seenCards << playerAt(observer)->hand();
-    seenCards << m_cardsPlayed;
-    for (auto card = m_deck.cbegin(); card != m_deck.cend(); ++card)
-        if (!seenCards.contains(*card))
-            unseenCards << *card;
-    std::random_shuffle(unseenCards.begin(), unseenCards.end());
-    for (int i = 0; i < m_players.size(); ++i) {
-        Player* player = clone->playerAt(i);
-        if (i == observer) {
-            player->setHand(playerAt(i)->hand());
-        } else {
-            int numCards = playerAt(i)->hand().size();
-            player->setHand(unseenCards.mid(0, numCards));
-            unseenCards.remove(0, numCards);
-        }
-    }
-    return clone;
-}
-
-qreal Game::getResult(int playerIndex) const
-{
-    qreal result = -1;
-    if (m_roundTricks.isEmpty())
-        result = playerAt(playerIndex)->team()->score() / 162.0;
-    return result;
 }
 
 /** Advance the state of the current game.
@@ -254,7 +207,7 @@ void Game::advance()
     if (m_biddingPhase) {
         setStatus(Waiting);
         proposeBid();
-    } else {
+    } else if (!m_engine->isFinished()) {
         // Trick-taking phase, proceed automatically until it is the human
         // player's turn or a new trick is about to start.
         if (m_paused) {
@@ -263,19 +216,42 @@ void Game::advance()
         }
         if (m_currentTrick.players().isEmpty())
             emit newTrick();
-        m_paused = m_turn == 3;
+        m_paused = m_currentPlayer == m_human;
         connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
         setStatus(Waiting);
         emit moveRequested(legalMoves());
         advance();
+    } else if (m_round < m_numRounds) {
+        // One round (game) completed
+        m_tricks << m_roundTricks;
+        const auto score = scoreRound(m_roundTricks);
+        if (m_verbose)
+            qCInfo(klaverjasGame) << "Round scores: " << score;
+        for (Team* team : m_teams) {
+            team->addPoints(score[team]);
+            m_scores[team] += score[team];
+        }
+        m_roundTricks.clear();
+        m_trick = 0;
+        m_turn = 0;
+        ++m_round;
+        advancePlayer(m_dealer);
+        advancePlayer(m_eldest);
+        m_currentPlayer = m_eldest;
+        m_biddingPhase = true;
+        deal();
+        setStatus(Ready);
+    } else {
+        setStatus(Finished);
+        if (m_verbose)
+            qCInfo(klaverjasGame) << "Game finished";
     }
 }
 
 void Game::deal()
 {
     std::random_shuffle(m_deck.begin(), m_deck.end());
-    m_cardsPlayed.clear();
     for (int i = 0; i < m_players.size(); ++i)
         m_players[i]->setHand(m_deck.mid(i*8, 8));
 }
@@ -345,9 +321,6 @@ void Game::acceptBid(Game::Bid bid)
         proposeBid();
     } else {
         setContract((Card::Suit) bid, m_currentPlayer);
-        if (m_interactive && m_verbose)
-            qCInfo(klaverjasGame) << "Player" << m_currentPlayer << "elected" << m_trumpSuit;
-        m_currentPlayer = m_eldest;
         m_biddingPhase = false;
         m_bidCounter = 0;
         m_currentTrick = Trick(m_trumpSuit);
@@ -358,9 +331,18 @@ void Game::acceptBid(Game::Bid bid)
 
 void Game::setContract(const Card::Suit suit, const Player* player)
 {
+    if (m_verbose)
+        qCInfo(klaverjasGame) << "Player" << player << "elected" << suit;
     m_trumpSuit = suit;
     m_contractors = player->team();
     m_defenders = m_teams.first() == m_contractors ? m_teams.last() : m_teams.first();
+    m_currentPlayer = m_eldest;
+    auto currentPos = Position(currentPlayer());
+    auto contractorPos = Position(playerIndex(player));
+    if (m_engine)
+        m_engine->reset(currentPos, contractorPos, m_trumpSuit);
+    else
+        m_engine = GameEngine::create(m_players, currentPos, contractorPos, m_trumpRule, m_trumpSuit);
     emit trumpSuitChanged(suit);
 }
 
@@ -368,66 +350,29 @@ void Game::acceptMove(Card card)
 {
     disconnect(this, &Game::moveRequested, 0, 0);
     disconnect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
-    if (m_interactive && m_status != Waiting)
+    if (m_status != Waiting || m_biddingPhase)
         return;
-    if (m_biddingPhase)
-        return;
-    if (m_trick < 8) {
-        if (m_turn < 4) {
-            m_turn++;
-            m_currentTrick.add(currentPlayer(), card);
-            if (m_interactive && m_verbose) {
-                qCInfo(klaverjasGame) << m_currentPlayer << "played" << card;
-                emit cardPlayed(currentPlayer(), card);
-            }
-            m_currentPlayer->removeCard(card);
-//             m_cardsInPlay.remove(card);
-            m_cardsPlayed.append(card);
-            advancePlayer(m_currentPlayer);
-        }
-        if (m_turn == 4) {
-            m_turn = 0;
-            m_trick++;
-            m_roundTricks << m_currentTrick;
-            m_currentPlayer = playerAt(m_currentTrick.winner());
-            if (m_interactive && m_verbose) {
-                qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
-                qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
-            }
-            m_currentTrick = Trick(m_trumpSuit);
-        }
+
+    if (m_verbose) {
+        qCInfo(klaverjasGame) << m_currentPlayer << "played" << card;
+        emit cardPlayed(currentPlayer(), card);
     }
-    if (m_trick == 8) {
-        // One round (game) completed
-        m_tricks << m_roundTricks;
-        const auto score = scoreRound(m_roundTricks);
-        if (m_interactive && m_verbose)
-            qCInfo(klaverjasGame) << "Round scores: " << score;
-        for (Team* team : m_teams) {
-            team->addPoints(score[team]);
-            m_scores[team] += score[team];
-        }
-        m_roundTricks.clear();
-        m_trick = 0;
+    m_engine->doMove(card);
+    ++m_turn;
+    m_currentTrick.add(currentPlayer(), card);
+    m_currentPlayer = playerAt(m_engine->currentPlayer());
+    if (m_turn == 4) {
         m_turn = 0;
-        m_round++;
-        advancePlayer(m_dealer);
-        advancePlayer(m_eldest);
-        m_currentPlayer = m_eldest;
-        // Set up for the next round only if we are interactive. Otherwise,
-        // stop advancing here to make the AI simulation terminate.
-        if (m_interactive) {
-            m_biddingPhase = true;
-            deal();
+        ++m_trick;
+        m_roundTricks << m_currentTrick;
+        if (m_verbose) {
+            qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
+            qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
         }
+        m_currentTrick = Trick(m_trumpSuit);
+        emit newTrick();
     }
-    if (m_round == m_numRounds) {
-        setStatus(Finished);
-        if (m_verbose)
-            qCInfo(klaverjasGame) << "Game finished";
-    } else {
-        setStatus(Ready);
-    }
+    setStatus(Ready);
 }
 
 Game::Score Game::scoreRound(const QVector<Trick> tricks) const
@@ -526,8 +471,8 @@ const QVector<Card> Game::legalMoves() const
 
 Player* Game::nextPlayer(Player* player) const
 {
-    int index = m_players.indexOf(player);
-    return m_players.at(++index % 4);
+    int index = playerIndex(player);
+    return dynamic_cast<Player*>(m_players.at(++index % 4).get());
 }
 
 void Game::advancePlayer(Player*& player) const

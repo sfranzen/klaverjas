@@ -24,9 +24,12 @@
 #include "card.h"
 #include "cardset.h"
 #include "trick.h"
+#include "gameengine.h"
+
+#include <random>
+#include <memory>
 
 #include <QObject>
-#include <QStringList>
 #include <QVector>
 #include <QList>
 #include <QMap>
@@ -50,16 +53,17 @@ class Game : public QObject
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
 
 public:
-    Game(QObject* parent = 0, bool interactive = true, bool verbose = true, int numRounds = 16);
+    explicit Game(QObject* parent = 0, int numRounds = 16, bool verbose = true);
 
     typedef QMap<Team*,int> Score;
 
     enum Status { Ready, Waiting, Finished };
     Q_ENUM(Status)
 
-    void addPlayer(Player* player);
+    void addPlayer(Player *player);
+    void removePlayer(Player *player);
     int currentPlayer() const;
-    int playerIndex(Player* player) const;
+    int playerIndex(const Player* player) const;
     Player* playerAt(int index) const;
     HumanPlayer* humanPlayer() const;
     QQmlListProperty<Player> players();
@@ -72,17 +76,9 @@ public:
     const QVector<Card> legalMoves() const;
     const Score& score() const;
     Status status() const;
+    const Trick& currentTrick() const;
     void start();
     void restart();
-    void autoRun();
-
-    // ISMCTS
-    // Return a copy of the game's state, but with the information that is
-    // hidden from the observer determinised.
-    Game* cloneAndRandomize(int observer) const;
-    // Return the outcome if the current game has not terminated, otherwise
-    // return -1.
-    qreal getResult(int playerIndex) const;
 
     enum Bid { Spades, Hearts, Diamonds, Clubs, Pass };
     Q_ENUM(Bid)
@@ -115,12 +111,10 @@ private:
     Player* nextPlayer(Player* player) const;
     void advancePlayer(Player*& player) const;
 
-    TrumpRule m_trumpRule;
+    GameEngine::TrumpRule m_trumpRule;
     BidRule m_bidRule;
     Card::Suit m_trumpSuit;
     QVector<Card> m_deck;
-    QVector<Card> m_cardsPlayed;
-    bool m_interactive;
     bool m_verbose;
     bool m_biddingPhase;
     bool m_paused;
@@ -133,7 +127,7 @@ private:
     QVector<Trick> m_roundTricks;
     QVector<QVector<Trick>> m_tricks;
     Score m_scores;
-    QList<Player*> m_players;
+    GameEngine::PlayerList m_players;
     QList<Team*> m_teams;
     Player* m_dealer;
     Player* m_eldest;
@@ -143,7 +137,7 @@ private:
     HumanPlayer* m_human;
     Status m_status;
 
-    const static QStringList s_defaultPlayerNames;
+    std::unique_ptr<GameEngine> m_engine;
 };
 
 Q_DECLARE_METATYPE(Game::Bid)

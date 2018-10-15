@@ -58,13 +58,13 @@ public:
     bool canBeat(Card card, const QVector<Card::Rank> order) const;
 
 signals:
-    void bidSelected(Game::Bid bid);
-    void moveSelected(Card card);
-    void handChanged();
+    Q_INVOKABLE void bidSelected(QVariant bid) const;
+    void moveSelected(Card card) const;
+    void handChanged() const;
 
 public slots:
-    virtual void selectBid(QVariantList options) = 0;
-    virtual void selectMove(const QVector<Card> legalMoves) = 0;
+    virtual void selectBid(QVariantList options) const = 0;
+    virtual void selectMove(const QVector<Card> legalMoves) const = 0;
     virtual void removeCard(Card card) override;
 
 protected:

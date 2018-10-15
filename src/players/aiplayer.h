@@ -24,9 +24,7 @@
 #include "card.h"
 #include "ismc/solver.h"
 
-#include <QString>
-#include <QVector>
-#include <QVariantList>
+#include <memory>
 
 class Game;
 class GameEngine;
@@ -34,14 +32,14 @@ class GameEngine;
 class AiPlayer : public RandomPlayer
 {
 public:
-    explicit AiPlayer(GameEngine *engine, QString name = "", Game *parent = 0);
+    explicit AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name = "", Game *parent = 0);
 
 public slots:
-    void selectMove(QVector<Card> legalMoves) override;
+    void selectMove(const QVector<Card> legalMoves) const override;
 
 private:
     ISMC::Solver<Card> m_solver;
-    GameEngine *m_engine;
+    const std::unique_ptr<GameEngine> &m_engine;
 };
 
 #endif // AIPLAYER_H

@@ -23,7 +23,7 @@
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasAi);
 
-void RandomPlayer::selectMove(QVector<Card> legalMoves)
+void RandomPlayer::selectMove(QVector<Card> legalMoves) const
 {
     const int idx = std::rand() % legalMoves.size();
     emit moveSelected(legalMoves.at(idx));
@@ -34,7 +34,7 @@ void RandomPlayer::selectMove(QVector<Card> legalMoves)
  * The bid options are scored according to the run lengths, which give an
  * indication of how many tricks might be secured by the player.
  */
-void RandomPlayer::selectBid(QVariantList options)
+void RandomPlayer::selectBid(QVariantList options) const
 {
     qCDebug(klaverjasAi) << m_name + "'s hand:" << m_hand;
     CardSet::SortingMap map;
