@@ -21,53 +21,57 @@
 #define CARD_H
 
 #include <QObject>
-#include <QString>
-#include <QVector>
-#include <QMap>
 
 class Card
 {
     Q_GADGET
-    Q_PROPERTY(Suit suit READ suit CONSTANT)
-    Q_PROPERTY(Rank rank READ rank CONSTANT)
+    Q_PROPERTY(QVariant suit READ suitVariant CONSTANT)
+    Q_PROPERTY(QVariant rank READ rankVariant CONSTANT)
 public:
-    enum class Suit { Spades, Hearts, Diamonds, Clubs };
-    enum class Rank { Ace, King, Queen, Jack, Ten, Nine, Eight, Seven };
+    enum class Suit : uchar { Clubs = 0x00, Diamonds = 0x10, Hearts = 0x20, Spades = 0x30};
+    enum class Rank : uchar { Seven = 7, Eight, Nine, Ten, King, Queen, Jack, Ace };
     Q_ENUM(Suit)
     Q_ENUM(Rank)
 
     Card() = default;
     Card(Suit s, Rank r);
 
-    bool operator==(const Card& other) const;
+    QString name() const;
+    Suit suit() const;
+    Rank rank() const;
 
-    const QString& name() const { return m_name; };
-    Suit suit() const { return m_suit; };
-    Rank rank() const { return m_rank; };
+    bool operator==(const Card& other) const;
 
     /* Whether this card beats the other in the given sorting order.
      */
     bool beats(const Card& other, const QVector<Rank> order) const;
+    friend uint qHash(const Card& card, uint seed);
 
-    const static QVector<Suit> Suits;
-
-    friend QDebug operator<<(QDebug dbg, Suit s);
-    friend QDebug operator<<(QDebug dbg, Rank r);
+    static const QVector<Suit> Suits;
+    static const QVector<Rank> Ranks;
 
 private:
-    Suit m_suit;
-    Rank m_rank;
-    QString m_name;
+    uchar m_value;
 
-    const static QMap<Suit,QString> s_suitLabels;
-    const static QMap<Rank,QString> s_rankLabels;
+    // QML properties
+    QVariant suitVariant() const;
+    QVariant rankVariant() const;
 };
 
-Q_DECLARE_METATYPE(Card)
-Q_DECLARE_METATYPE(Card::Suit)
+inline uint qHash(const Card& card, uint seed = 0) {
+    return qHash(card.m_value, seed);
+}
+
+inline uint qHash(Card::Suit suit, uint seed = 0) {
+    return qHash(uint(suit), seed);
+}
+
+inline uint qHash(Card::Rank rank, uint seed = 0) {
+    return qHash(uint(rank), seed);
+}
 
 QDebug operator<<(QDebug dbg, const Card& c);
-QDebug operator<<(QDebug dbg, Card::Suit s);
-QDebug operator<<(QDebug dbg, Card::Rank r);
+QDebug operator<<(QDebug dbg, const Card::Suit s);
+QDebug operator<<(QDebug dbg, const Card::Rank r);
 
 #endif // CARD_H

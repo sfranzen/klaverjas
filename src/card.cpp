@@ -21,39 +21,66 @@
 #include "rules.h"
 
 #include <QDebug>
+#include <QVector>
+#include <QMap>
+#include <QString>
+#include <QVariant>
 
-// Suit collection for ease of use
-const QVector<Card::Suit> Card::Suits {
-    Card::Suit::Spades,
-    Card::Suit::Hearts,
-    Card::Suit::Diamonds,
-    Card::Suit::Clubs
+namespace {
+
+// Unicode points of textual symbols
+const static QMap<Card::Suit,QString> SuitLabels {
+    {Card::Suit::Spades,    "\u2660"},
+    {Card::Suit::Hearts,    "\u2665"},
+    {Card::Suit::Diamonds,  "\u2666"},
+    {Card::Suit::Clubs,     "\u2663"}
 };
 
-// Textual labels
-const QMap<Card::Suit,QString> Card::s_suitLabels {
-    {Card::Suit::Spades, "\u2660"},
-    {Card::Suit::Hearts, "\u2665"},
-    {Card::Suit::Diamonds, "\u2666"},
-    {Card::Suit::Clubs, "\u2663"}
-};
-
-const QMap<Card::Rank,QString> Card::s_rankLabels {
+const QMap<Card::Rank,QString> RankLabels {
     {Card::Rank::Seven, "7"},
     {Card::Rank::Eight, "8"},
-    {Card::Rank::Nine, "9"},
-    {Card::Rank::Jack, "J"},
+    {Card::Rank::Nine,  "9"},
+    {Card::Rank::Ten,   "10"},
+    {Card::Rank::Jack,  "J"},
     {Card::Rank::Queen, "Q"},
-    {Card::Rank::King, "K"},
-    {Card::Rank::Ten, "10"},
-    {Card::Rank::Ace, "A"}
+    {Card::Rank::King,  "K"},
+    {Card::Rank::Ace,   "A"}
 };
 
+} // namespace
+
+// Collections for ease of use
+const QVector<Card::Suit> Card::Suits = SuitLabels.keys().toVector();
+const QVector<Card::Rank> Card::Ranks = RankLabels.keys().toVector();
+
 Card::Card(Suit s, Rank r)
-    : m_suit(s)
-    , m_rank(r)
-    , m_name(s_suitLabels[s] + s_rankLabels[r])
+    : m_value(uchar(s) | uchar(r))
 {
+}
+
+QString Card::name() const
+{
+    return SuitLabels[suit()] + RankLabels[rank()];
+}
+
+Card::Suit Card::suit() const
+{
+    return Suit(m_value & ~15);
+}
+
+QVariant Card::suitVariant() const
+{
+    return QVariant::fromValue(suit());
+}
+
+Card::Rank Card::rank() const
+{
+    return Rank(m_value & 15);
+}
+
+QVariant Card::rankVariant() const
+{
+    return QVariant::fromValue(rank());
 }
 
 bool Card::beats(const Card& other, const QVector<Rank> order) const
@@ -63,7 +90,7 @@ bool Card::beats(const Card& other, const QVector<Rank> order) const
 
 bool Card::operator==(const Card& other) const
 {
-    return m_rank == other.m_rank && m_suit == other.m_suit;
+    return m_value == other.m_value;
 }
 
 QDebug operator<<(QDebug dbg, const Card& c)
@@ -71,12 +98,12 @@ QDebug operator<<(QDebug dbg, const Card& c)
     return dbg << c.name();
 }
 
-QDebug operator<<(QDebug dbg, Card::Suit s)
+QDebug operator<<(QDebug dbg, const Card::Suit s)
 {
-    return dbg << Card::s_suitLabels[s];
+    return dbg << SuitLabels[s];
 }
 
-QDebug operator<<(QDebug dbg, Card::Rank r)
+QDebug operator<<(QDebug dbg, const Card::Rank r)
 {
-    return dbg << Card::s_rankLabels[r];
+    return dbg << RankLabels[r];
 }

@@ -12,43 +12,36 @@ Image {
         if (!card) {
             source = "";
             return;
-        }
-        if (!faceUp) {
+        } else if (!faceUp) {
             source = "image://cards/back";
             return;
         }
+
         var name = "image://cards/";
-        switch (card.rank) {
-            case Card.Ace:
-                name += "1";
-                break;
-            case Card.Seven:
-                name += "7";
-                break;
-            case Card.Eight:
-                name += "8";
-                break;
-            case Card.Nine:
-                name += "9";
-                break;
-            case Card.Ten:
-                name += "10";
-                break;
-            case Card.Jack:
-                name += "jack";
-                break;
-            case Card.Queen:
-                name += "queen";
-                break;
-            case Card.King:
-                name += "king";
-        }
+        var r = card.rank;
+        if (r == Card.Ace)
+            name += "1";
+        else if (r == Card.Seven)
+            name += "7";
+        else if (r == Card.Eight)
+            name += "8";
+        else if (r == Card.Nine)
+            name += "9";
+        else if (r == Card.Ten)
+            name += "10";
+        else if (r == Card.Jack)
+            name += "jack";
+        else if (r == Card.Queen)
+            name += "queen";
+        else if (r == Card.King)
+            name += "king";
         name += "_";
-        if (card.suit == Card.Spades)
+        var s = card.suit;
+        if (s == Card.Spades)
             name += "spade";
-        else if (card.suit == Card.Hearts)
+        else if (s == Card.Hearts)
             name += "heart";
-        else if (card.suit == Card.Diamonds)
+        else if (s == Card.Diamonds)
             name += "diamond";
         else
             name += "club";
