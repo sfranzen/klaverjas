@@ -49,7 +49,6 @@ Game::Game(QObject *parent, int numRounds, bool verbose)
     , m_bidRule(BidRule::Random)
     , m_verbose(verbose)
     , m_biddingPhase(true)
-    , m_paused(false)
     , m_bidCounter(0)
     , m_numRounds(numRounds)
     , m_round(0)
@@ -224,21 +223,27 @@ void Game::advance()
     if (m_biddingPhase) {
         setStatus(Waiting);
         proposeBid();
+    } else if (m_turn == 4) {
+        // Trick complete
+        m_turn = 0;
+        ++m_trick;
+        m_roundTricks << m_currentTrick;
+        if (m_verbose) {
+            qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
+            qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
+        }
+        m_currentTrick = Trick(m_trumpSuit);
+        emit newTrick();
     } else if (!m_engine->isFinished()) {
         // Trick-taking phase, proceed automatically until it is the human
         // player's turn or a new trick is about to start.
-        if (m_paused) {
-            m_paused = false;
-            return;
-        }
-        if (m_currentTrick.players().isEmpty())
-            emit newTrick();
-        m_paused = m_currentPlayer == m_human;
         connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
         setStatus(Waiting);
         emit moveRequested(legalMoves());
-        advance();
+        ++m_turn;
+        if (m_currentPlayer != m_human && m_turn < 4)
+            advance();
     } else if (m_round < m_numRounds) {
         // One round (game) completed
         m_tricks << m_roundTricks;
@@ -370,26 +375,13 @@ void Game::acceptMove(Card card)
     disconnect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
     if (m_status != Waiting || m_biddingPhase)
         return;
-
     if (m_verbose) {
         qCInfo(klaverjasGame) << m_currentPlayer << "played" << card;
         emit cardPlayed(currentPlayer(), card);
     }
     m_engine->doMove(card);
-    ++m_turn;
     m_currentTrick.add(currentPlayer(), card);
     m_currentPlayer = playerAt(m_engine->currentPlayer());
-    if (m_turn == 4) {
-        m_turn = 0;
-        ++m_trick;
-        m_roundTricks << m_currentTrick;
-        if (m_verbose) {
-            qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
-            qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
-        }
-        m_currentTrick = Trick(m_trumpSuit);
-        emit newTrick();
-    }
     setStatus(Ready);
 }
 

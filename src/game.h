@@ -114,7 +114,6 @@ private:
     QVector<Card> m_deck;
     bool m_verbose;
     bool m_biddingPhase;
-    bool m_paused;
     QVariantList m_bidOptions;
     int m_bidCounter;
     int m_numRounds;
