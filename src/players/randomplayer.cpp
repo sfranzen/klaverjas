@@ -20,6 +20,9 @@
 #include "randomplayer.h"
 
 #include <QLoggingCategory>
+#include <QMap>
+#include <QVector>
+#include <QVariantList>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasAi);
 

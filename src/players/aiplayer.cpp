@@ -23,7 +23,7 @@
 #include <QString>
 #include <QVector>
 
-AiPlayer::AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name, Game *parent)
+AiPlayer::AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name, QObject *parent)
     : RandomPlayer(name, parent)
     , m_solver(2500)
     , m_engine(engine)

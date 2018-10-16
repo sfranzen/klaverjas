@@ -32,7 +32,7 @@ class GameEngine;
 class AiPlayer : public RandomPlayer
 {
 public:
-    explicit AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name = "", Game *parent = 0);
+    explicit AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name = "", QObject *parent = nullptr);
 
 public slots:
     void selectMove(const QVector<Card> legalMoves) const override;

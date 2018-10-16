@@ -22,10 +22,9 @@
 
 #include "player.h"
 #include "card.h"
+#include "rules.h"
 
 #include <QString>
-#include <QVector>
-#include <QVariantList>
 
 class RandomPlayer : public Player
 {

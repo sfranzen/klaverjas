@@ -21,11 +21,9 @@
 #define PLAYER_H
 
 #include "baseplayer.h"
-#include "game.h"
 
 #include <QObject>
 #include <QString>
-#include <QVariantList>
 
 class Card;
 class CardSet;
