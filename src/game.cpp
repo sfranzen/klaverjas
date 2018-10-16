@@ -237,7 +237,7 @@ void Game::advance()
         connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
         setStatus(Waiting);
-        emit moveRequested(legalMoves());
+        emit moveRequested(m_engine->validMoves());
         ++m_turn;
         if (m_turn < 4)
             advance();
@@ -401,72 +401,6 @@ Game::Score Game::scoreRound(const QVector<Trick> tricks) const
         newScore[m_defenders] = total;
     }
     return newScore;
-}
-
-const QVector<Card> Game::legalMoves() const
-{
-    QVector<Card> moves;
-    moves.reserve(8);
-    if (m_currentTrick.players().isEmpty()) {
-        for (const auto card : m_currentPlayer->hand())
-            moves << card;
-        return moves;
-    }
-    if (m_currentPlayer->hand().isEmpty())
-        return moves;
-
-    const Card::Suit suitLed = m_currentTrick.suitLed();
-    QMap<Card::Suit,Card::Rank> minRanks;
-    if (m_currentPlayer->hand().containsSuit(suitLed)) {
-        // Following suit has the highest priority. If the suit led is trumps,
-        // players must always overtrump if they can.
-        if (m_currentTrick.suitLed() != m_trumpSuit) {
-            minRanks[suitLed] = PlainRanks.last();
-        } else if (m_currentPlayer->canBeat(*m_currentTrick.winningCard(), TrumpRanks)) {
-            minRanks[suitLed] = m_currentTrick.winningCard()->rank();
-        } else {
-            minRanks[suitLed] = TrumpRanks.last();
-        }
-    } else {
-        // The player cannot follow suit.
-        if (m_currentPlayer->hand().containsSuit(m_trumpSuit)) {
-            // A player must generally (over)trump, but is exempt from this
-            // under Amsterdam rules if his partner is the current winner of
-            // the trick.
-            if (m_trumpRule == TrumpRule::Amsterdams
-                && m_currentPlayer->team()->players().contains(playerAt(m_currentTrick.winner())))
-            {
-                for (const Card::Suit suit : Card::Suits)
-                    minRanks[suit] = suit == m_trumpSuit ? TrumpRanks.last() : PlainRanks.last();
-            } else if (m_currentTrick.winningCard()->suit() == m_trumpSuit
-                && m_currentPlayer->canBeat(*m_currentTrick.winningCard(), TrumpRanks))
-            {
-                // Player must overtrump his opponent
-                minRanks[m_trumpSuit] = m_currentTrick.winningCard()->rank();
-            } else {
-                // Player may play any trump
-                minRanks[m_trumpSuit] = TrumpRanks.last();
-            }
-        } else {
-            // Player has no trump cards.
-            for (const Card::Suit suit : Card::Suits)
-                minRanks[suit] = suit == m_trumpSuit ? TrumpRanks.last() : PlainRanks.last();
-        }
-    }
-
-    // Compile the list of moves
-    const auto suitSets = m_currentPlayer->hand().suitSets();
-    for (auto set = suitSets.cbegin(); set != suitSets.cend(); ++set) {
-        Card::Suit suit = set.key();
-        QVector<Card::Rank> order = suit == m_trumpSuit ? TrumpRanks : PlainRanks;
-        if (minRanks.contains(suit)) {
-            for (auto c = set.value().cbegin(); c != set.value().cend(); ++c) {
-                if (rankDifference(c->rank(), minRanks[suit], order) >= 0)
-                    moves << *c;
-            }
-        }
-    }
-    return moves;
 }
 
 Player *Game::nextPlayer(Player *player) const

@@ -73,7 +73,6 @@ public:
     int round() const;
     Card::Suit trumpSuit() const;
     const QVector<Card> cardsPlayed() const;
-    const QVector<Card> legalMoves() const;
     const Score &score() const;
     Status status() const;
     const Trick& currentTrick() const;
