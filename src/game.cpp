@@ -368,6 +368,7 @@ void Game::acceptMove(Card card)
     if (m_status != Waiting || m_biddingPhase)
         return;
     qCDebug(klaverjasGame) << m_currentPlayer << "played" << card;
+    emit cardPlayed(currentPlayer(), card);
     m_engine->doMove(card);
     m_currentTrick.add(currentPlayer(), card);
     m_currentPlayer = playerAt(m_engine->currentPlayer());
