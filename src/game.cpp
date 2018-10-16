@@ -230,6 +230,7 @@ void Game::advance()
         qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
         m_currentTrick = Trick(m_trumpSuit);
         emit newTrick();
+        advance();
     } else if (!m_engine->isFinished()) {
         // Trick-taking phase, proceed automatically until it is the human
         // player's turn or a new trick is about to start.
@@ -238,7 +239,7 @@ void Game::advance()
         setStatus(Waiting);
         emit moveRequested(legalMoves());
         ++m_turn;
-        if (m_currentPlayer != m_human && m_turn < 4)
+        if (m_turn < 4)
             advance();
     } else if (m_round < m_numRounds) {
         // One round (game) completed
