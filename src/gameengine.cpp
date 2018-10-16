@@ -145,7 +145,7 @@ inline QVector<Card> higherCards(const QVector<Card> cards, Card toBeat, RankOrd
     QVector<Card> result;
     result.reserve(cards.size());
     for (const auto &c : cards)
-        if (c.suit() == toBeat.suit() && order[c.rank()] > order[toBeat.rank()])
+        if (c.suit() == toBeat.suit() && order[c.rank()] >= order[toBeat.rank()])
             result << c;
     return result;
 }
@@ -234,8 +234,9 @@ QVector<Card> GameEngine::validMoves() const
     if (moves.isEmpty()) {
         // If there are still no valid moves at this point, it means the player
         // had to beat a trump but cannot; he may then play a lower trump
-        moves = higherCards(currentHand, {m_trumpSuit, TrumpOrder.firstKey()}, TrumpOrder);
+        moves = higherCards(currentHand, {m_trumpSuit, Rank::Seven}, TrumpOrder);
     }
+    Q_ASSERT(!moves.isEmpty());
     return moves;
 }
 
