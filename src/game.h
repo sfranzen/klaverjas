@@ -53,7 +53,7 @@ class Game : public QObject
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
 
 public:
-    explicit Game(QObject *parent = 0, int numRounds = 16, bool verbose = true);
+    explicit Game(QObject *parent = 0, int numRounds = 16);
 
     typedef QMap<Team*,int> Score;
 
@@ -112,7 +112,6 @@ private:
     BidRule m_bidRule;
     Card::Suit m_trumpSuit;
     QVector<Card> m_deck;
-    bool m_verbose;
     bool m_biddingPhase;
     QVariantList m_bidOptions;
     int m_bidCounter;

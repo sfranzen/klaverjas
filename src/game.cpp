@@ -43,11 +43,10 @@ QVariantList bidOptions(const QVector<Suit> suits = Card::Suits) {
 
 }
 
-Game::Game(QObject *parent, int numRounds, bool verbose)
+Game::Game(QObject *parent, int numRounds)
     : QObject(parent)
     , m_trumpRule(TrumpRule::Amsterdams)
     , m_bidRule(BidRule::Random)
-    , m_verbose(verbose)
     , m_biddingPhase(true)
     , m_bidCounter(0)
     , m_numRounds(numRounds)
@@ -182,8 +181,7 @@ void Game::start()
     for (int i = 0; i < 4; ++i)
         m_teams[i % 2]->addPlayer(playerAt(i));
 
-    if (m_verbose)
-        qCDebug(klaverjasGame) << "Teams: " << m_teams;
+    qCDebug(klaverjasGame) << "Teams: " << m_teams;
 
     m_dealer = dynamic_cast<Player*>(m_players.at(1).get());
     m_eldest = nextPlayer(m_dealer);
@@ -228,10 +226,8 @@ void Game::advance()
         m_turn = 0;
         ++m_trick;
         m_roundTricks << m_currentTrick;
-        if (m_verbose) {
-            qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
-            qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
-        }
+        qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
+        qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
         m_currentTrick = Trick(m_trumpSuit);
         emit newTrick();
     } else if (!m_engine->isFinished()) {
@@ -248,8 +244,7 @@ void Game::advance()
         // One round (game) completed
         m_tricks << m_roundTricks;
         const auto score = scoreRound(m_roundTricks);
-        if (m_verbose)
-            qCInfo(klaverjasGame) << "Round scores: " << score;
+        qCInfo(klaverjasGame) << "Round scores: " << score;
         for (Team* team : m_teams) {
             team->addPoints(score[team]);
             m_scores[team] += score[team];
@@ -266,8 +261,7 @@ void Game::advance()
         setStatus(Ready);
     } else {
         setStatus(Finished);
-        if (m_verbose)
-            qCInfo(klaverjasGame) << "Game finished";
+        qCInfo(klaverjasGame) << "Game finished";
     }
 }
 
@@ -327,8 +321,7 @@ void Game::proposeBid()
     connect(this, &Game::bidRequested, m_currentPlayer, &Player::selectBid);
     connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
     emit bidRequested(m_bidOptions, m_currentPlayer);
-    if (m_verbose)
-        qCDebug(klaverjasGame) << "Requesting a bid";
+    qCDebug(klaverjasGame) << "Requesting a bid";
 }
 
 void Game::acceptBid(QVariant bid)
@@ -338,8 +331,7 @@ void Game::acceptBid(QVariant bid)
     disconnect(this, &Game::bidRequested, 0, 0);
     disconnect(m_currentPlayer, &Player::bidSelected, 0, 0);
     if (bid.isNull()) {
-        if (m_verbose)
-            qCInfo(klaverjasGame) << "Player" << m_currentPlayer << "passed";
+        qCDebug(klaverjasGame) << "Player" << m_currentPlayer << "passed";
         advancePlayer(m_currentPlayer);
         proposeBid();
     } else {
@@ -354,8 +346,7 @@ void Game::acceptBid(QVariant bid)
 
 void Game::setContract(const Card::Suit suit, const Player *player)
 {
-    if (m_verbose)
-        qCInfo(klaverjasGame) << "Player" << player << "elected" << suit;
+    qCInfo(klaverjasGame) << "Player" << player << "elected" << suit;
     m_trumpSuit = suit;
     m_contractors = player->team();
     m_defenders = m_teams.first() == m_contractors ? m_teams.last() : m_teams.first();
@@ -375,10 +366,7 @@ void Game::acceptMove(Card card)
     disconnect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
     if (m_status != Waiting || m_biddingPhase)
         return;
-    if (m_verbose) {
-        qCInfo(klaverjasGame) << m_currentPlayer << "played" << card;
-        emit cardPlayed(currentPlayer(), card);
-    }
+    qCDebug(klaverjasGame) << m_currentPlayer << "played" << card;
     m_engine->doMove(card);
     m_currentTrick.add(currentPlayer(), card);
     m_currentPlayer = playerAt(m_engine->currentPlayer());
