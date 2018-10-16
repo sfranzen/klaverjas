@@ -338,6 +338,11 @@ void GameEngine::reset(Position firstPlayer, Position contractor, Card::Suit tru
     m_cardsPlayed.clear();
 }
 
+const QVector<Card> GameEngine::cardsPlayed() const
+{
+    return m_cardsPlayed;
+}
+
 GameEngine::Position &operator++(GameEngine::Position& p)
 {
     return p += 1;

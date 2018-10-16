@@ -118,8 +118,7 @@ private:
     int m_trick;
     int m_turn;
     Trick m_currentTrick;
-    QVector<Trick> m_roundTricks;
-    QVector<QVector<Trick>> m_tricks;
+    QVector<QVector<Card>> m_roundCards;
     Score m_scores;
     GameEngine::PlayerList m_players;
     QList<Team*> m_teams;

@@ -90,6 +90,8 @@ public:
     bool isFinished() const;
     /// Start a game with the same rules and players, but a new trump bid.
     void reset(Position firstPlayer, Position contractor, Card::Suit trumpSuit);
+    /// The sequence of cards played
+    const QVector<Card> cardsPlayed() const;
 
 private:
     PlayerList m_players;

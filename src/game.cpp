@@ -61,6 +61,7 @@ Game::Game(QObject *parent, int numRounds)
 {
     // Reserve vector space
     m_deck.reserve(32);
+    m_roundCards.reserve(numRounds);
 
     for (int  i = 0; i < 32; ++i)
         m_deck.append(Card(Card::Suits[i/8], Card::Ranks[i%8]));
@@ -195,7 +196,7 @@ void Game::restart()
     m_round = 0;
     m_trick = 0;
     m_turn = 0;
-    m_tricks.clear();
+    m_roundCards.clear();
 
     for (auto &score : m_scores)
         score = 0;
@@ -225,9 +226,8 @@ void Game::advance()
         // Trick complete
         m_turn = 0;
         ++m_trick;
-        m_roundTricks << m_currentTrick;
-        qCInfo(klaverjasGame) << "Current trick:" << m_currentTrick;
-        qCInfo(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
+        qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
+        qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
         m_currentTrick = Trick(m_trumpSuit);
         emit newTrick();
         advance();
@@ -243,7 +243,7 @@ void Game::advance()
             advance();
     } else if (m_round < m_numRounds) {
         // One round (game) completed
-        m_tricks << m_roundTricks;
+        m_roundCards << m_engine->cardsPlayed();
         Score score;
         for (int i : {0, 1})
             score.insert(m_teams.at(i), m_engine->getResult(i));
@@ -252,7 +252,6 @@ void Game::advance()
             team->addPoints(score[team]);
             m_scores[team] += score[team];
         }
-        m_roundTricks.clear();
         m_trick = 0;
         m_turn = 0;
         ++m_round;
