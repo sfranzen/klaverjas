@@ -244,7 +244,9 @@ void Game::advance()
     } else if (m_round < m_numRounds) {
         // One round (game) completed
         m_tricks << m_roundTricks;
-        const auto score = scoreRound(m_roundTricks);
+        Score score;
+        for (int i : {0, 1})
+            score.insert(m_teams.at(i), m_engine->getResult(i));
         qCInfo(klaverjasGame) << "Round scores: " << score;
         for (Team* team : m_teams) {
             team->addPoints(score[team]);
@@ -373,34 +375,6 @@ void Game::acceptMove(Card card)
     m_currentTrick.add(currentPlayer(), card);
     m_currentPlayer = playerAt(m_engine->currentPlayer());
     setStatus(Ready);
-}
-
-Game::Score Game::scoreRound(const QVector<Trick> tricks) const
-{
-    Score newScore;
-    int total = 10;
-    for (Team* t : m_teams)
-        newScore[t] = 0;
-
-    // A "march" is achieved if all tricks are taken by a single team
-    Team* const first = playerAt(tricks.first().winner())->team();
-    bool march = true;
-    for (const auto t : tricks) {
-        Team* winners = playerAt(t.winner())->team();
-        const int points = t.points();
-        newScore[winners] += points;
-        total += points;
-        if (march && winners != first)
-            march = false;
-    }
-    newScore[playerAt(tricks.last().winner())->team()] += 10;
-    if (march)
-        newScore[first] += 88;
-    if (newScore[m_contractors] < total / 2 + 1) {
-        newScore[m_contractors] = 0;
-        newScore[m_defenders] = total;
-    }
-    return newScore;
 }
 
 Player *Game::nextPlayer(Player *player) const

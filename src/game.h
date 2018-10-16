@@ -101,7 +101,6 @@ private:
     void deal();
     void proposeBid();
     void setContract(const Card::Suit suit, const Player *player);
-    Score scoreRound(const QVector<Trick> tricks) const;
     void setStatus(Status newStatus);
 
     Player *nextPlayer(Player *player) const;
