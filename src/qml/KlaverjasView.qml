@@ -43,9 +43,8 @@ Rectangle {
             }
             PlayerView {
                 player: game.humanPlayer
-                width: parent.width
                 anchors.top: trick.bottom
-                anchors.left: parent.left
+                anchors.horizontalCenter: trick.horizontalCenter
             }
             BidDialog {/* hidden by default */}
         }

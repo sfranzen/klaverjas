@@ -6,7 +6,7 @@ ListView {
     id: list
     property HumanPlayer player: game.humanPlayer
     height: 100
-    width: parent.width
+    implicitWidth: contentItem.childrenRect.width
     anchors.margins: 5
     orientation: ListView.Horizontal
     interactive: false
