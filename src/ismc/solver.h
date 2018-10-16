@@ -88,6 +88,17 @@ private:
     const uint m_iterMax;
     const qreal m_exploration;
 
+    /**
+     * Information Set Monte Carlo tree search algorithm.
+     *
+     * The algorithm uses the given starting node and game state to explore a
+     * single sequence of moves through to the final state, where information
+     * in the initial state hidden from the current player is randomised.
+     *
+     * The moves selected are random at first, but become shaped by the game
+     * rewards as more search iterations are performed and more information is
+     * added to the tree.
+     */
     void search(Node<Move> *rootNode, const Game<Move> *rootState) const
     {
         auto *node = rootNode;
@@ -99,6 +110,12 @@ private:
         backPropagate(node, statePtr);
     }
 
+    /**
+     * Selection stage.
+     *
+     * Descend the tree until a node is reached that has unexplored moves, or
+     * is a terminal node (no more moves available).
+     */
     void select(Node<Move> *node, Game<Move> *state) const
     {
         bool selected = false;
@@ -113,6 +130,12 @@ private:
         }
     }
 
+    /**
+     * Expansion stage.
+     *
+     * Choose a random unexplored move, add it to the children of the current
+     * node and select this new node.
+     */
     static void expand(Node<Move> *node, Game<Move> *state)
     {
         const auto untriedMoves = node->untriedMoves(state->validMoves());
@@ -124,6 +147,12 @@ private:
         }
     }
 
+    /**
+     * Simulation stage.
+     *
+     * Continue performing random available moves from this state until the
+     * end of the game.
+     */
     static void simulate(Game<Move> *state)
     {
         bool terminal = false;
@@ -137,6 +166,11 @@ private:
         }
     }
 
+    /**
+     * Backpropagation stage.
+     *
+     * Update the node statistics using the rewards from the terminal state.
+     */
     static void backPropagate(Node<Move> *node, Game<Move> *state)
     {
         node->removeVirtualLoss();
