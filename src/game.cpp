@@ -273,53 +273,53 @@ void Game::deal()
 void Game::proposeBid()
 {
     const auto allOptions = bidOptions();
-    if (m_bidCounter == 0) {
-        switch (m_bidRule) {
-        case BidRule::Official:
-            // Each player may elect a suit or pass. If all pass, first player
-            // must elect.
-            m_bidOptions = {allOptions, QVariant()};
-            break;
-        case BidRule::Utrechts:
-            // No bidding; first player is forced to choose.
-            m_bidOptions = allOptions;
-            break;
-        case BidRule::Random:
-            // Choose random suit followed by bidding. If all pass, first
-            // player must elect a different suit.
-        case BidRule::Twents:
-            // Like Random, but if all players pass, the trump suit will also
-            // be random.
-            if (m_round == 0)
-                m_bidOptions = bidOptions({Suit::Clubs}) << QVariant();
-            else
-                m_bidOptions = {allOptions[std::rand() % 4], QVariant()};
-            break;
-        }
-    } else if (m_bidCounter == 4) {
+    if (m_bidCounter == 0)
+        m_bidOptions = initialBidOptions();
+    else if (m_bidCounter % 4 == 0)
         // All players have passed in the first round of bidding.
-        if (m_bidRule == BidRule::Twents) {
-            acceptBid(allOptions[std::rand() % 4]);
-            return;
-        }
-        if (m_bidRule == BidRule::Official) {
-            m_bidOptions.removeLast();
-        }
-        if (m_bidRule == BidRule::Random) {
-            auto forbidden = m_bidOptions.first();
-            m_bidOptions.clear();
-            for (int i = 0; i < 4; ++i) {
-                const auto bid = allOptions[i];
-                if (bid != forbidden)
-                    m_bidOptions << bid;
-            }
-        }
-    }
+        refineBidOptions();
     ++m_bidCounter;
     connect(this, &Game::bidRequested, m_currentPlayer, &Player::selectBid);
     connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
     qCDebug(klaverjasGame) << "Requesting a bid";
     emit bidRequested(m_bidOptions, m_currentPlayer);
+}
+
+QVariantList Game::initialBidOptions() const
+{
+    const auto allOptions = bidOptions();
+    switch (m_bidRule) {
+    case BidRule::Official:
+        return {allOptions, QVariant()};
+    case BidRule::Utrechts:
+        return allOptions;
+    case BidRule::Random:
+        Q_FALLTHROUGH();
+    case BidRule::Twents:
+        if (m_round == 0)
+            return bidOptions({Suit::Clubs}) << QVariant();
+        else
+            return {allOptions[std::rand() % 4], QVariant()};
+    default:
+        Q_UNREACHABLE();
+    }
+}
+
+void Game::refineBidOptions()
+{
+    Q_ASSERT(m_bidRule != BidRule::Utrechts);
+    const auto allOptions = bidOptions();
+    if (m_bidRule == BidRule::Random) {
+        auto forbidden = m_bidOptions.first();
+        m_bidOptions.clear();
+        for (const auto bid : allOptions) {
+            if (bid != forbidden)
+                m_bidOptions << bid;
+        }
+    } else if (m_bidRule == BidRule::Official)
+        m_bidOptions.removeLast();
+    else
+        acceptBid(allOptions[std::rand() % 4]);
 }
 
 void Game::acceptBid(QVariant bid)

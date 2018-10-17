@@ -9,16 +9,20 @@
 
 
 // Game rules and definitions
+/// Rules for bidding (electing a trump suit)
 enum class BidRule {
+    /// Each player may elect a suit or pass. If all pass, first player must
+    /// elect.
     Official,
+    /// Pick a random suit followed by bidding. If all pass, first player must
+    /// player must elect from the remaining suits.
     Random,
-    Utrechts,
-    Twents
+    /// Like Random, but if all players pass, the trump suit will be picked at
+    /// random from all suits.
+    Twents,
+    /// No bidding; first player must elect a trump suit right away.
+    Utrechts
 };
-
-// Card definitions
-// enum class Card::Suit { Spades, Hearts, Diamonds, Clubs };
-// enum class Rank { Ace, King, Queen, Jack, Ten, Nine, Eight, Seven };
 
 // The ranks and values of the playing cards
 const QVector<Card::Rank> PlainRanks {

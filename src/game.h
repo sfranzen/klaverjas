@@ -102,6 +102,8 @@ private:
     void proposeBid();
     void setContract(const Card::Suit suit, const Player *player);
     void setStatus(Status newStatus);
+    QVariantList initialBidOptions() const;
+    void refineBidOptions();
 
     Player *nextPlayer(Player *player) const;
     void advancePlayer(Player *&player) const;
