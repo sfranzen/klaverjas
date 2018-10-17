@@ -51,7 +51,6 @@ Game::Game(QObject *parent, int numRounds)
     , m_bidCounter(0)
     , m_numRounds(numRounds)
     , m_round(0)
-    , m_trick(0)
     , m_turn(0)
     , m_contractors(nullptr)
     , m_defenders(nullptr)
@@ -194,7 +193,6 @@ void Game::start()
 void Game::restart()
 {
     m_round = 0;
-    m_trick = 0;
     m_turn = 0;
     m_roundCards.clear();
 
@@ -225,7 +223,6 @@ void Game::advance()
     } else if (m_turn == 4) {
         // Trick complete
         m_turn = 0;
-        ++m_trick;
         qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
         qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
         m_currentTrick = Trick(m_trumpSuit);
@@ -252,7 +249,6 @@ void Game::advance()
             team->addPoints(score[team]);
             m_scores[team] += score[team];
         }
-        m_trick = 0;
         m_turn = 0;
         ++m_round;
         advancePlayer(m_dealer);

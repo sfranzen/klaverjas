@@ -115,7 +115,6 @@ private:
     int m_bidCounter;
     int m_numRounds;
     int m_round;
-    int m_trick;
     int m_turn;
     Trick m_currentTrick;
     QVector<QVector<Card>> m_roundCards;
