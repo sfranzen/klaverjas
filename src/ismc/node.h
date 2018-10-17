@@ -45,8 +45,8 @@ public:
         , m_score(0)
         , m_visits(0)
         , m_available(1)
-        , m_move(move)
         , m_playerJustMoved(playerJustMoved)
+        , m_move(move)
     {}
 
     const Move &move() const { return m_move; }
@@ -75,6 +75,7 @@ public:
         QMutexLocker lock(&m_mutex);
         for (const auto &node : m_children)
             tried << node->m_move;
+        lock.unlock();
         for (const auto &move : legalMoves)
             if (!tried.contains(move))
                 untried << move;
@@ -83,11 +84,8 @@ public:
 
     Node *ucbSelectChild(const QVector<Move> legalMoves, qreal exploration = 0.7)
     {
-        static auto compare = [=](const Node *a, const Node *b){ return a->ucbScore(exploration) < b->ucbScore(exploration); };
-
-        QMutexLocker lock(&m_mutex);
         QVector<Node*> legalChildren;
-
+        QMutexLocker lock(&m_mutex);
         for (const auto &node : m_children) {
             if (legalMoves.contains(node->m_move)) {
                 legalChildren.append(&*node);
@@ -95,6 +93,8 @@ public:
                 ++(node->m_available);
             }
         }
+        lock.unlock();
+        auto compare = [=](const Node *a, const Node *b){ return a->ucbScore(exploration) < b->ucbScore(exploration); };
         return *std::max_element(legalChildren.cbegin(), legalChildren.cend(), compare);
     }
 
@@ -111,6 +111,7 @@ public:
     }
 
 private:
+    mutable QMutex m_mutex;
     Node *m_parent;
     QVector<std::shared_ptr<Node>> m_children;
 
@@ -118,9 +119,8 @@ private:
     int m_visits;
     int m_available;
 
-    Move m_move;
     int m_playerJustMoved;
-    mutable QMutex m_mutex;
+    Move m_move;
 
     qreal ucbScore(qreal exploration) const
     {
@@ -129,7 +129,8 @@ private:
     }
 };
 
-template<class Move> inline uint qHash(const Node<Move> &key, uint seed = 0) {
+template<class Move> inline uint qHash(const Node<Move> &key, uint seed = 0)
+{
     return qHash(key.parent(), seed);
 }
 
