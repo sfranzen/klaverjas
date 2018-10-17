@@ -243,7 +243,7 @@ void Game::advance()
         m_roundCards << m_engine->cardsPlayed();
         Score score;
         for (int i : {0, 1})
-            score.insert(m_teams.at(i), m_engine->getResult(i));
+            score.insert(m_teams.at(i), m_engine->getResult(i) * 162);
         qCInfo(klaverjasGame) << "Round scores: " << score;
         for (Team* team : m_teams) {
             team->addPoints(score[team]);
