@@ -318,8 +318,8 @@ void Game::proposeBid()
     ++m_bidCounter;
     connect(this, &Game::bidRequested, m_currentPlayer, &Player::selectBid);
     connect(m_currentPlayer, &Player::bidSelected, this, &Game::acceptBid);
-    emit bidRequested(m_bidOptions, m_currentPlayer);
     qCDebug(klaverjasGame) << "Requesting a bid";
+    emit bidRequested(m_bidOptions, m_currentPlayer);
 }
 
 void Game::acceptBid(QVariant bid)
@@ -360,10 +360,10 @@ void Game::setContract(const Card::Suit suit, const Player *player)
 
 void Game::acceptMove(Card card)
 {
-    disconnect(this, &Game::moveRequested, 0, 0);
-    disconnect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
     if (m_status != Waiting || m_biddingPhase)
         return;
+    disconnect(this, &Game::moveRequested, 0, 0);
+    disconnect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
     qCDebug(klaverjasGame) << m_currentPlayer << "played" << card;
     emit cardPlayed(currentPlayer(), card);
     m_engine->doMove(card);
