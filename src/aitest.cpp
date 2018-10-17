@@ -29,10 +29,11 @@ AiTest::AiTest(QObject* parent, int numRounds)
     , m_numRounds(numRounds)
 {
     // Construct the game with two AI players in the first team
-    m_game = new Game(this, true, false, numRounds);
+    m_game = new Game(this, numRounds);
     for (int i = 0; i < 4; ++i) {
-        Player* player = i % 2 ? new RandomPlayer("", m_game) : new AiPlayer("", m_game);
-        m_game->addPlayer(player);
+        //FIXME
+//         Player* player = i % 2 ? new RandomPlayer("", m_game) : new AiPlayer("", m_game);
+//         m_game->addPlayer(player);
     }
     m_score = m_game->score();
     connect(m_game, &Game::statusChanged, this, &AiTest::proceed);
