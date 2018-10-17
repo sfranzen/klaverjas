@@ -255,6 +255,7 @@ void Game::advance()
         advancePlayer(m_eldest);
         m_currentPlayer = m_eldest;
         m_biddingPhase = true;
+        emit newRound();
         deal();
         setStatus(Ready);
     } else {
@@ -355,7 +356,7 @@ void Game::setContract(const Card::Suit suit, const Player *player)
         m_engine->reset(currentPos, contractorPos, m_trumpSuit);
     else
         m_engine = GameEngine::create(m_players, currentPos, contractorPos, m_trumpRule, m_trumpSuit);
-    emit trumpSuitChanged(suit);
+    emit newContract(suit, m_contractors);
 }
 
 void Game::acceptMove(Card card)

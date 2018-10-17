@@ -46,8 +46,8 @@ class Team;
 class Game : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(int round READ round)
-    Q_PROPERTY(Card::Suit trumpSuit READ trumpSuit NOTIFY trumpSuitChanged)
+    Q_PROPERTY(int round READ round NOTIFY newRound)
+    Q_PROPERTY(Card::Suit trumpSuit READ trumpSuit NOTIFY newContract)
     Q_PROPERTY(QQmlListProperty<Player> players READ players NOTIFY playersChanged)
     Q_PROPERTY(HumanPlayer* humanPlayer READ humanPlayer CONSTANT)
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
@@ -86,8 +86,9 @@ signals:
     void scoresChanged();
     void teamsChanged();
     void newTrick();
+    void newRound();
     void cardPlayed(int player, Card card);
-    void trumpSuitChanged(Card::Suit newSuit);
+    void newContract(Card::Suit suit, Team *contractors);
     void statusChanged(Status status);
 
 public slots:

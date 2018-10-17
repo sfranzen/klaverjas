@@ -1,25 +1,41 @@
 
 import QtQuick 2.7
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.4
 
+/**
+ * ScoreBoard QML type
+ *
+ * The score board consists of a black rectangle onto which green rectangles
+ * are placed, giving a tabular appearance. Two smaller rectangles at the top
+ * show the team names, while the columns underneath display their scores.
+ */
 Rectangle {
     id: root
     color: "black"
-    height: childrenRect.height
+    implicitHeight: childrenRect.height
     Grid {
         spacing: 2
         columns: headers.count
         Repeater {
             id: headers
             model: game.teams
-            Rectangle {
-                color: "green"
-                width: root.width / headers.count
-                height: names.height
-                Label {
-                    id: names
-                    text: "Team " + modelData.name
-                    anchors.centerIn: parent
+            Label {
+                id: names
+                text: "Team " + modelData.name
+                background: Rectangle {
+                    color: "green"
+                    width: root.width / headers.count
+                }
+                Connections {
+                    target: game
+                    onNewContract: {
+                        if (game.teams[index] == contractors)
+                            text += " *";
+                    }
+                    onNewRound: {
+                        if (text.endsWith(" *"))
+                            text = text.substring(0, text.length - 2);
+                    }
                 }
             }
         }
@@ -27,18 +43,16 @@ Rectangle {
             id: scores
             model: game.teams
             Rectangle {
-                id: rect
-                color: "green"
+                height: 192
                 width: root.width / headers.count
-                height: 16 * 10
+                color: "green"
                 Column {
-                    anchors.fill: parent
+                    spacing: 2
                     Repeater {
                         model: modelData.scores
                         Label {
                             text: modelData
                             height: 10
-                            anchors.horizontalCenter: parent.horizontalCenter
                         }
                     }
                 }
