@@ -57,6 +57,7 @@ class GameEngine : public ISMC::Game<Card>
 public:
     using Player = std::shared_ptr<BasePlayer>;
     using PlayerList = QVector<Player>;
+    using ConstraintSet = QMap<Card::Suit,Card::Rank>;
     enum class Position : uchar { North = 0, East, South, West };
     enum class TrumpRule : uchar {
         /// A player who cannot follow suit is not required to trump if the
@@ -96,6 +97,13 @@ public:
 private:
     PlayerList m_players;
     QVector<Card> m_cardsPlayed;
+    /* For now, the constraints work as follows: if it's unknown to other
+     * players whether the given player has cards of the given suit, this is
+     * represented by the maximum rank. If a player has failed to follow suit,
+     * this suit is removed from that player's constraints. If he has failed to
+     * overtrump, the rank is recorded as his maximum rank for determinisation.
+     */
+    mutable QVector<ConstraintSet> m_playerConstraints;
     ushort m_scores[2];
     Card::Suit m_trumpSuit;
     TrumpRule m_trumpRule;
@@ -117,6 +125,9 @@ private:
     */
     void determiniseCards(uint observer) const;
 
+    /// Determine whether this card fits the given constraints
+    bool takeCard(Card card, const ConstraintSet constraints) const;
+
     /**
     * Find the card rank and suit the player should beat in the current state.
     *
@@ -126,6 +137,10 @@ private:
     *       given rank and suit, or an empty vector if any move is valid.
     */
     QVector<Card> minimumRank(const CardSet& hand, uint position) const;
+
+    void setDefaultConstraints();
+    void setConstraint(uint player, Card::Suit suit, Card::Rank rank) const;
+    void removeConstraint(uint player, Card::Suit suit) const;
 };
 
 GameEngine::Position &operator++(GameEngine::Position &p);

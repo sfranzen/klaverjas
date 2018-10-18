@@ -31,11 +31,6 @@ using Suit = Card::Suit;
 using CardIter = QVector<Card>::const_iterator;
 using RankOrder = const QMap<Rank,int>;
 
-template<typename T> inline GameEngine::Position operator+(GameEngine::Position p, T t)
-{
-    return p += t;
-};
-
 RankOrder PlainOrder {
     {Rank::Seven, 0},
     {Rank::Eight, 1},
@@ -67,6 +62,13 @@ RankOrder BonusOrder {
     {Rank::Queen, 5},
     {Rank::King,  6},
     {Rank::Ace,   7}
+};
+
+const GameEngine::ConstraintSet DefaultConstraints {
+    {Suit::Clubs,       Rank::Ace},
+    {Suit::Diamonds,    Rank::Ace},
+    {Suit::Hearts,      Rank::Ace},
+    {Suit::Spades,      Rank::Ace}
 };
 
 inline RankOrder &rankOrder(bool isTrump)
@@ -150,6 +152,11 @@ inline QVector<Card> higherCards(const QVector<Card> cards, Card toBeat, RankOrd
     return result;
 }
 
+template<typename T> inline GameEngine::Position operator+(GameEngine::Position p, T t)
+{
+    return p += t;
+}
+
 } // namespace
 
 std::unique_ptr<GameEngine> GameEngine::create(const PlayerList players, Position firstPlayer, Position contractor, TrumpRule trumpRule, Card::Suit trumpSuit)
@@ -172,6 +179,16 @@ GameEngine::GameEngine(const PlayerList players, Position firstPlayer, Position 
     , m_isMarch(true)
 {
     m_cardsPlayed.reserve(32);
+    setDefaultConstraints();
+}
+
+void GameEngine::setDefaultConstraints()
+{
+    m_playerConstraints.clear();
+    for (uint p = 0; p < 4; ++p) {
+        m_playerConstraints.insert(p, DefaultConstraints);
+        m_playerConstraints[p][m_trumpSuit] = Rank::Jack;
+    }
 }
 
 // Copy all value members, but allocate a new copy of each player
@@ -203,19 +220,29 @@ std::unique_ptr<ISMC::Game<Card>> GameEngine::cloneAndRandomise(uint observer) c
 void GameEngine::determiniseCards(uint observer) const
 {
     QVector<Card> unknowns;
-    const auto oPlayer = m_players[observer];
+    const auto oPlayer = m_players[observer].get();
     unknowns.reserve(32 - m_cardsPlayed.size() - oPlayer->hand().size());
     for (const auto &p : m_players)
-        if (p != oPlayer)
+        if (p.get() != oPlayer)
             unknowns << p->hand();
     std::random_shuffle(unknowns.begin(), unknowns.end());
-    for (const auto &p : m_players) {
-        if (p == oPlayer)
+    for (uint p = 0; p < 4; ++p) {
+        if (p == observer)
             continue;
-        const auto cardIndex = unknowns.size() - p->hand().size();
-        p->setHand(unknowns.mid(cardIndex));
-        unknowns.resize(cardIndex);
+        const auto player = m_players.at(p).get();
+        const auto constraints = m_playerConstraints.value(p);
+        QVector<Card> newHand;
+        for (auto i = 0; newHand.size() <= player->hand().size() && i < unknowns.size(); ++i)
+            if (takeCard(unknowns.at(i), constraints))
+                newHand << unknowns.takeAt(i);
+        player->setHand(newHand);
     }
+}
+
+inline bool GameEngine::takeCard(Card card, const GameEngine::ConstraintSet constraints) const
+{
+    const auto order = rankOrder(card.suit() == m_trumpSuit);
+    return constraints.contains(card.suit()) && order[card.rank()] <= order[constraints[card.suit()]];
 }
 
 uint GameEngine::currentPlayer() const
@@ -241,6 +268,7 @@ QVector<Card> GameEngine::validMoves() const
         // If there are still no valid moves at this point, it means the player
         // had to beat a trump but cannot; he may then play a lower trump
         moves = higherCards(currentHand, {m_trumpSuit, Rank::Seven}, TrumpOrder);
+        setConstraint(currentPlayer(), m_trumpSuit, minRank[0].rank());
     }
     Q_ASSERT(!moves.isEmpty());
     return moves;
@@ -255,7 +283,7 @@ QVector<Card> GameEngine::minimumRank(const CardSet& hand, uint position) const
 {
     QVector<Card> minRank;
     // Allow all moves if current player is first in trick
-    if (position == 0)
+    if (position == 0 || hand.size() == 1)
         return minRank;
 
     // Player must always follow suit if possible, otherwise the rules and
@@ -271,15 +299,18 @@ QVector<Card> GameEngine::minimumRank(const CardSet& hand, uint position) const
             });
             minRank << Card(m_trumpSuit, top->rank());
         }
-    } else if (hand.containsSuit(m_trumpSuit)) {
-        // Player cannot follow suit but has trumps; he must generally (over-)
-        // trump, but is exempt from this under Amsterdam rules if his partner
-        // is the current winner of the trick
-        const auto winner = trickWinner(leadingCard, m_cardsPlayed.end(), m_trumpSuit);
-        const auto winnerPos = winner - leadingCard;
-        if (m_trumpRule != TrumpRule::Amsterdams || position - winnerPos != 2) {
-            const auto rank = winner->suit() == m_trumpSuit ? winner->rank() : TrumpOrder.firstKey();
-            minRank << Card(m_trumpSuit, rank);
+    } else {
+        removeConstraint(currentPlayer(), leadingCard->suit());
+        if (hand.containsSuit(m_trumpSuit)) {
+            // Player cannot follow suit but has trumps; he must generally (over-)
+            // trump, but is exempt from this under Amsterdam rules if his partner
+            // is the current winner of the trick
+            const auto winner = trickWinner(leadingCard, m_cardsPlayed.end(), m_trumpSuit);
+            const auto winnerPos = winner - leadingCard;
+            if (m_trumpRule != TrumpRule::Amsterdams || position - winnerPos != 2) {
+                const auto rank = winner->suit() == m_trumpSuit ? winner->rank() : TrumpOrder.firstKey();
+                minRank << Card(m_trumpSuit, rank);
+            }
         }
     }
     return minRank;
@@ -291,7 +322,7 @@ void GameEngine::doMove(const Card move)
         return;
 
     m_cardsPlayed << move;
-    m_players.at(int(m_currentPlayer))->removeCard(move);
+    m_players.at(currentPlayer())->removeCard(move);
 
     // Update score at end of each trick
     const auto numCards = m_cardsPlayed.size();
@@ -342,6 +373,7 @@ void GameEngine::reset(Position firstPlayer, Position contractor, Card::Suit tru
     m_scores[0] = m_scores[1] = 0;
     m_trumpSuit = trumpSuit;
     m_cardsPlayed.clear();
+    setDefaultConstraints();
 }
 
 const QVector<Card> GameEngine::cardsPlayed() const
@@ -349,8 +381,17 @@ const QVector<Card> GameEngine::cardsPlayed() const
     return m_cardsPlayed;
 }
 
+void GameEngine::setConstraint(uint player, Card::Suit suit, Card::Rank rank) const
+{
+    m_playerConstraints[player][suit] = rank;
+}
+
+void GameEngine::removeConstraint(uint player, Card::Suit suit) const
+{
+    m_playerConstraints[player].remove(suit);
+}
+
 GameEngine::Position &operator++(GameEngine::Position& p)
 {
     return p += 1;
 }
-
