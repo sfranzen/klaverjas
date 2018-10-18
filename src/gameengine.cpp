@@ -210,12 +210,6 @@ std::unique_ptr<ISMC::Game<Card>> GameEngine::cloneAndRandomise(uint observer) c
 /* Observer has seen his own cards as well as all cards played up to this
  * point, so collect the other players' hands and randomly deal them the same
  * number of new cards
- *
- * TODO Improve determinisation. As a round progresses, the players can observe
- * information about the others' hands, such as when a player fails to follow
- * suit, fails to overtrump when required or signals a strong or weak hand to
- * his partner. Try to gather and use this information to constrain the cards
- * dealt to the non-observers.
  */
 void GameEngine::determiniseCards(uint observer) const
 {
