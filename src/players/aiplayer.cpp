@@ -35,6 +35,6 @@ AiPlayer::AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name, QObj
 void AiPlayer::selectMove(const QVector<Card> legalMoves) const
 {
     Q_UNUSED(legalMoves)
-    Card move = m_solver(m_engine.get());
+    Card move = m_solver(*m_engine);
     emit moveSelected(move);
 }

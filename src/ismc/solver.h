@@ -64,7 +64,7 @@ public:
      * @param rootState Pointer to the root state for the search.
      * @return The most promising move after iterMax iterations.
      */
-    Move operator()(const Game<Move> *rootState) const
+    Move operator()(const Game<Move> &rootState) const
     {
         using NodePtr = typename std::shared_ptr<Node<Move>>;
         QFutureSynchronizer<void> sync;
@@ -99,10 +99,10 @@ private:
      * rewards as more search iterations are performed and more information is
      * added to the tree.
      */
-    void search(Node<Move> *rootNode, const Game<Move> *rootState) const
+    void search(Node<Move> *rootNode, const Game<Move> &rootState) const
     {
         auto *node = rootNode;
-        auto randomState = rootState->cloneAndRandomise(rootState->currentPlayer());
+        auto randomState = rootState.cloneAndRandomise(rootState.currentPlayer());
         auto statePtr = randomState.get();
         select(node, statePtr);
         expand(node, statePtr);
