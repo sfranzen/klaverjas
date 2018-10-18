@@ -29,40 +29,6 @@ namespace {
 using Rank = Card::Rank;
 using Suit = Card::Suit;
 using CardIter = QVector<Card>::const_iterator;
-using RankOrder = const QMap<Rank,int>;
-
-RankOrder PlainOrder {
-    {Rank::Seven, 0},
-    {Rank::Eight, 1},
-    {Rank::Nine,  2},
-    {Rank::Jack,  3},
-    {Rank::Queen, 4},
-    {Rank::King,  5},
-    {Rank::Ten,   6},
-    {Rank::Ace,   7}
-};
-
-RankOrder TrumpOrder {
-    {Rank::Seven, 0},
-    {Rank::Eight, 1},
-    {Rank::Queen, 2},
-    {Rank::King,  3},
-    {Rank::Ten,   4},
-    {Rank::Ace,   5},
-    {Rank::Nine,  6},
-    {Rank::Jack,  7}
-};
-
-RankOrder BonusOrder {
-    {Rank::Seven, 0},
-    {Rank::Eight, 1},
-    {Rank::Nine,  2},
-    {Rank::Ten,   3},
-    {Rank::Jack,  4},
-    {Rank::Queen, 5},
-    {Rank::King,  6},
-    {Rank::Ace,   7}
-};
 
 const GameEngine::ConstraintSet DefaultConstraints {
     {Suit::Clubs,       Rank::Ace},
@@ -70,11 +36,6 @@ const GameEngine::ConstraintSet DefaultConstraints {
     {Suit::Hearts,      Rank::Ace},
     {Suit::Spades,      Rank::Ace}
 };
-
-inline RankOrder &rankOrder(bool isTrump)
-{
-    return isTrump ? TrumpOrder : PlainOrder;
-}
 
 inline ushort team(GameEngine::Position position)
 {
@@ -142,7 +103,7 @@ uint trickScore(QVector<Card> &trick, Suit trumpSuit)
     return score;
 }
 
-inline QVector<Card> higherCards(const QVector<Card> cards, Card toBeat, RankOrder order)
+inline QVector<Card> higherCards(const QVector<Card> cards, Card toBeat, const Card::Order order)
 {
     QVector<Card> result;
     result.reserve(cards.size());

@@ -42,7 +42,7 @@ void RandomPlayer::selectBid(QVariantList options) const
     qCDebug(klaverjasAi) << m_name + "'s hand:" << m_hand;
     CardSet::SortingMap map;
     for (const Card::Suit s : Card::Suits)
-        map[s] = PlainRanks;
+        map[s] = PlainOrder;
 
     QVector<Card::Suit> bidOptions;
     for (const auto &b : options) {
@@ -108,14 +108,13 @@ QMap<Card::Suit,int> RandomPlayer::handStrength(const QVector<Card::Suit> bidOpt
     for (const Card::Suit option : bidOptions) {
         strengthMap[option] = 0;
         for (const Card::Suit s : Card::Suits) {
-            sortingMap[s] = s == option ? TrumpRanks : PlainRanks;
+            sortingMap[s] = rankOrder(s == option);
         }
         const auto runLengthMap = m_hand.runLengths(sortingMap);
         for (const Card::Suit s : Card::Suits) {
-            auto sortOrder = sortingMap[s].constBegin();
-            auto values = s == option ? TrumpValues : PlainValues;
-            for (auto i = sortOrder; i < sortOrder + runLengthMap.value(s); ++i)
-                strengthMap[option] += values[*i];
+            const auto values = cardValues(s == option);
+            for (auto v = values.begin(); v != values.begin() + runLengthMap.value(s); ++v)
+                strengthMap[option] += v.value();
         }
         qCDebug(klaverjasAi) << "Suit " << option << " run lengths " << runLengthMap;
     }

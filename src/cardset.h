@@ -38,7 +38,7 @@ public:
 
     QVariantList cards();
 
-    typedef QMap<Card::Suit,QVector<Card::Rank>> SortingMap;
+    using SortingMap = QMap<Card::Suit,Card::Order>;
 
     // Implement some nice QVector-like methods
     void append(const Card& card);
@@ -53,7 +53,7 @@ public:
     QMap<Card::Suit,int> runLengths(const SortingMap sortingMap) const;
     QMap<Card::Suit,int> maxRunLengths(const SortingMap sortingMap) const;
     int score(Card::Suit trumpSuit) const;
-    Card::Rank highestRank(const Card::Suit suit, const QVector<Card::Rank> order) const;
+    Card::Rank highestRank(const Card::Suit suit, const Card::Order order) const;
 
     void shuffle();
     void sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder = Card::Suits);
@@ -62,15 +62,13 @@ public:
     void clear();
 
     // In-place sort of a single suit vector of cards
-    static void sort(QVector<Card>& cards, const QVector< Card::Rank > order);
+    static void sort(QVector<Card>& cards, const Card::Order order);
 
 private:
-    void suitSort(const QVector<Card::Rank> order);
-
     QMap<Card::Suit,QVector<Card>> m_suitSets;
-
     QMap<Card::Suit,int> m_suitCounts;
 
+    void suitSort(const Card::Order order);
 };
 
 Q_DECLARE_METATYPE(CardSet)

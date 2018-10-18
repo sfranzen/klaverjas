@@ -83,9 +83,9 @@ QVariant Card::rankVariant() const
     return QVariant::fromValue(rank());
 }
 
-bool Card::beats(const Card& other, const QVector<Rank> order) const
+bool Card::beats(const Card& other, const Order order) const
 {
-    return rankDifference(rank(), other.rank(), order) > 0;
+    return suit() == other.suit() && order[rank()] > order[other.rank()];
 }
 
 bool Card::operator==(const Card& other) const

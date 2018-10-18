@@ -59,13 +59,7 @@ public:
     using PlayerList = QVector<Player>;
     using ConstraintSet = QMap<Card::Suit,Card::Rank>;
     enum class Position : uchar { North = 0, East, South, West };
-    enum class TrumpRule : uchar {
-        /// A player who cannot follow suit is not required to trump if the
-        /// winning card in the current trick is his partner's.
-        Amsterdams,
-        /// A player who cannot follow suit must always (over)trump if he can.
-        Rotterdams
-    };
+
     /**
      * Create a new game with the given settings.
      *

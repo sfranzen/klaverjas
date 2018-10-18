@@ -39,6 +39,7 @@
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasGame)
 
+class GameEngine;
 class Player;
 class HumanPlayer;
 class Team;
@@ -109,7 +110,7 @@ private:
     Player *nextPlayer(Player *player) const;
     void advancePlayer(Player *&player) const;
 
-    GameEngine::TrumpRule m_trumpRule;
+    TrumpRule m_trumpRule;
     BidRule m_bidRule;
     Card::Suit m_trumpSuit;
     QVector<Card> m_deck;

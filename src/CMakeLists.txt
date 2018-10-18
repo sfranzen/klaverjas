@@ -3,7 +3,6 @@ set(klaverjas_SRCS
     klaverjaswindow.cpp
     gameengine.cpp
     game.cpp
-    rules.cpp
     card.cpp
     cardset.cpp
     trick.cpp

@@ -22,10 +22,10 @@
 #include <QDebug>
 
 const CardSet::SortingMap Trick::s_bonusSortingMap {
-    {Card::Suit::Spades, BonusRanks},
-    {Card::Suit::Hearts, BonusRanks},
-    {Card::Suit::Diamonds, BonusRanks},
-    {Card::Suit::Clubs, BonusRanks}
+    {Card::Suit::Spades, BonusOrder},
+    {Card::Suit::Hearts, BonusOrder},
+    {Card::Suit::Diamonds, BonusOrder},
+    {Card::Suit::Clubs, BonusOrder}
 };
 
 Trick::Trick(Card::Suit trumpSuit)
@@ -46,13 +46,13 @@ void Trick::add(int player, const Card& card)
     m_cards << card;
     m_players << player;
     const Card::Suit suitPlayed = card.suit();
-    m_points += suitPlayed == m_trumpSuit ? TrumpValues[card.rank()] : PlainValues[card.rank()];
+    m_points += cardValues(suitPlayed == m_trumpSuit)[card.rank()];
     if (m_players.size() == 1) {
         m_suitLed = suitPlayed;
         setWinner(player, card);
     } else {
         if (suitPlayed == m_winningCard.suit()) {
-            auto order = suitPlayed == m_trumpSuit ? TrumpRanks : PlainRanks;
+            const auto order = rankOrder(suitPlayed == m_trumpSuit);
             if (card.beats(m_winningCard, order))
                 setWinner(player, card);
         } else if (suitPlayed == m_trumpSuit) {

@@ -21,11 +21,11 @@
 #define PLAYER_H
 
 #include "baseplayer.h"
+#include "card.h"
 
 #include <QObject>
 #include <QString>
 
-class Card;
 class CardSet;
 class Team;
 
@@ -53,7 +53,7 @@ public:
 
     Team *team() const;
     virtual void setTeam(Team *team);
-    bool canBeat(Card card, const QVector<Card::Rank> order) const;
+    bool canBeat(Card card, const Card::Order order) const;
 
 signals:
     Q_INVOKABLE void bidSelected(QVariant bid) const;

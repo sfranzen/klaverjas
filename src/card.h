@@ -32,6 +32,7 @@ public:
     enum class Rank : uchar { Seven = 7, Eight, Nine, Ten, King, Queen, Jack, Ace };
     Q_ENUM(Suit)
     Q_ENUM(Rank)
+    using Order = QMap<Rank,int>;
 
     Card() = default;
     Card(Suit s, Rank r);
@@ -44,7 +45,7 @@ public:
 
     /* Whether this card beats the other in the given sorting order.
      */
-    bool beats(const Card& other, const QVector<Rank> order) const;
+    bool beats(const Card& other, const Order order) const;
     friend uint qHash(const Card& card, uint seed);
 
     static const QVector<Suit> Suits;

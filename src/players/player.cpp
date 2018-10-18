@@ -61,7 +61,7 @@ Team *Player::team() const
     return m_team;
 }
 
-bool Player::canBeat(Card card, const QVector<Card::Rank> order) const
+bool Player::canBeat(Card card, const Card::Order order) const
 {
     if (!m_hand.containsSuit(card.suit())) {
         return false;

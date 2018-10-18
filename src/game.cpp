@@ -29,7 +29,6 @@
 
 namespace {
 
-using TrumpRule = GameEngine::TrumpRule;
 using Suit = Card::Suit;
 using Rank = Card::Rank;
 const QStringList DefaultNames {"South", "West", "North", "East"};

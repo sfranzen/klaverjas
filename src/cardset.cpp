@@ -121,7 +121,7 @@ QMap<Card::Suit,int> CardSet::runLengths(const SortingMap sortingMap) const
         sort(cards, order);
 
         for (auto card = cards.constBegin(); card != cards.constEnd(); ++card, ++rank) {
-            if (card->rank() == *rank)
+            if (card->rank() == rank.key())
                 ++runLengths[suit];
             else
                 break;
@@ -143,7 +143,7 @@ QMap<Card::Suit,int> CardSet::maxRunLengths(const SortingMap sortingMap) const
         int currentLength = 1;
 
         for (auto c = cards.constBegin(); c < cards.constEnd() - 1; ++c) {
-            if (rankDifference(c->rank(), (c + 1)->rank(), order) == 1)
+            if (order[(c + 1)->rank()] - order[c->rank()] == 1)
                 ++currentLength;
             else
                 currentLength = 1;
@@ -165,13 +165,13 @@ int CardSet::score(const Card::Suit trumpSuit) const
     return score;
 }
 
-Card::Rank CardSet::highestRank(const Card::Suit suit, const QVector< Card::Rank > order) const
+Card::Rank CardSet::highestRank(const Card::Suit suit, const Card::Order order) const
 {
     QVector<Card> suitSet = m_suitSets.value(suit);
     Card::Rank rank;
     switch (suitSet.size()) {
         case 0:
-            rank = order.last();
+            rank = order.lastKey();
             break;
         default:
             sort(suitSet, order);
@@ -198,13 +198,13 @@ void CardSet::sortAll(const SortingMap sortingMap, const QVector<Card::Suit> sui
     swap(sorted);
 }
 
-void CardSet::suitSort(const QVector<Card::Rank> order)
+void CardSet::suitSort(const Card::Order order)
 {
     const auto compare = [&] (const Card& card1, const Card& card2) { return card1.beats(card2, order); };
     std::sort(begin(), end(), compare);
 }
 
-void CardSet::sort(QVector< Card >& cards, const QVector< Card::Rank > order)
+void CardSet::sort(QVector< Card >& cards, const Card::Order order)
 {
     const auto compare = [&order] (const Card& card1, const Card& card2) { return card1.beats(card2, order); };
     return std::sort(cards.begin(), cards.end(), compare);
