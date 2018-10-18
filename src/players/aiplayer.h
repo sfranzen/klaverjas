@@ -21,7 +21,6 @@
 #define AIPLAYER_H
 
 #include "randomplayer.h"
-#include "card.h"
 #include "ismc/solver.h"
 
 #include <memory>

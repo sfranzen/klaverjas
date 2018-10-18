@@ -18,6 +18,7 @@
  */
 
 #include "aiplayer.h"
+#include "card.h"
 #include "gameengine.h"
 
 #include <QString>
