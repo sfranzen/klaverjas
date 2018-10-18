@@ -23,6 +23,8 @@
 #include <QString>
 #include <QVector>
 
+Q_DECLARE_LOGGING_CATEGORY(klaverjasAi);
+
 AiPlayer::AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name, QObject *parent)
     : RandomPlayer(name, parent)
     , m_solver(2500)
