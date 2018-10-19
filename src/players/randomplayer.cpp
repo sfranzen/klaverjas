@@ -110,13 +110,13 @@ QMap<Card::Suit,int> RandomPlayer::handStrength(const QVector<Card::Suit> bidOpt
         for (const Card::Suit s : Card::Suits) {
             sortingMap[s] = rankOrder(s == option);
         }
-        const auto runLengthMap = m_hand.runLengths(sortingMap);
-        for (const Card::Suit s : Card::Suits) {
-            const auto values = cardValues(s == option);
-            for (auto v = values.begin(); v != values.begin() + runLengthMap.value(s); ++v)
-                strengthMap[option] += v.value();
+        const auto runMap = m_hand.runs(sortingMap);
+        for (auto run = runMap.begin(); run != runMap.end(); ++run) {
+            const auto values = cardValues(run.key() == option);
+            for (const auto r : run.value())
+                strengthMap[option] += values[r];
         }
-        qCDebug(klaverjasAi) << "Suit " << option << " run lengths " << runLengthMap;
+        qCDebug(klaverjasAi) << "Suit" << option << "runs" << runMap;
     }
     qCDebug(klaverjasAi) << "Strengths" << strengthMap;
     return strengthMap;

@@ -25,7 +25,6 @@
 #include <QObject>
 #include <QVector>
 #include <QMap>
-#include <QVariantList>
 
 class CardSet : public QVector<Card>
 {
@@ -39,36 +38,37 @@ public:
     QVariantList cards();
 
     using SortingMap = QMap<Card::Suit,Card::Order>;
+    using RunMap = QMap<Card::Suit,QVector<Card::Rank>>;
 
     // Implement some nice QVector-like methods
-    void append(const Card& card);
-    void append(const CardSet& set);
-    CardSet& operator<<(const Card& card);
-    CardSet& operator<<(const CardSet& set);
+    void append(const Card &card);
+    void append(const CardSet &set);
+    CardSet &operator<<(const Card &card);
+    CardSet &operator<<(const CardSet &set);
 
     // Custom methods
     bool containsSuit(const Card::Suit suit) const;
-    const QMap<Card::Suit, QVector<Card>>& suitSets() const;
+    const QMap<Card::Suit, QVector<Card>> &suitSets() const;
     QMap<Card::Suit,int> cardsPerSuit(const QVector<Card::Suit> suits = Card::Suits) const;
-    QMap<Card::Suit,int> runLengths(const SortingMap sortingMap) const;
+    RunMap runs(const SortingMap sortingMap) const;
     QMap<Card::Suit,int> maxRunLengths(const SortingMap sortingMap) const;
     int score(Card::Suit trumpSuit) const;
     Card::Rank highestRank(const Card::Suit suit, const Card::Order order) const;
 
     void shuffle();
     void sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder = Card::Suits);
-    void remove(const Card& card);
+    void remove(const Card &card);
     void remove(int i, int count);
     void clear();
 
     // In-place sort of a single suit vector of cards
-    static void sort(QVector<Card>& cards, const Card::Order order);
+    static void sort(QVector<Card> &cards, const Card::Order order);
 
 private:
+    void suitSort(const Card::Order order);
+
     QMap<Card::Suit,QVector<Card>> m_suitSets;
     QMap<Card::Suit,int> m_suitCounts;
-
-    void suitSort(const Card::Order order);
 };
 
 Q_DECLARE_METATYPE(CardSet)
