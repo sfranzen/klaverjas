@@ -24,10 +24,10 @@
 
 #include <algorithm>
 
-QVariantList CardSet::cards()
+QVariantList CardSet::cards() const
 {
     QVariantList list;
-    for (Card& card : *this)
+    for (const auto &card : *this)
         list << QVariant::fromValue(card);
     return list;
 }
@@ -98,6 +98,7 @@ const QMap<Card::Suit, QVector<Card>> &CardSet::suitSets() const
 
 QMap<Card::Suit, int> CardSet::cardsPerSuit(const QVector<Card::Suit> suits) const
 {
+    Q_UNUSED(suits)
     return m_suitCounts;
 }
 
@@ -129,8 +130,8 @@ QMap<Card::Suit,int> CardSet::maxRunLengths(const SortingMap sortingMap) const
     QMap<Card::Suit,int> runLengths;
 
     for (auto set = m_suitSets.constBegin(); set != m_suitSets.constEnd(); ++set) {
-        Card::Suit suit = set.key();
-        QVector<Card> cards = set.value();
+        auto suit = set.key();
+        auto cards = set.value();
 
         auto order = sortingMap[suit];
         sort(cards, order);
@@ -155,43 +156,15 @@ int CardSet::score(const Card::Suit trumpSuit) const
     return score;
 }
 
-Card::Rank CardSet::highestRank(const Card::Suit suit, const Card::Order order) const
-{
-    auto suitSet = m_suitSets.value(suit);
-    Card::Rank rank;
-    switch (suitSet.size()) {
-    case 0:
-        rank = order.lastKey();
-        break;
-    case 1:
-        rank = suitSet.first().rank();
-        break;
-    default:
-        sort(suitSet, order);
-    }
-    return rank;
-}
-
-void CardSet::shuffle()
-{
-    std::random_shuffle(begin(), end());
-}
-
 void CardSet::sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder)
 {
-    CardSet sorted, set;
+    CardSet sorted;
     for (const Card::Suit s : suitOrder) {
-        set = m_suitSets.value(s);
-        set.suitSort(sortingMap[s]);
+        auto set = m_suitSets.value(s);
+        sort(set, sortingMap[s]);
         sorted.append(set);
     }
     swap(sorted);
-}
-
-void CardSet::suitSort(const Card::Order order)
-{
-    const auto compare = [&](const Card& c1, const Card& c2) { return c1.beats(c2, order); };
-    std::sort(begin(), end(), compare);
 }
 
 void CardSet::sort(QVector<Card> &cards, const Card::Order order)
