@@ -28,6 +28,7 @@ Rectangle {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
         onClicked: {
+            console.log("tottot");
             game.advance()
         }
     }
@@ -41,10 +42,15 @@ Rectangle {
                 id: trick
                 anchors.centerIn: parent
             }
+            BidView {
+                id: bidView
+                anchors.centerIn: trick
+            }
             PlayerView {
                 player: game.humanPlayer
                 anchors.top: trick.bottom
                 anchors.horizontalCenter: trick.horizontalCenter
+                anchors.topMargin: 20
             }
             BidDialog {/* hidden by default */}
         }

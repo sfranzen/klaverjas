@@ -33,7 +33,7 @@ Popup {
                     SuitLabel {
                         suit: modelData
                         anchors.fill: parent
-                        anchors.margins: 2
+                        anchors.margins: 5
                     }
                     onClicked: {
                         player.bidSelected(modelData);

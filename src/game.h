@@ -81,15 +81,16 @@ public:
     void restart();
 
 signals:
-    void bidRequested(QVariantList options, Player *player);
-    void moveRequested(QVector<Card> legalMoves);
     void playersChanged();
     void scoresChanged();
     void teamsChanged();
+    void biddingStarted();
+    void bidRequested(QVariantList options, Player *player);
+    void newContract(Card::Suit suit, Team *contractors);
+    void moveRequested(QVector<Card> legalMoves);
+    void cardPlayed(int player, Card card);
     void newTrick();
     void newRound();
-    void cardPlayed(int player, Card card);
-    void newContract(Card::Suit suit, Team *contractors);
     void statusChanged(Status status);
 
 public slots:

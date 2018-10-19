@@ -29,12 +29,12 @@ Rectangle {
                 Connections {
                     target: game
                     onNewContract: {
-                        if (game.teams[index] == contractors)
-                            text += " *";
+                        if (modelData == contractors)
+                            text = "Team " + modelData.name + " *";
                     }
                     onNewRound: {
                         if (text.endsWith(" *"))
-                            text = text.substring(0, text.length - 2);
+                            text = "Team " + modelData.name;
                     }
                 }
             }

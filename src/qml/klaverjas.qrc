@@ -3,8 +3,10 @@
     <qresource prefix="/">
         <file>KlaverjasView.qml</file>
         <file>PlayerView.qml</file>
+        <file>CircleView.qml</file>
         <file>TrickView.qml</file>
         <file>BidDialog.qml</file>
+        <file>BidView.qml</file>
         <file>CardImage.qml</file>
         <file>ScoreBoard.qml</file>
         <file>SuitLabel.qml</file>

@@ -219,13 +219,17 @@ void Game::advance()
     if (m_biddingPhase) {
         setStatus(Waiting);
         proposeBid();
-    } else if (m_turn == 4) {
+        return;
+    }
+    if (m_turn == 0) {
+        m_currentTrick = Trick(m_trumpSuit);
+        emit newTrick();
+    }
+    if (m_turn == 4) {
         // Trick complete
         m_turn = 0;
         qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
         qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
-        m_currentTrick = Trick(m_trumpSuit);
-        emit newTrick();
         advance();
     } else if (!m_engine->isFinished()) {
         // Trick-taking phase, proceed automatically until it is the human
@@ -273,9 +277,10 @@ void Game::deal()
 void Game::proposeBid()
 {
     const auto allOptions = bidOptions();
-    if (m_bidCounter == 0)
+    if (m_bidCounter == 0) {
         m_bidOptions = initialBidOptions();
-    else if (m_bidCounter % 4 == 0)
+        emit biddingStarted();
+    } else if (m_bidCounter % 4 == 0)
         // All players have passed in the first round of bidding.
         refineBidOptions();
     ++m_bidCounter;
@@ -336,8 +341,6 @@ void Game::acceptBid(QVariant bid)
         m_biddingPhase = false;
         m_bidCounter = 0;
         setContract(bid.value<Card::Suit>(), m_currentPlayer);
-        m_currentTrick = Trick(m_trumpSuit);
-        emit newTrick();
     }
     setStatus(Ready);
 }
