@@ -56,7 +56,7 @@ public:
     bool canBeat(Card card, const Card::Order order) const;
 
 signals:
-    Q_INVOKABLE void bidSelected(QVariant bid) const;
+    void bidSelected(QVariant bid) const;
     void moveSelected(Card card) const;
     void handChanged() const;
 
