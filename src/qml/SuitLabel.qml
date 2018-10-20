@@ -22,7 +22,9 @@ Text {
             return "\u2666";
         if (suit == Card.Clubs)
             return "\u2663";
-        return "Pass";
+        if (suit == undefined)
+            return "Pass";
+        return "";
     }
     function suitColor() {
         if (suit == Card.Hearts || suit == Card.Diamonds)
