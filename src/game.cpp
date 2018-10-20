@@ -87,6 +87,11 @@ int Game::currentPlayer() const
     return playerIndex(m_currentPlayer);
 }
 
+Player *Game::currentPlayerPtr() const
+{
+    return m_currentPlayer;
+}
+
 int Game::playerIndex(const Player *player) const
 {
     const auto target = std::find_if(m_players.begin(), m_players.end(), [&](const GameEngine::Player &p){

@@ -1,5 +1,5 @@
 
-import QtQuick 2.7
+import QtQuick 2.11
 import org.kde.klaverjas 1.0
 
 ListView {
@@ -15,42 +15,30 @@ ListView {
     delegate: CardImage {
         card: modelData
         rotation: orientation == ListView.Horizontal ? 0 : 90
+        MouseArea {
+            id: mArea
+            anchors.fill: parent
+            enabled: false
+            hoverEnabled: true
+            onClicked: player.moveSelected(modelData)
+            onEntered: list.currentIndex = index
+            Connections {
+                target: game
+                onMoveRequested: if (game.currentPlayer == player) {
+                    mArea.enabled = true;
+                    list.highlightItem.visible = true;
+                }
+            }
+            Connections {
+                target: player
+                onMoveSelected: mArea.enabled = false
+            }
+        }
     }
     highlight: Rectangle {
         visible: false
         color: "steelblue"
-        z: 0
+        z: 1.1
         opacity: 0.3
     }
-    MouseArea {
-        id: mArea
-        anchors.fill: parent
-        enabled: false
-        hoverEnabled: true
-        onPositionChanged: {
-            if (itemAt(mouse.x, mouse.y))
-                parent.currentIndex = indexAt(mouse.x, mouse.y);
-        }
-        onClicked: {
-            var choice = itemAt(mouse.x, mouse.y);
-            if (choice) {
-                game.acceptMove(choice.card);
-                enabled = false;
-                list.highlightItem.visible = false;
-            }
-        }
-    }
-    Connections {
-        target: game
-        onMoveRequested: {
-            mArea.enabled = true;
-            highlightItem.visible = true;
-        }
-    }
-//     Connections {
-//         target: player
-//         onHandChanged: {
-//             model = player.hand.cards;
-//         }
-//     }
 }

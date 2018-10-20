@@ -50,6 +50,7 @@ class Game : public QObject
     Q_PROPERTY(int round READ round NOTIFY newRound)
     Q_PROPERTY(Card::Suit trumpSuit READ trumpSuit NOTIFY newContract)
     Q_PROPERTY(QQmlListProperty<Player> players READ players NOTIFY playersChanged)
+    Q_PROPERTY(Player* currentPlayer READ currentPlayerPtr)
     Q_PROPERTY(HumanPlayer* humanPlayer READ humanPlayer CONSTANT)
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
 
@@ -64,7 +65,8 @@ public:
     void addPlayer(Player *player);
     void removePlayer(Player *player);
     int currentPlayer() const;
-    int playerIndex(const Player* player) const;
+    Player *currentPlayerPtr() const;
+    int playerIndex(const Player *player) const;
     Player *playerAt(int index) const;
     HumanPlayer *humanPlayer() const;
     QQmlListProperty<Player> players();
@@ -95,10 +97,10 @@ signals:
 
 public slots:
     void advance();
-    void acceptBid(QVariant bid);
-    void acceptMove(Card card);
 
 private slots:
+    void acceptBid(QVariant bid);
+    void acceptMove(Card card);
 
 private:
     void deal();
