@@ -21,10 +21,11 @@ Rectangle {
             model: game.teams
             Label {
                 id: names
+                width: (root.width - 2) / headers.count
                 text: "Team " + modelData.name
+                padding: 2
                 background: Rectangle {
                     color: "green"
-                    width: root.width / headers.count
                 }
                 Connections {
                     target: game
@@ -44,16 +45,41 @@ Rectangle {
             model: game.teams
             Rectangle {
                 height: 192
-                width: root.width / headers.count
+                width: (root.width - 2) / headers.count
                 color: "green"
                 Column {
-                    spacing: 2
+                    anchors.fill: parent
                     Repeater {
                         model: modelData.scores
-                        Label {
-                            text: modelData
-                            height: 10
-                        }
+                        delegate: scoreElement
+                    }
+                }
+            }
+        }
+        Component {
+            id: scoreElement
+            Item {
+                width: parent.width
+                implicitHeight: childrenRect.height
+                Label {
+                    id: points
+                    text: modelData.points
+                    leftPadding: 2
+                }
+                Label {
+                    anchors.left: points.right
+                    text: modelData.bonus == 0 ? "" : " + " + modelData.bonus
+                }
+                Label {
+                    anchors.right: parent.right
+                    rightPadding: 2
+                    text: {
+                        if (modelData.wet)
+                            return "NAT";
+                        else if (modelData.march)
+                            return "PIT";
+                        else
+                            return "";
                     }
                 }
             }

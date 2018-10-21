@@ -14,6 +14,7 @@ set(klaverjas_SRCS
     players/aiplayer.cpp
     players/randomplayer.cpp
     qml/klaverjas.qrc
+    scores.h
 )
 
 kconfig_add_kcfg_files(klaverjas_SRCS klaverjasSettings.kcfgc)

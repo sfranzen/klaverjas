@@ -67,7 +67,7 @@ Game::Game(QObject *parent, int numRounds)
     for (int i = 1; i <= 2; ++i) {
         Team* team = new Team(QString::number(i), this);
         m_teams.append(team);
-        m_scores[team] = 0;
+        m_scores[team] = Score();
     }
 }
 
@@ -150,7 +150,7 @@ Card::Suit Game::trumpSuit() const
     return m_trumpSuit;
 }
 
-const Game::Score & Game::score() const
+const Game::ScoreMap & Game::score() const
 {
     return m_scores;
 }
@@ -201,7 +201,7 @@ void Game::restart()
     m_roundCards.clear();
 
     for (auto &score : m_scores)
-        score = 0;
+        score = Score();
     for (auto t : m_teams)
         t->resetScore();
 
@@ -249,14 +249,12 @@ void Game::advance()
     } else if (m_round < m_numRounds) {
         // One round (game) completed
         m_roundCards << m_engine->cardsPlayed();
-        Score score;
-        for (int i : {0, 1})
-            score.insert(m_teams.at(i), m_engine->getResult(i) * 162);
-        qCInfo(klaverjasGame) << "Round scores: " << score;
-        for (Team* team : m_teams) {
-            team->addPoints(score[team]);
-            m_scores[team] += score[team];
+        const auto scores = m_engine->scores();
+        for (int i : {0, 1}) {
+            m_teams[i]->addPoints(scores[i]);
+            m_scores[m_teams[i]] += scores[i];
         }
+        qCInfo(klaverjasGame) << "Round scores: " << scores;
         m_turn = 0;
         ++m_round;
         advancePlayer(m_dealer);

@@ -55,12 +55,11 @@ class Game : public QObject
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
 
 public:
-    explicit Game(QObject *parent = 0, int numRounds = 16);
-
-    typedef QMap<Team*,int> Score;
-
+    using ScoreMap = QMap<Team*,Score>;
     enum Status { Ready, Waiting, Finished };
     Q_ENUM(Status)
+
+    explicit Game(QObject *parent = 0, int numRounds = 16);
 
     void addPlayer(Player *player);
     void removePlayer(Player *player);
@@ -76,7 +75,7 @@ public:
     int round() const;
     Card::Suit trumpSuit() const;
     const QVector<Card> cardsPlayed() const;
-    const Score &score() const;
+    const ScoreMap &score() const;
     Status status() const;
     const Trick& currentTrick() const;
     void start();
@@ -125,7 +124,7 @@ private:
     int m_turn;
     Trick m_currentTrick;
     QVector<QVector<Card>> m_roundCards;
-    Score m_scores;
+    ScoreMap m_scores;
     GameEngine::PlayerList m_players;
     QList<Team*> m_teams;
     Player *m_dealer;

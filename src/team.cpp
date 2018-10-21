@@ -21,6 +21,7 @@
 #include "players/player.h"
 
 #include <QDebug>
+#include <QVariantList>
 
 Team::Team(QString name, QObject* parent)
     : QObject(parent)
@@ -62,25 +63,25 @@ QVariantList Team::scores()
 {
     QVariantList newList;
     foreach(const auto item, m_score)
-        newList << item;
+        newList << QVariant::fromValue(item);
     return newList;
 }
 
-int Team::score() const
+ushort Team::score() const
 {
-    return std::accumulate(m_score.cbegin(), m_score.cend(), 0);
+    return std::accumulate(m_score.begin(), m_score.end(), 0, [](ushort sum, const Score &s){ return sum + s.sum(); });
 }
 
-void Team::addPoints(const uint points)
+void Team::addPoints(RoundScore score)
 {
-    m_score << points;
-    emit scoreChanged(points);
+    m_score << score;
+    emit scoreChanged(score);
 }
 
 void Team::resetScore()
 {
     m_score.clear();
-    emit scoreChanged(0);
+    emit scoreChanged(RoundScore());
 }
 
 QDebug operator<<(QDebug dbg, const Team* team) {

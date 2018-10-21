@@ -20,10 +20,11 @@
 #ifndef TEAM_H
 #define TEAM_H
 
+#include "scores.h"
+
 #include <QObject>
 #include <QString>
 #include <QVector>
-#include <QVariantList>
 
 class Player;
 
@@ -45,18 +46,18 @@ public:
     void removePlayer(Player* p);
 
     QVariantList scores();
-    int score() const;
-    void addPoints(const uint points);
+    ushort score() const;
+    void addPoints(RoundScore score);
     void resetScore();
 
 signals:
     void nameChanged(QString name);
-    void scoreChanged(int newScore);
+    void scoreChanged(RoundScore newScore);
 
 private:
     QString m_name;
     QVector<Player*> m_players;
-    QVector<int> m_score;
+    QVector<RoundScore> m_score;
 
     friend QDebug operator<<(QDebug dbg, const Team* team);
 };

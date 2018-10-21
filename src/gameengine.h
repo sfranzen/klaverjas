@@ -23,6 +23,7 @@
 #include "ismc/game.h"
 #include "card.h"
 #include "rules.h"
+#include "scores.h"
 
 #include <QtGlobal>
 #include <QVector>
@@ -87,6 +88,7 @@ public:
     void reset(Position firstPlayer, Position contractor, Card::Suit trumpSuit);
     /// The sequence of cards played
     const QVector<Card> cardsPlayed() const;
+    const QVector<RoundScore> scores() const;
 
 private:
     PlayerList m_players;
@@ -98,7 +100,7 @@ private:
      * overtrump, the rank is recorded as his maximum rank for determinisation.
      */
     mutable QVector<ConstraintSet> m_playerConstraints;
-    ushort m_scores[2];
+    QVector<RoundScore> m_scores;
     Card::Suit m_trumpSuit;
     TrumpRule m_trumpRule;
     Position m_currentPlayer;
@@ -109,7 +111,7 @@ private:
     GameEngine(const PlayerList players, Position firstPlayer, Position contractor, TrumpRule trumpRule, Card::Suit trumpSuit);
     GameEngine(const GameEngine &other);
     GameEngine &operator=(const GameEngine &other) = default;
-    ushort &teamScore(Position position);
+    RoundScore &teamScore(Position position);
 
     /**
     * Collect the cards held by each player other than the observer and give
