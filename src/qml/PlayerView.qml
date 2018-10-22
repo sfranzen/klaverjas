@@ -7,7 +7,6 @@ ListView {
     property HumanPlayer player: game.humanPlayer
     height: 100
     implicitWidth: contentItem.childrenRect.width
-    anchors.margins: 5
     orientation: ListView.Horizontal
     interactive: false
     spacing: 2
@@ -20,18 +19,18 @@ ListView {
             anchors.fill: parent
             enabled: false
             hoverEnabled: true
-            onClicked: player.moveSelected(modelData)
+            propagateComposedEvents: true
+            onClicked: {
+                mArea.enabled = false;
+                player.moveSelected(modelData);
+            }
             onEntered: list.currentIndex = index
             Connections {
                 target: game
                 onMoveRequested: if (game.currentPlayer == player) {
-                    mArea.enabled = true;
                     list.highlightItem.visible = true;
+                    mArea.enabled = true;
                 }
-            }
-            Connections {
-                target: player
-                onMoveSelected: mArea.enabled = false
             }
         }
     }

@@ -27,9 +27,7 @@ Rectangle {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
-        onClicked: {
-            game.advance()
-        }
+        onClicked: game.advance();
     }
     Row {
         anchors.fill: parent
@@ -37,6 +35,12 @@ Rectangle {
             id: table
             height: parent.height
             width: parent.width - infoArea.width
+            MouseArea {
+                z: 1
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton
+                onClicked: game.advance();
+            }
             TrickView {
                 id: trick
                 anchors.centerIn: parent
@@ -46,6 +50,7 @@ Rectangle {
                 anchors.centerIn: trick
             }
             PlayerView {
+                z: 2
                 player: game.humanPlayer
                 anchors.top: trick.bottom
                 anchors.horizontalCenter: trick.horizontalCenter

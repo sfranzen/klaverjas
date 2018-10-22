@@ -28,9 +28,8 @@ Item {
                     if (index == player)
                         img.card = card;
                 }
-                onNewTrick: {
-                    img.card = undefined;
-                }
+                onNewTrick: img.card = undefined;
+                onNewRound: img.card = undefined;
             }
         }
     }

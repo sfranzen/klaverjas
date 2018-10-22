@@ -224,13 +224,7 @@ void Game::advance()
     if (m_biddingPhase) {
         setStatus(Waiting);
         proposeBid();
-        return;
-    }
-    if (m_turn == 0) {
-        m_currentTrick = Trick(m_trumpSuit);
-        emit newTrick();
-    }
-    if (m_turn == 4) {
+    } else if (m_turn == 4) {
         // Trick complete
         m_turn = 0;
         qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
@@ -239,13 +233,14 @@ void Game::advance()
     } else if (!m_engine->isFinished()) {
         // Trick-taking phase, proceed automatically until it is the human
         // player's turn or a new trick is about to start.
+        if (m_turn == 0) {
+            m_currentTrick = Trick(m_trumpSuit);
+            emit newTrick();
+        }
         connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
         connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
         setStatus(Waiting);
         emit moveRequested(m_engine->validMoves());
-        ++m_turn;
-        if (m_turn < 4)
-            advance();
     } else if (m_round < m_numRounds) {
         // One round (game) completed
         m_roundCards << m_engine->cardsPlayed();
@@ -344,8 +339,8 @@ void Game::acceptBid(QVariant bid)
         m_biddingPhase = false;
         m_bidCounter = 0;
         setContract(bid.value<Card::Suit>(), m_currentPlayer);
+        setStatus(Ready);
     }
-    setStatus(Ready);
 }
 
 void Game::setContract(const Card::Suit suit, const Player *player)
@@ -376,6 +371,9 @@ void Game::acceptMove(Card card)
     m_currentTrick.add(currentPlayer(), card);
     m_currentPlayer = playerAt(m_engine->currentPlayer());
     setStatus(Ready);
+    ++m_turn;
+    if (m_turn < 4)
+        advance();
 }
 
 Player *Game::nextPlayer(Player *player) const
