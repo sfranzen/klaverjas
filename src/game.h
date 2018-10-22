@@ -22,24 +22,18 @@
 
 #include "rules.h"
 #include "card.h"
-#include "cardset.h"
 #include "trick.h"
 #include "gameengine.h"
+
+#include <QObject>
+#include <QVector>
+#include <QMap>
+#include <QQmlListProperty>
+#include <QVariantList>
 
 #include <random>
 #include <memory>
 
-#include <QObject>
-#include <QVector>
-#include <QList>
-#include <QMap>
-#include <QVariantList>
-#include <QQmlListProperty>
-#include <QLoggingCategory>
-
-Q_DECLARE_LOGGING_CATEGORY(klaverjasGame)
-
-class GameEngine;
 class Player;
 class HumanPlayer;
 class Team;
@@ -55,11 +49,11 @@ class Game : public QObject
     Q_PROPERTY(QQmlListProperty<Team> teams READ teams NOTIFY teamsChanged)
 
 public:
-    using ScoreMap = QMap<Team*,Score>;
     enum Status { Ready, Waiting, Finished };
     Q_ENUM(Status)
 
     explicit Game(QObject *parent = 0, int numRounds = 16);
+    virtual ~Game() = default;
 
     void addPlayer(Player *player);
     void removePlayer(Player *player);
@@ -75,7 +69,6 @@ public:
     int round() const;
     Card::Suit trumpSuit() const;
     const QVector<Card> cardsPlayed() const;
-    const ScoreMap &score() const;
     Status status() const;
     const Trick& currentTrick() const;
     void start();
@@ -104,38 +97,38 @@ private slots:
 private:
     void deal();
     void proposeBid();
-    void setContract(const Card::Suit suit, const Player *player);
-    void setStatus(Status newStatus);
     QVariantList initialBidOptions() const;
     void refineBidOptions();
+    void setContract(const Card::Suit suit, const Player *player);
+    void handleTrick();
+    void handleRound();
+    void setStatus(Status newStatus);
 
     Player *nextPlayer(Player *player) const;
     void advancePlayer(Player *&player) const;
 
-    TrumpRule m_trumpRule;
-    BidRule m_bidRule;
-    Card::Suit m_trumpSuit;
-    QVector<Card> m_deck;
-    bool m_biddingPhase;
+    std::unique_ptr<GameEngine> m_engine;
     QVariantList m_bidOptions;
-    int m_bidCounter;
-    int m_numRounds;
-    int m_round;
-    int m_turn;
-    Trick m_currentTrick;
+    QVector<Card> m_deck;
     QVector<QVector<Card>> m_roundCards;
-    ScoreMap m_scores;
+    Trick m_currentTrick;
     GameEngine::PlayerList m_players;
-    QList<Team*> m_teams;
+    QVector<Team*> m_teams;
     Player *m_dealer;
     Player *m_eldest;
     Player *m_currentPlayer;
     Team *m_contractors;
     Team *m_defenders;
     HumanPlayer *m_human;
+    int m_bidCounter;
+    int m_turn;
+    int m_round;
+    int m_numRounds;
+    TrumpRule m_trumpRule;
+    BidRule m_bidRule;
+    Card::Suit m_trumpSuit;
+    bool m_biddingPhase;
     Status m_status;
-
-    std::unique_ptr<GameEngine> m_engine;
 };
 
 #endif // GAME_H

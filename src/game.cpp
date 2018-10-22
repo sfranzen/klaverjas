@@ -23,9 +23,13 @@
 #include "players/randomplayer.h"
 #include "team.h"
 
-#include <algorithm>
 #include <QString>
 #include <QStringList>
+#include <QLoggingCategory>
+
+#include <algorithm>
+
+Q_DECLARE_LOGGING_CATEGORY(klaverjasGame)
 
 namespace {
 
@@ -44,18 +48,18 @@ QVariantList bidOptions(const QVector<Suit> suits = Card::Suits) {
 
 Game::Game(QObject *parent, int numRounds)
     : QObject(parent)
-    , m_trumpRule(TrumpRule::Amsterdams)
-    , m_bidRule(BidRule::Random)
-    , m_biddingPhase(true)
-    , m_bidCounter(0)
-    , m_numRounds(numRounds)
-    , m_round(0)
-    , m_turn(0)
+    , m_engine(nullptr)
     , m_contractors(nullptr)
     , m_defenders(nullptr)
     , m_human(nullptr)
+    , m_bidCounter(0)
+    , m_turn(0)
+    , m_round(0)
+    , m_numRounds(numRounds)
+    , m_trumpRule(TrumpRule::Amsterdams)
+    , m_bidRule(BidRule::Random)
+    , m_biddingPhase(true)
     , m_status(Ready)
-    , m_engine(nullptr)
 {
     // Reserve vector space
     m_deck.reserve(32);
@@ -67,7 +71,6 @@ Game::Game(QObject *parent, int numRounds)
     for (int i = 1; i <= 2; ++i) {
         Team* team = new Team(QString::number(i), this);
         m_teams.append(team);
-        m_scores[team] = Score();
     }
 }
 
@@ -150,11 +153,6 @@ Card::Suit Game::trumpSuit() const
     return m_trumpSuit;
 }
 
-const Game::ScoreMap & Game::score() const
-{
-    return m_scores;
-}
-
 Game::Status Game::status() const
 {
     return m_status;
@@ -184,14 +182,19 @@ void Game::start()
 
     for (int i = 0; i < 4; ++i)
         m_teams[i % 2]->addPlayer(playerAt(i));
-
     qCDebug(klaverjasGame) << "Teams: " << m_teams;
 
     m_dealer = dynamic_cast<Player*>(m_players.at(1).get());
     m_eldest = nextPlayer(m_dealer);
     m_currentPlayer = m_eldest;
-
     deal();
+}
+
+void Game::deal()
+{
+    std::random_shuffle(m_deck.begin(), m_deck.end());
+    for (int i = 0; i < m_players.size(); ++i)
+        m_players[i]->setHand(m_deck.mid(i*8, 8));
 }
 
 void Game::restart()
@@ -199,12 +202,8 @@ void Game::restart()
     m_round = 0;
     m_turn = 0;
     m_roundCards.clear();
-
-    for (auto &score : m_scores)
-        score = Score();
     for (auto t : m_teams)
         t->resetScore();
-
     start();
 }
 
@@ -231,45 +230,14 @@ void Game::advance()
         qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
         advance();
     } else if (!m_engine->isFinished()) {
-        // Trick-taking phase, proceed automatically until it is the human
-        // player's turn or a new trick is about to start.
-        if (m_turn == 0) {
-            m_currentTrick = Trick(m_trumpSuit);
-            emit newTrick();
-        }
-        connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
-        connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
-        setStatus(Waiting);
-        emit moveRequested(m_engine->validMoves());
+        handleTrick();
     } else if (m_round < m_numRounds) {
         // One round (game) completed
-        m_roundCards << m_engine->cardsPlayed();
-        const auto scores = m_engine->scores();
-        for (int i : {0, 1}) {
-            m_teams[i]->addPoints(scores[i]);
-            m_scores[m_teams[i]] += scores[i];
-        }
-        qCInfo(klaverjasGame) << "Round scores: " << scores;
-        m_turn = 0;
-        ++m_round;
-        advancePlayer(m_dealer);
-        advancePlayer(m_eldest);
-        m_currentPlayer = m_eldest;
-        m_biddingPhase = true;
-        emit newRound();
-        deal();
-        setStatus(Ready);
+        handleRound();
     } else {
         setStatus(Finished);
         qCInfo(klaverjasGame) << "Game finished";
     }
-}
-
-void Game::deal()
-{
-    std::random_shuffle(m_deck.begin(), m_deck.end());
-    for (int i = 0; i < m_players.size(); ++i)
-        m_players[i]->setHand(m_deck.mid(i*8, 8));
 }
 
 void Game::proposeBid()
@@ -296,15 +264,13 @@ QVariantList Game::initialBidOptions() const
         return {allOptions, QVariant()};
     case BidRule::Utrechts:
         return allOptions;
-    case BidRule::Random:
-        Q_FALLTHROUGH();
-    case BidRule::Twents:
+    default:
+        // For Random and Twents games, the first choice in a game is Clubs,
+        // otherwise a random suit is chosen.
         if (m_round == 0)
             return bidOptions({Suit::Clubs}) << QVariant();
         else
             return {allOptions[std::rand() % 4], QVariant()};
-    default:
-        Q_UNREACHABLE();
     }
 }
 
@@ -359,6 +325,18 @@ void Game::setContract(const Card::Suit suit, const Player *player)
     emit newContract(suit, m_contractors);
 }
 
+void Game::handleTrick()
+{
+    if (m_turn == 0) {
+        m_currentTrick = Trick(m_trumpSuit);
+        emit newTrick();
+    }
+    connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
+    connect(m_currentPlayer, &Player::moveSelected, this, &Game::acceptMove);
+    setStatus(Waiting);
+    emit moveRequested(m_engine->validMoves());
+}
+
 void Game::acceptMove(Card card)
 {
     if (m_status != Waiting || m_biddingPhase)
@@ -374,6 +352,24 @@ void Game::acceptMove(Card card)
     ++m_turn;
     if (m_turn < 4)
         advance();
+}
+
+void Game::handleRound()
+{
+    m_roundCards << m_engine->cardsPlayed();
+    const auto scores = m_engine->scores();
+    for (int i : {0, 1})
+        m_teams[i]->addPoints(scores[i]);
+    qCInfo(klaverjasGame) << "Round scores: " << scores;
+    m_turn = 0;
+    ++m_round;
+    advancePlayer(m_dealer);
+    advancePlayer(m_eldest);
+    m_currentPlayer = m_eldest;
+    m_biddingPhase = true;
+    deal();
+    setStatus(Ready);
+    emit newRound();
 }
 
 Player *Game::nextPlayer(Player *player) const
