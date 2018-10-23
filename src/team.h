@@ -32,6 +32,7 @@ class Team : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QVariantList scores READ scores NOTIFY scoreChanged)
+    Q_PROPERTY(uint totalScore READ totalScore NOTIFY scoreChanged)
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 
 public:
@@ -46,7 +47,9 @@ public:
     void removePlayer(Player* p);
 
     QVariantList scores();
-    ushort score() const;
+    uint totalScore() const;
+
+public slots:
     void addPoints(RoundScore score);
     void resetScore();
 
@@ -58,6 +61,7 @@ private:
     QString m_name;
     QVector<Player*> m_players;
     QVector<RoundScore> m_score;
+    uint m_total;
 
     friend QDebug operator<<(QDebug dbg, const Team* team);
 };

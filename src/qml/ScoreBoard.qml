@@ -11,76 +11,87 @@ import QtQuick.Controls 2.4
  */
 Rectangle {
     id: root
-    color: "black"
+    property int scoreSize: 16
     implicitHeight: childrenRect.height
-    Grid {
+    color: "black"
+    Row {
         spacing: 2
-        columns: headers.count
         Repeater {
-            id: headers
-            model: game.teams
-            Label {
-                id: names
-                width: (root.width - 2) / headers.count
-                text: "Team " + modelData.name
-                padding: 2
-                background: Rectangle {
-                    color: "green"
-                }
-                Connections {
-                    target: game
-                    onNewContract: {
-                        if (modelData == contractors)
-                            text = "Team " + modelData.name + " *";
-                    }
-                    onNewRound: {
-                        if (text.endsWith(" *"))
-                            text = "Team " + modelData.name;
-                    }
-                }
-            }
-        }
-        Repeater {
-            id: scores
+            id: columns
             model: game.teams
             Rectangle {
-                height: 192
-                width: (root.width - 2) / headers.count
+                width: (root.width - 2) / columns.count
+                height: header.height + 4 + 16 * scoreSize + total.height
                 color: "green"
                 Column {
-                    anchors.fill: parent
+                    width: parent.width
+                    Label {
+                        id: header
+                        padding: 2
+                        text: "Team " + name
+                        Connections {
+                            target: game
+                            onNewContract: {
+                                if (modelData == contractors)
+                                    header.text = "Team " + name + " *";
+                                else
+                                    header.text = "Team " + name;
+                            }
+                        }
+                    }
+                    Rectangle {
+                        width: parent.width
+                        height: 2
+                        color: "black"
+                    }
                     Repeater {
-                        model: modelData.scores
+                        width: parent.width
+                        model: scores
                         delegate: scoreElement
                     }
                 }
+                Rectangle {
+                    width: parent.width
+                    height: 2
+                    anchors.bottom: total.top
+                    color: "black"
+                }
+                Label {
+                    id: total
+                    anchors.bottom: parent.bottom
+                    leftPadding: 2
+                    text: totalScore
+                }
             }
         }
-        Component {
-            id: scoreElement
-            Item {
-                width: parent.width
-                implicitHeight: childrenRect.height
-                Label {
-                    id: points
-                    text: modelData.points
-                    leftPadding: 2
-                }
-                Label {
-                    anchors.left: points.right
-                    text: modelData.bonus == 0 ? "" : " + " + modelData.bonus
-                }
-                Label {
-                    anchors.right: parent.right
-                    rightPadding: 2
-                    text: {
-                        if (modelData.wet)
-                            return "NAT";
-                        else if (modelData.march)
-                            return "PIT";
-                        else
-                            return "";
-                    }
+    } // Row
+    Component {
+        id: scoreElement
+        Item {
+            width: parent.width
+            height: scoreSize
+            Label {
+                id: points
+                text: modelData.points
+                fontSizeMode: Text.VerticalFit
+                leftPadding: 2
+            }
+            Label {
+                anchors.left: points.right
+                font: points.font
+                text: modelData.bonus == 0 ? "" : " + " + modelData.bonus
+            }
+            Label {
+                anchors.right: parent.right
+                font: points.font
+                rightPadding: 2
+                text: {
+                    if (modelData.wet)
+                        return "NAT";
+                    else if (modelData.march)
+                        return "PIT";
+                    else
+                        return "";
                 }
             }
         }

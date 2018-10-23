@@ -26,6 +26,7 @@
 Team::Team(QString name, QObject* parent)
     : QObject(parent)
     , m_name(name)
+    , m_total(0)
 {
 }
 
@@ -67,20 +68,22 @@ QVariantList Team::scores()
     return newList;
 }
 
-ushort Team::score() const
+uint Team::totalScore() const
 {
-    return std::accumulate(m_score.begin(), m_score.end(), 0, [](ushort sum, const Score &s){ return sum + s.sum(); });
+    return m_total;
 }
 
 void Team::addPoints(RoundScore score)
 {
     m_score << score;
+    m_total += score.sum();
     emit scoreChanged(score);
 }
 
 void Team::resetScore()
 {
     m_score.clear();
+    m_total = 0;
     emit scoreChanged(RoundScore());
 }
 
