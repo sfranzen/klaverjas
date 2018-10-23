@@ -18,8 +18,6 @@
  */
 
 #include "player.h"
-#include "card.h"
-#include "cardset.h"
 
 #include <QVector>
 #include <QDebug>
@@ -31,6 +29,7 @@ Player::Player(QString name, QObject *parent)
     : QObject(parent)
     , m_name(name)
     , m_team(nullptr)
+    , m_suitOrder(CardSet::SuitOrder::TrumpFirst)
 {
     m_hand.reserve(8);
 }
@@ -51,34 +50,33 @@ void Player::setHand(const CardSet &cards)
     emit handChanged();
 }
 
-void Player::setTeam(Team* team)
-{
-    m_team = team;
-}
-
 Team *Player::team() const
 {
     return m_team;
 }
 
-bool Player::canBeat(Card card, const Card::Order order) const
+void Player::setTeam(Team* team)
 {
-    if (!m_hand.containsSuit(card.suit())) {
-        return false;
-    } else {
-        auto sets = m_hand.suitSets();
-        for (const auto myCard : sets.value(card.suit())) {
-            if (myCard.beats(card, order))
-                return true;
-        }
-        return false;
-    }
+    m_team = team;
+}
+
+void Player::setSuitOrder(CardSet::SuitOrder order)
+{
+    m_suitOrder = order;
 }
 
 void Player::removeCard(Card card)
 {
     BasePlayer::removeCard(card);
     emit handChanged();
+}
+
+void Player::bidSort()
+{
+}
+
+void Player::playSort(Card::Suit /*trumpSuit*/)
+{
 }
 
 QDebug operator<<(QDebug dbg, const Player* player) {

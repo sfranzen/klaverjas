@@ -22,6 +22,7 @@
 
 #include "baseplayer.h"
 #include "card.h"
+#include "cardset.h"
 
 #include <QObject>
 #include <QString>
@@ -53,7 +54,8 @@ public:
 
     Team *team() const;
     virtual void setTeam(Team *team);
-    bool canBeat(Card card, const Card::Order order) const;
+
+    void setSuitOrder(CardSet::SuitOrder order);
 
 signals:
     void bidSelected(QVariant bid) const;
@@ -64,10 +66,13 @@ public slots:
     virtual void selectBid(QVariantList options) const = 0;
     virtual void selectMove(const QVector<Card> legalMoves) const = 0;
     virtual void removeCard(Card card) override;
+    virtual void bidSort();
+    virtual void playSort(Card::Suit trumpSuit);
 
 protected:
     QString m_name;
     Team *m_team;
+    CardSet::SuitOrder m_suitOrder;
 };
 
 QDebug operator<<(QDebug dbg, const Player* player);

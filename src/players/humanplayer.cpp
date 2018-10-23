@@ -28,3 +28,15 @@ void HumanPlayer::selectMove(const QVector<Card> legalMoves) const
 {
     Q_UNUSED(legalMoves)
 }
+
+void HumanPlayer::bidSort()
+{
+    m_hand.sortAll();
+    emit handChanged();
+}
+
+void HumanPlayer::playSort(Card::Suit trumpSuit)
+{
+    m_hand.sortAll(m_suitOrder, trumpSuit);
+    emit handChanged();
+}

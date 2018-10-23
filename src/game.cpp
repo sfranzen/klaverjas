@@ -77,6 +77,8 @@ Game::Game(QObject *parent, int numRounds)
 void Game::addPlayer(Player *player)
 {
     if (m_players.size() <= 4) {
+        connect(this, &Game::newRound, player, &Player::bidSort);
+        connect(this, &Game::newContract, player, &Player::playSort);
         auto human = dynamic_cast<HumanPlayer*>(player);
         if (human)
             m_human = human;
@@ -188,6 +190,7 @@ void Game::start()
     m_eldest = nextPlayer(m_dealer);
     m_currentPlayer = m_eldest;
     deal();
+    emit newRound();
 }
 
 void Game::deal()

@@ -34,6 +34,8 @@ public:
 public slots:
     void selectBid(QVariantList options) const override;
     void selectMove(const QVector<Card> legalMoves) const override;
+    void bidSort() override;
+    void playSort(Card::Suit trumpSuit) override;
 };
 
 #endif // HUMANPLAYER_H

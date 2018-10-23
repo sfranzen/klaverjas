@@ -21,8 +21,39 @@
 #include "rules.h"
 
 #include <QVariantList>
+#include <QList>
 
 #include <algorithm>
+
+namespace {
+
+using Suit = Card::Suit;
+
+inline bool isBlack(const Suit s)
+{
+    return s == Suit::Spades || s == Suit::Clubs;
+}
+
+inline bool areSameColour(const Suit s1, const Suit s2)
+{
+    return isBlack(s1) == isBlack(s2);
+}
+
+inline void alternateColourSort(QList<Suit> &suits)
+{
+    for (auto s = suits.begin() + 1, sEnd = suits.end(); s < sEnd; ++s) {
+        if (areSameColour(*(s - 1), *s) && s + 1 != sEnd)
+            std::swap(*s, *(s + 1));
+    }
+}
+
+inline void sort(QVector<Card> &cards, const Card::Order order)
+{
+    const auto compare = [&](const Card& c1, const Card& c2) { return c1.beats(c2, order); };
+    return std::sort(cards.begin(), cards.end(), compare);
+}
+
+}
 
 QVariantList CardSet::cards() const
 {
@@ -156,19 +187,34 @@ int CardSet::score(const Card::Suit trumpSuit) const
     return score;
 }
 
-void CardSet::sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder)
+void CardSet::sortAll()
 {
-    CardSet sorted;
-    for (const Card::Suit s : suitOrder) {
+    auto suits = m_suitCounts.keys();
+    alternateColourSort(suits);
+    QVector<Card> sorted;
+    for (const auto &s : suits) {
         auto set = m_suitSets.value(s);
-        sort(set, sortingMap[s]);
+        sort(set, PlainOrder);
         sorted.append(set);
     }
     swap(sorted);
 }
 
-void CardSet::sort(QVector<Card> &cards, const Card::Order order)
+void CardSet::sortAll(SuitOrder suitOrder, Suit trumpSuit)
 {
-    const auto compare = [&](const Card& c1, const Card& c2) { return c1.beats(c2, order); };
-    return std::sort(cards.begin(), cards.end(), compare);
+    // Prepare the suit order
+    auto suits = m_suitCounts.keys();
+    if (suitOrder == CardSet::SuitOrder::TrumpFirst) {
+        const auto index = suits.indexOf(trumpSuit);
+        if (index != -1)
+            std::rotate(suits.begin(), suits.begin() + index, suits.end());
+    }
+    alternateColourSort(suits);
+    QVector<Card> sorted;
+    for (const auto &s : suits) {
+        auto set = m_suitSets.value(s);
+        sort(set, rankOrder(s == trumpSuit));
+        sorted.append(set);
+    }
+    swap(sorted);
 }

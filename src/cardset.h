@@ -34,6 +34,10 @@ class CardSet : public QVector<Card>
 public:
     using SortingMap = QMap<Card::Suit,Card::Order>;
     using RunMap = QMap<Card::Suit,QVector<Card::Rank>>;
+    enum class SuitOrder : char {
+        Alternating,
+        TrumpFirst
+    };
 
     CardSet() = default;
     CardSet(QVector<Card> cards);
@@ -54,19 +58,17 @@ public:
     QMap<Card::Suit,int> maxRunLengths(const SortingMap sortingMap) const;
     int score(Card::Suit trumpSuit) const;
 
-    void sortAll(const SortingMap sortingMap, const QVector<Card::Suit> suitOrder = Card::Suits);
+    /// Sort all cards in plain ranks
+    void sortAll();
+    /// Sort with trump ranks
+    void sortAll(SuitOrder suitOrder, Card::Suit trumpSuit);
     void remove(const Card &card);
     void remove(int i, int count);
     void clear();
-
-    // In-place sort of a single suit vector of cards
-    static void sort(QVector<Card> &cards, const Card::Order order);
 
 private:
     QMap<Card::Suit,QVector<Card>> m_suitSets;
     QMap<Card::Suit,int> m_suitCounts;
 };
-
-Q_DECLARE_METATYPE(CardSet)
 
 #endif // CARDSET_H
