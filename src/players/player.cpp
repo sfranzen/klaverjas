@@ -18,6 +18,7 @@
  */
 
 #include "player.h"
+#include "game.h"
 
 #include <QVector>
 #include <QDebug>
@@ -25,11 +26,10 @@
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasPlayer)
 
-Player::Player(QString name, QObject *parent)
+Player::Player(QString name, Game *parent)
     : QObject(parent)
     , m_name(name)
     , m_team(nullptr)
-    , m_suitOrder(CardSet::SuitOrder::TrumpFirst)
 {
     m_hand.reserve(8);
 }

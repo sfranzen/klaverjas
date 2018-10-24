@@ -135,6 +135,11 @@ QQmlListProperty<Team> Game::teams()
     );
 }
 
+const QVector<Team*> &Game::teams(int) const
+{
+    return m_teams;
+}
+
 const Team *Game::contractors() const
 {
     return m_contractors;
@@ -173,10 +178,15 @@ const Trick& Game::currentTrick() const
     return m_currentTrick;
 }
 
+const GameEngine *Game::engine() const
+{
+    return m_engine.get();
+}
+
 void Game::start()
 {
     for (int i = m_players.size(); i < 4; ++i)
-        addPlayer(new AiPlayer(m_engine, DefaultNames[i], this));
+        addPlayer(new AiPlayer(DefaultNames[i], this));
 
     // Make human player 3rd position
     if (m_human)

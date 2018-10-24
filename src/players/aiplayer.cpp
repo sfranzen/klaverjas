@@ -19,23 +19,25 @@
 
 #include "aiplayer.h"
 #include "card.h"
-#include "gameengine.h"
+#include "game.h"
 
 #include <QString>
 #include <QVector>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasAi);
 
-AiPlayer::AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name, QObject *parent)
+AiPlayer::AiPlayer(QString name, Game *parent)
     : RandomPlayer(name, parent)
+    , m_game(parent)
     , m_solver(2500)
-    , m_engine(engine)
 {
 }
 
 void AiPlayer::selectMove(const QVector<Card> legalMoves) const
 {
     Q_UNUSED(legalMoves)
-    Card move = m_solver(*m_engine);
-    emit moveSelected(move);
+    if (m_game->engine()) {
+        Card move = m_solver(*m_game->engine());
+        emit moveSelected(move);
+    }
 }

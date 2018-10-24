@@ -64,6 +64,7 @@ public:
     HumanPlayer *humanPlayer() const;
     QQmlListProperty<Player> players();
     QQmlListProperty<Team> teams();
+    const QVector<Team*> &teams(int) const;
     const Team *contractors() const;
     const Team *defenders() const;
     int round() const;
@@ -71,6 +72,7 @@ public:
     const QVector<Card> cardsPlayed() const;
     Status status() const;
     const Trick& currentTrick() const;
+    const GameEngine *engine() const;
     void start();
     void restart();
 

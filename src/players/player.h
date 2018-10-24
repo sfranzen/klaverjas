@@ -27,7 +27,7 @@
 #include <QObject>
 #include <QString>
 
-class CardSet;
+class Game;
 class Team;
 
 /**
@@ -44,7 +44,7 @@ class Player : public QObject, public BasePlayer
     Q_PROPERTY(CardSet hand READ hand NOTIFY handChanged)
 
 public:
-    explicit Player(QString name = "", QObject *parent = nullptr);
+    explicit Player(QString name = "", Game *parent = nullptr);
     virtual ~Player() = default;
 
     const QString &name() const;

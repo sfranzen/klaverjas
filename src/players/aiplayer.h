@@ -26,19 +26,18 @@
 #include <memory>
 
 class Game;
-class GameEngine;
 
 class AiPlayer : public RandomPlayer
 {
 public:
-    explicit AiPlayer(const std::unique_ptr<GameEngine> &engine, QString name = "", QObject *parent = nullptr);
+    explicit AiPlayer(QString name = "", Game *parent = nullptr);
 
 public slots:
     void selectMove(const QVector<Card> legalMoves) const override;
 
 private:
+    const Game *m_game;
     ISMC::Solver<Card> m_solver;
-    const std::unique_ptr<GameEngine> &m_engine;
 };
 
 #endif // AIPLAYER_H

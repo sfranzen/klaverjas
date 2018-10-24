@@ -30,12 +30,14 @@ AiTest::AiTest(QObject* parent, int numRounds)
 {
     // Construct the game with two AI players in the first team
     m_game = new Game(this, numRounds);
-    for (int i = 0; i < 4; ++i) {
-        //FIXME
-//         Player* player = i % 2 ? new RandomPlayer("", m_game) : new AiPlayer("", m_game);
-//         m_game->addPlayer(player);
+    for (int i = 1; i < 4; ++i) {
+        Player* player = i % 2 ? new RandomPlayer(QString("Random %1").arg(i/2 + 1), m_game) : new AiPlayer("West", m_game);
+        m_game->addPlayer(player);
     }
-    m_score = m_game->score();
+    QLoggingCategory::setFilterRules("debug=true\n"
+    "klaverjas.*.debug=false\n"
+    "qml=true"
+    );
     connect(m_game, &Game::statusChanged, this, &AiTest::proceed);
     m_game->start();
 }
@@ -51,19 +53,15 @@ void AiTest::proceed(Game::Status status)
         run();
     } else if (status == Game::Finished) {
         disconnect(m_game, &Game::statusChanged, this, &AiTest::proceed);
-        m_score = m_game->score();
         showResult();
     }
 }
 
 void AiTest::showResult() const
 {
-    const auto teams = m_score.keys();
-
-    for (auto team : teams) {
-        int total = m_score.value(team);
-        QString teamName = team->name() == "1" ? "Ai" : "Random";
-        qCInfo(klaverjasTest) << teamName + " Team:";
+    for (const auto team : m_game->teams(0)) {
+        auto total = team->totalScore();
+        qCInfo(klaverjasTest) << team->players() << ":";
         qCInfo(klaverjasTest) << "Total " << total
             << " Round average " << qreal(total) / m_numRounds;
     }

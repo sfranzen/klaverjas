@@ -45,7 +45,6 @@ private:
     void showResult() const;
 
     Game* m_game;
-    Game::Score m_score;
     int m_numRounds;
 };
 
