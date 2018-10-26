@@ -1,6 +1,6 @@
 
 import QtQuick 2.7
-import QtQuick.Controls 2.4
+import QtQuick.Controls 1.4
 
 /**
  * ScoreBoard QML type
@@ -12,7 +12,8 @@ import QtQuick.Controls 2.4
 Rectangle {
     id: root
     property int scoreSize: 16
-    implicitHeight: childrenRect.height
+    height: childrenRect.height
+    width: 200
     color: "black"
     Row {
         spacing: 2

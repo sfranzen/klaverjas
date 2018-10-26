@@ -189,8 +189,10 @@ void Game::start()
         addPlayer(new AiPlayer(DefaultNames[i], this));
 
     // Make human player 3rd position
-    if (m_human)
+    if (m_human) {
         std::rotate(m_players.begin(), m_players.begin() + 2, m_players.end());
+        emit playersChanged();
+    }
 
     for (int i = 0; i < 4; ++i)
         m_teams[i % 2]->addPlayer(playerAt(i));

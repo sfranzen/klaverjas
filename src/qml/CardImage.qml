@@ -6,7 +6,6 @@ import org.kde.klaverjas 1.0
 Image {
     property var card
     property bool faceUp: true
-    height: 100
     fillMode: Image.PreserveAspectFit
     onCardChanged: {
         if (!card) {

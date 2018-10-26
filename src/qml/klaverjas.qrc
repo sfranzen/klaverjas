@@ -1,6 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/">
+        <file>main.qml</file>
         <file>KlaverjasView.qml</file>
         <file>PlayerView.qml</file>
         <file>CircleView.qml</file>

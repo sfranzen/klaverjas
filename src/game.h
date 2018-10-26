@@ -73,7 +73,7 @@ public:
     Status status() const;
     const Trick& currentTrick() const;
     const GameEngine *engine() const;
-    void start();
+    Q_INVOKABLE void start();
     void restart();
 
 signals:

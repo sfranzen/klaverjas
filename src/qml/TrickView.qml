@@ -1,17 +1,19 @@
 
 import QtQuick 2.7
-import QtQuick.Controls 2.4
+import QtQuick.Controls 1.4
 import org.kde.klaverjas 1.0
 
 // TODO move player labels somewhere else
 Item {
-    implicitHeight: names.height
-    implicitWidth: names.width
+    height: names.height + label.height
+    width: names.width + label.width
     CircleView {
         id: names
+        anchors.centerIn: parent
         radius: 170
         model: game.players
         delegate: Label {
+            id: label
             text: modelData.name
         }
     }

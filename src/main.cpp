@@ -19,25 +19,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // application header
-#include "klaverjaswindow.h"
-#include "cardset.h"
 #include "game.h"
+#include "card.h"
+#include "cardset.h"
 #include "scores.h"
 #include "team.h"
 #include "players/player.h"
 #include "players/humanplayer.h"
-#include "aitest.h"
-
-// KDE headers
-#include <KAboutData>
-#include <KLocalizedString>
+#include "cardimageprovider.h"
 
 // Qt headers
-#include <QApplication>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QCommandLineParser>
 #include <QIcon>
 #include <QLoggingCategory>
-#include <QDebug>
 #include <QTime>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjas)
@@ -50,35 +47,26 @@ Q_LOGGING_CATEGORY(klaverjasTest, "klaverjas.aitest")
 
 int main(int argc, char **argv)
 {
-    QApplication application(argc, argv);
-
-    KLocalizedString::setApplicationDomain("klaverjas");
-    KAboutData aboutData( QStringLiteral("klaverjas"),
-                          i18n("Klaverjas"),
-                          QStringLiteral("%{VERSION}"),
-                          i18n("Simple Klaverjas game using KDE Frameworks and QML"),
-                          KAboutLicense::GPL,
-                          i18n("(c) 2017, Steven Franzen <sfranzen85@gmail.com>"));
-
-    aboutData.addAuthor(i18n("%{AUTHOR}"),i18n("Author"), QStringLiteral("%{EMAIL}"));
-    application.setWindowIcon(QIcon::fromTheme("klaverjas"));
+    QGuiApplication app(argc, argv);
+    app.setApplicationName(QStringLiteral("klaverjas"));
+    app.setApplicationDisplayName("Klaverjas");
+    app.setApplicationVersion(QStringLiteral("%{VERSION}"));
+    app.setDesktopFileName(QStringLiteral("org.example.klaverjas.desktop"));
+    app.setWindowIcon(QIcon::fromTheme("klaverjas"));
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
-    aboutData.setupCommandLine(&parser);
-    parser.process(application);
-    aboutData.processCommandLine(&parser);
-    KAboutData::setApplicationData(aboutData);
+    parser.process(app);
 
+    qmlRegisterUncreatableType<Game>("org.kde.klaverjas", 1, 0, "Game", "Only available as context object \"game\".");
     qmlRegisterUncreatableType<Card>("org.kde.klaverjas", 1, 0, "Card", "Enum/property access only.");
-    qRegisterMetaType<CardSet>("CardSet");
-    qRegisterMetaType<Card::Suit>("Suit");
-    qRegisterMetaType<Card::Rank>("Rank");
-    qmlRegisterUncreatableType<Game>("org.kde.klaverjas", 1, 0, "Game", "Enum/property access only.");
     qmlRegisterUncreatableType<RoundScore>("org.kde.klaverjas", 1, 0, "Score", "Property access only.");
     qmlRegisterUncreatableType<Player>("org.kde.klaverjas", 1, 0, "Player", "Abstract class.");
     qmlRegisterType<HumanPlayer>("org.kde.klaverjas", 1, 0, "HumanPlayer");
     qmlRegisterType<Team>("org.kde.klaverjas", 1, 0, "Team");
+    qRegisterMetaType<CardSet>("CardSet");
+    qRegisterMetaType<Card::Suit>("Suit");
+    qRegisterMetaType<Card::Rank>("Rank");
 
     QLoggingCategory::setFilterRules("debug=true\n"
         "klaverjas.*.debug=true\n"
@@ -88,15 +76,15 @@ int main(int argc, char **argv)
     // Initialise PRNG
     std::srand(QTime::currentTime().msec());
 
-    KlaverjasWindow *appwindow = new KlaverjasWindow;
-    appwindow->show();
-    return application.exec();
+    // Set up game and engine
+    auto *game = new Game();
+    game->addPlayer(new HumanPlayer("You", game));
+    QQmlApplicationEngine engine;
+    engine.addImageProvider("cards", new CardImageProvider());
+    engine.rootContext()->setContextProperty("game", game);
+    engine.load(QUrl("qrc:/main.qml"));
 
-//     AiTest* tester = new AiTest(0, 10);
-//     QTime timer;
-//     timer.start();
-//     tester->run();
-//     qreal t = timer.elapsed();
-//     qInfo() << 1e-3 * t;
-//     return 0;
+    if (engine.rootObjects().isEmpty())
+        return -1;
+    return app.exec();
 }

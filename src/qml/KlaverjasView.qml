@@ -18,23 +18,29 @@
  */
 
 import QtQuick 2.7
-import QtQuick.Layouts 1.3
+import QtQuick.Controls 1.4
+import QtQuick.Layouts 1.4
 import org.kde.klaverjas 1.0
 
 Rectangle {
     id: root
     color: "green"
+    property real minimumHeight: table.Layout.minimumHeight
+    property real minimumWidth: table.Layout.minimumWidth + infoArea.Layout.minimumWidth
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
         onClicked: game.advance();
     }
-    Row {
+    RowLayout {
+        id: row
         anchors.fill: parent
         Item {
             id: table
-            height: parent.height
-            width: parent.width - infoArea.width
+            Layout.minimumWidth: Math.max(p.width, trick.width)
+            Layout.minimumHeight: trick.height + p.height + 30
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             MouseArea {
                 z: 1
                 anchors.fill: parent
@@ -43,13 +49,16 @@ Rectangle {
             }
             TrickView {
                 id: trick
-                anchors.centerIn: parent
+                anchors.top: parent.top
+                anchors.horizontalCenter: parent.horizontalCenter
             }
             BidView {
                 id: bidView
                 anchors.centerIn: trick
             }
             PlayerView {
+                id: p
+                height: 100
                 z: 2
                 player: game.humanPlayer
                 anchors.top: trick.bottom
@@ -60,16 +69,22 @@ Rectangle {
         }
         Column {
             id: infoArea
-            width: 200
-            height: parent.height
+            Layout.minimumWidth: 200
+            Layout.minimumHeight: childrenRect.height
+            Layout.alignment: Qt.AlignTop
             ScoreBoard {
                 width: parent.width
             }
             RowLayout {
-                Text { text: "Trump suit:" }
+                height: childrenRect.height
+                Label {
+                    id: label
+                    text: "Trump suit:"
+                }
                 SuitLabel {
                     suit: game.trumpSuit
-                    Layout.preferredHeight: height
+                    Layout.minimumHeight: 14
+                    Layout.minimumWidth: 14
                 }
             }
         }

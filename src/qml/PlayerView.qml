@@ -5,14 +5,15 @@ import org.kde.klaverjas 1.0
 ListView {
     id: list
     property HumanPlayer player: game.humanPlayer
-    height: 100
-    implicitWidth: contentItem.childrenRect.width
+    height: contentItem.height
+    width: contentItem.width
     orientation: ListView.Horizontal
     interactive: false
     spacing: 2
     model: player.hand.cards
     delegate: CardImage {
         card: modelData
+        height: 100
         rotation: orientation == ListView.Horizontal ? 0 : 90
         MouseArea {
             id: mArea
