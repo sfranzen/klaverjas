@@ -18,6 +18,7 @@
  */
 
 #include "game.h"
+#include "trick.h"
 #include "players/humanplayer.h"
 #include "players/aiplayer.h"
 #include "players/randomplayer.h"
@@ -173,11 +174,6 @@ void Game::setStatus(Game::Status newStatus)
     }
 }
 
-const Trick& Game::currentTrick() const
-{
-    return m_currentTrick;
-}
-
 const GameEngine *Game::engine() const
 {
     return m_engine.get();
@@ -241,8 +237,9 @@ void Game::advance()
     } else if (m_turn == 4) {
         // Trick complete
         m_turn = 0;
-        qCDebug(klaverjasGame) << "Current trick:" << m_currentTrick;
-        qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << m_currentTrick.points();
+        const auto trick = const_cast<const GameEngine*>(m_engine.get())->currentTrick();
+        qCDebug(klaverjasGame) << "Current trick:" << trick;
+        qCDebug(klaverjasGame) << "Trick winner:" << m_currentPlayer << "Points:" << trick.score().sum();
         advance();
     } else if (!m_engine->isFinished()) {
         handleTrick();
@@ -343,7 +340,6 @@ void Game::setContract(const Card::Suit suit, const Player *player)
 void Game::handleTrick()
 {
     if (m_turn == 0) {
-        m_currentTrick = Trick(m_trumpSuit);
         emit newTrick();
     }
     connect(this, &Game::moveRequested, m_currentPlayer, &Player::selectMove);
@@ -361,7 +357,6 @@ void Game::acceptMove(Card card)
     qCDebug(klaverjasGame) << m_currentPlayer << "played" << card;
     emit cardPlayed(currentPlayer(), card);
     m_engine->doMove(card);
-    m_currentTrick.add(currentPlayer(), card);
     m_currentPlayer = playerAt(m_engine->currentPlayer());
     setStatus(Ready);
     ++m_turn;

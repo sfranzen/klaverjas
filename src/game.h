@@ -22,7 +22,6 @@
 
 #include "rules.h"
 #include "card.h"
-#include "trick.h"
 #include "gameengine.h"
 
 #include <QObject>
@@ -71,7 +70,6 @@ public:
     Card::Suit trumpSuit() const;
     const QVector<Card> cardsPlayed() const;
     Status status() const;
-    const Trick& currentTrick() const;
     const GameEngine *engine() const;
     Q_INVOKABLE void start();
     void restart();
@@ -113,7 +111,6 @@ private:
     QVariantList m_bidOptions;
     QVector<Card> m_deck;
     QVector<QVector<Card>> m_roundCards;
-    Trick m_currentTrick;
     GameEngine::PlayerList m_players;
     QVector<Team*> m_teams;
     Player *m_dealer;

@@ -28,7 +28,6 @@ namespace {
 
 using Rank = Card::Rank;
 using Suit = Card::Suit;
-using CardIter = QVector<Card>::const_iterator;
 
 const GameEngine::ConstraintSet DefaultConstraints {
     {Suit::Clubs,       Rank::Ace},
@@ -40,67 +39,6 @@ const GameEngine::ConstraintSet DefaultConstraints {
 inline ushort team(GameEngine::Position position)
 {
     return ushort(position) % 2;
-}
-
-CardIter trickWinner(CardIter first, CardIter last, Suit trumpSuit)
-{
-    if (first == last)
-        return first;
-    auto winner = first;
-    for (auto c = first + 1; c < last; ++c) {
-        if (c->suit() == winner->suit()) {
-            const auto order = rankOrder(c->suit() == trumpSuit);
-            if (order[c->rank()] > order[winner->rank()])
-                winner = c;
-        } else if (c->suit() == trumpSuit)
-            winner = c;
-    };
-    return winner;
-}
-
-/* A trick is scored by the following rules:
- *
- * The face value of each card is added, which depends on the trump suit. Bonus
- * points are scored if either three (20 points) or four (50 points) cards form
- * a consecutive run in one suit in the regular card order of numbers, face
- * cards, ace. If the King and Queen of the trump suit are among these, another
- * 20 points are given.
- *
- * If, on the other hand, all cards have different suits but the same rank,
- * 100 bonus points are awarded, or 200 if the rank is Jack.
- */
-Score trickScore(QVector<Card> &trick, Suit trumpSuit)
-{
-    auto first = trick.begin();
-    auto last = trick.end();
-    // Group the cards by suit and sort each suit by bonus scoring order
-    std::sort(first, last, [](Card &a, Card &b) {
-        return a.suit() != b.suit() || BonusOrder[a.rank()] < BonusOrder[b.rank()];
-    });
-    // Award card values plus bonus points for runs
-    Score score;
-    uint runLength = 1;
-    for (auto c = first; c < last; ++c) {
-        score.points += cardValues(c->suit() == trumpSuit)[c->rank()];
-        if (c == first)
-            continue;
-        if (c->suit() == (c-1)->suit() && BonusOrder[c->rank()] - BonusOrder[(c-1)->rank()] == 1) {
-            ++runLength;
-            if (runLength > 1 && c->suit() == trumpSuit &&  c->rank() == Rank::King)
-                score.bonus += 20;
-        } else {
-            runLength = 1;
-        }
-        if (runLength == 3)
-            score.bonus += 20;
-        else if (runLength == 4) // Add 30 to make 50 and keep it simple
-            score.bonus += 30;
-    }
-    // Extra bonus points for the rare case of 4 equal ranks
-    const bool sameRank = std::all_of(first + 1, last, [&](const Card& a) { return a.rank() == first->rank(); });
-    if (sameRank)
-        score.bonus += first->rank() == Rank::Jack ? 200 : 100;
-    return score;
 }
 
 inline QVector<Card> higherCards(const QVector<Card> cards, Card toBeat, const Card::Order order)
@@ -132,6 +70,7 @@ std::unique_ptr<GameEngine> GameEngine::create(const PlayerList players, Positio
 
 GameEngine::GameEngine(const PlayerList players, Position firstPlayer, Position contractor, TrumpRule trumpRule, Card::Suit trumpSuit)
     : m_players(players)
+    , m_tricks {{trumpSuit}}
     , m_scores(2)
     , m_trumpSuit(trumpSuit)
     , m_trumpRule(trumpRule)
@@ -139,7 +78,7 @@ GameEngine::GameEngine(const PlayerList players, Position firstPlayer, Position 
     , m_contractor(contractor)
     , m_isMarch(true)
 {
-    m_cardsPlayed.reserve(32);
+    m_tricks.reserve(8);
     setDefaultConstraints();
 
 }
@@ -177,7 +116,7 @@ void GameEngine::determiniseCards(uint observer) const
 {
     QVector<Card> unknowns;
     const auto oPlayer = m_players[observer].get();
-    unknowns.reserve(32 - m_cardsPlayed.size() - oPlayer->hand().size());
+    unknowns.reserve(24);
     for (const auto &p : m_players)
         if (p.get() != oPlayer)
             unknowns << p->hand();
@@ -212,7 +151,7 @@ QVector<Card> GameEngine::validMoves() const
         return QVector<Card>();
 
     const auto currentHand = m_players[currentPlayer()]->hand();
-    const auto currentPos = m_cardsPlayed.size() % 4;
+    const auto currentPos = currentTrick().cards().size();
     // minimumRank returns empty if all moves are valid
     const auto minRank = minimumRank(currentHand, currentPos);
     if (minRank.isEmpty())
@@ -232,7 +171,7 @@ QVector<Card> GameEngine::validMoves() const
 
 bool GameEngine::isFinished() const
 {
-    return m_cardsPlayed.size() == 32;
+    return m_tricks.size() == 8 && currentTrick().isComplete();
 }
 
 QVector<Card> GameEngine::minimumRank(const CardSet& hand, uint position) const
@@ -244,27 +183,24 @@ QVector<Card> GameEngine::minimumRank(const CardSet& hand, uint position) const
 
     // Player must always follow suit if possible, otherwise the rules and
     // state of the game determine whether he must trump if possible
-    const auto leadingCard = m_cardsPlayed.end() - position;
-    if (hand.containsSuit(leadingCard->suit())) {
+    const auto leadingCard = currentTrick().cards().first();
+    if (hand.containsSuit(leadingCard.suit())) {
         // Player can follow suit
-        if (leadingCard->suit() != m_trumpSuit)
-            minRank << Card(leadingCard->suit(), PlainOrder.firstKey());
+        if (leadingCard.suit() != m_trumpSuit)
+            minRank << Card(leadingCard.suit(), Rank::Seven);
         else { // Player must beat the highest trump played in this trick
-            auto top = std::max_element(leadingCard, m_cardsPlayed.end(), [&](const Card &c1, const Card &c2) {
-                return c2.suit() != m_trumpSuit || TrumpOrder[c1.rank()] < TrumpOrder[c2.rank()];
-            });
-            minRank << Card(m_trumpSuit, top->rank());
+            minRank << currentTrick().winningCard();
         }
     } else {
-        removeConstraint(currentPlayer(), leadingCard->suit());
+        removeConstraint(currentPlayer(), leadingCard.suit());
         if (hand.containsSuit(m_trumpSuit)) {
             // Player cannot follow suit but has trumps; he must generally (over-)
             // trump, but is exempt from this under Amsterdam rules if his partner
             // is the current winner of the trick
-            const auto winner = trickWinner(leadingCard, m_cardsPlayed.end(), m_trumpSuit);
-            const auto winnerPos = winner - leadingCard;
-            if (m_trumpRule != TrumpRule::Amsterdams || position - winnerPos != 2) {
-                const auto rank = winner->suit() == m_trumpSuit ? winner->rank() : TrumpOrder.firstKey();
+            const auto winner = currentTrick().winner();
+            if (m_trumpRule != TrumpRule::Amsterdams || position - winner != 2) {
+                const auto &wCard = currentTrick().winningCard();
+                const auto rank = wCard.suit() == m_trumpSuit ? wCard.rank() : Rank::Seven;
                 minRank << Card(m_trumpSuit, rank);
             }
         }
@@ -277,41 +213,11 @@ void GameEngine::doMove(const Card move)
     if (isFinished())
         return;
 
-    m_cardsPlayed << move;
+    currentTrick().add(move);
     m_players.at(currentPlayer())->removeCard(move);
-
-    // Update score at end of each trick
-    const auto numCards = m_cardsPlayed.size();
-    if (numCards % 4 != 0) {
-        ++m_currentPlayer;
-    } else { // Trick complete
-        auto trick = m_cardsPlayed.mid(numCards - 4, 4);
-        const auto winnerCard = trickWinner(trick.begin(), trick.end(), m_trumpSuit);
-        const auto winner = m_currentPlayer + (winnerCard - trick.cbegin() + 1);
-        teamScore(winner) += trickScore(trick, m_trumpSuit);
-        m_currentPlayer = winner;
-        // A "march" is scored if the contracting team wins all tricks and
-        // awards an extra 100 points
-        if (m_isMarch && team(winner) != team(m_contractor))
-            m_isMarch = false;
-        if (numCards == 32) { // Game complete, tally final score
-            teamScore(winner).points += 10;
-            auto &contractorScore = teamScore(m_contractor);
-            auto &defenderScore = teamScore(m_contractor + 1);
-            if (contractorScore.sum() <= defenderScore.sum()) {
-                defenderScore += contractorScore;
-                contractorScore.setWet();
-            } else if (m_isMarch) {
-                contractorScore.march = true;
-                contractorScore.points += 100;
-            }
-        }
-    }
-}
-
-inline RoundScore &GameEngine::teamScore(Position position)
-{
-    return m_scores[team(position)];
+    ++m_currentPlayer;
+    if (currentTrick().isComplete())
+        finishTrick();
 }
 
 // Score is kept in the first element of m_score for the first player's team
@@ -319,6 +225,44 @@ inline RoundScore &GameEngine::teamScore(Position position)
 qreal GameEngine::getResult(uint player) const
 {
     return isFinished() ? m_scores[player % 2].sum() / 162.0 : -1;
+}
+
+inline RoundScore &GameEngine::teamScore(Position position)
+{
+    return m_scores[team(position)];
+}
+
+void GameEngine::finishTrick()
+{
+    const auto winner = m_currentPlayer + currentTrick().winner();
+    teamScore(winner) += currentTrick().score();
+    m_currentPlayer = winner;
+    // A "march" is scored if the contracting team wins all tricks and gives an
+    // extra 100 points
+    if (m_isMarch && team(winner) != team(m_contractor))
+        m_isMarch = false;
+
+    if (m_tricks.size() < 8) {
+        // New trick
+        m_tricks << Trick(m_trumpSuit);
+    } else {
+        // Game complete
+        teamScore(winner).points += 10;
+        finishGame();
+    }
+}
+
+void GameEngine::finishGame()
+{
+    auto &contractorScore = teamScore(m_contractor);
+    auto &defenderScore = teamScore(m_contractor + 1);
+    if (contractorScore.sum() <= defenderScore.sum()) {
+        defenderScore += contractorScore;
+        contractorScore.setWet();
+    } else if (m_isMarch) {
+        contractorScore.march = true;
+        contractorScore.points += 100;
+    }
 }
 
 void GameEngine::reset(Position firstPlayer, Position contractor, Card::Suit trumpSuit)
@@ -329,13 +273,16 @@ void GameEngine::reset(Position firstPlayer, Position contractor, Card::Suit tru
     m_contractor = contractor;
     m_scores.fill(RoundScore());
     m_trumpSuit = trumpSuit;
-    m_cardsPlayed.clear();
+    m_tricks = {{trumpSuit}};
     setDefaultConstraints();
 }
 
 const QVector<Card> GameEngine::cardsPlayed() const
 {
-    return m_cardsPlayed;
+    QVector<Card> cards;
+    for (const auto &t : m_tricks)
+        cards << t.cards();
+    return cards;
 }
 
 const QVector<RoundScore> GameEngine::scores() const
@@ -351,6 +298,16 @@ void GameEngine::setConstraint(uint player, Card::Suit suit, Card::Rank rank) co
 void GameEngine::removeConstraint(uint player, Card::Suit suit) const
 {
     m_playerConstraints[player].remove(suit);
+}
+
+Trick &GameEngine::currentTrick()
+{
+    return m_tricks.last();
+}
+
+const Trick &GameEngine::currentTrick() const
+{
+    return m_tricks.last();
 }
 
 GameEngine::Position &operator++(GameEngine::Position& p)

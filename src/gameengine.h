@@ -22,6 +22,7 @@
 
 #include "ismc/game.h"
 #include "card.h"
+#include "trick.h"
 #include "rules.h"
 #include "scores.h"
 
@@ -89,10 +90,11 @@ public:
     /// The sequence of cards played
     const QVector<Card> cardsPlayed() const;
     const QVector<RoundScore> scores() const;
+    const Trick &currentTrick() const;
 
 private:
     PlayerList m_players;
-    QVector<Card> m_cardsPlayed;
+    QVector<Trick> m_tricks;
     /* For now, the constraints work as follows: if it's unknown to other
      * players whether the given player has cards of the given suit, this is
      * represented by the maximum rank. If a player has failed to follow suit,
@@ -112,6 +114,8 @@ private:
     GameEngine(const GameEngine &other);
     GameEngine &operator=(const GameEngine &other) = default;
     RoundScore &teamScore(Position position);
+    void finishTrick();
+    void finishGame();
 
     /**
     * Collect the cards held by each player other than the observer and give
@@ -137,6 +141,8 @@ private:
     void setDefaultConstraints();
     void setConstraint(uint player, Card::Suit suit, Card::Rank rank) const;
     void removeConstraint(uint player, Card::Suit suit) const;
+
+    Trick &currentTrick();
 };
 
 GameEngine::Position &operator++(GameEngine::Position &p);

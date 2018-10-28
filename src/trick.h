@@ -21,69 +21,58 @@
 #define TRICK_H
 
 #include "card.h"
-#include "cardset.h"
 #include "rules.h"
+#include "scores.h"
 
 #include <QObject>
 #include <QVector>
-#include <QMap>
-#include <QLoggingCategory>
-
-Q_DECLARE_LOGGING_CATEGORY(klaverjasTrick)
-
-class Player;
 
 class Trick
 {
     Q_GADGET
 public:
-    Trick() = default;
-    Trick(Card::Suit trumpSuit);
-
-    /** Signal definitions
+    /**
+     * Signal definitions
      *
      * Klaverjas players can inform each other about the strength of their hand
      * if their partner is heading the current trick and they cannot follow
      * suit. This is done by playing a particular rank of a different suit.
      * The meanings and associated ranks are as follows:
-     *
-     * - High: the partner has played a low card (7, 8 or 9) to signal that he
-     *      has the current high card (usually the ace) in that suit.
-     *
-     * - Long: the partner has played the ace to signal that he also has at least
-     *      the 10 and K in that suit.
-     *
-     * - Low: the partner has played a K, Q or J to signal that he has no
-     *      valuable cards in that suit.
      */
-    enum class Signal { High, Long, Low, None };
+    enum class Signal : uchar {
+        /// The player has played a 7, 8 or 9 to signal possession of the
+        /// current high card in that suit.
+        High,
+        /// The player has played the ace to signal possession of the 10 and at
+        /// least another face card in that suit.
+        Long,
+        /// The player has played a K, Q or J to signal that he has no valuable
+        /// cards in that suit.
+        Low
+    };
     Q_ENUM(Signal)
 
-    void add(int player, const Card& card);
-    const CardSet* cards() const;
-    const QVector<int> players() const;
-    int points() const;
-    Card::Suit suitLed() const;
-    int winner() const;
-    const Card* winningCard() const;
+    Trick() = default;
+    Trick(Card::Suit trumpSuit);
 
-// signals:
-//     void playerSignal(Player* player, Signal signal, Card::Suit suit);
+    void add(const Card card);
+    const QVector<Card> &cards() const;
+    Score score() const;
+    Card::Suit suitLed() const;
+    ushort winner() const;
+    const Card &winningCard() const;
+    bool isComplete() const;
 
 private:
-    void setWinner(int player, const Card& card);
-
-    CardSet m_cards;
-    QVector<int> m_players;
+    QVector<Card> m_cards;
+    Score m_score;
+    ushort m_winner;
     Card::Suit m_trumpSuit;
-    Card::Suit m_suitLed;
-    int m_points;
-    int m_winner;
-    Card m_winningCard;
 
-    const static CardSet::SortingMap s_bonusSortingMap;
-    friend QDebug operator<<(QDebug dbg, const Trick& trick);
+    void checkWinner();
+    void checkBonus();
+
+    friend QDebug operator<<(QDebug dbg, const Trick &trick);
 };
-
 
 #endif // TRICK_H

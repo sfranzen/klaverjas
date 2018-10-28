@@ -20,19 +20,53 @@
 #include "trick.h"
 
 #include <QDebug>
+#include <QLoggingCategory>
 
-const CardSet::SortingMap Trick::s_bonusSortingMap {
-    {Card::Suit::Spades, BonusOrder},
-    {Card::Suit::Hearts, BonusOrder},
-    {Card::Suit::Diamonds, BonusOrder},
-    {Card::Suit::Clubs, BonusOrder}
-};
+Q_DECLARE_LOGGING_CATEGORY(klaverjasTrick)
 
 Trick::Trick(Card::Suit trumpSuit)
-    : m_trumpSuit(trumpSuit)
-    , m_points(0)
-    , m_winner(-1)
+    : m_winner(0)
+    , m_trumpSuit(trumpSuit)
 {
+}
+
+const QVector<Card> &Trick::cards() const
+{
+    return m_cards;
+}
+
+Score Trick::score() const
+{
+    return m_score;
+}
+
+Card::Suit Trick::suitLed() const
+{
+    return m_cards[0].suit();
+}
+
+ushort Trick::winner() const
+{
+    return m_winner;
+}
+
+const Card &Trick::winningCard() const
+{
+    return m_cards[m_winner];
+}
+
+bool Trick::isComplete() const
+{
+    return m_cards.size() == 4;
+}
+
+void Trick::add(const Card card)
+{
+    m_cards << card;
+    m_score.points += cardValues(card.suit() == m_trumpSuit)[card.rank()];
+    checkWinner();
+    if (isComplete())
+        checkBonus();
 }
 
 /* Each time a new card is played, we check whether it beats the previous card;
@@ -41,134 +75,68 @@ Trick::Trick(Card::Suit trumpSuit)
  * The current card beats the previous one either if it follows suit and ranks
  * higher or if it is of a different suit and that suit is the trump suit.
  */
-void Trick::add(int player, const Card& card)
+void Trick::checkWinner()
 {
-    m_cards << card;
-    m_players << player;
-    const Card::Suit suitPlayed = card.suit();
-    m_points += cardValues(suitPlayed == m_trumpSuit)[card.rank()];
-    if (m_players.size() == 1) {
-        m_suitLed = suitPlayed;
-        setWinner(player, card);
-    } else {
-        if (suitPlayed == m_winningCard.suit()) {
-            const auto order = rankOrder(suitPlayed == m_trumpSuit);
-            if (card.beats(m_winningCard, order))
-                setWinner(player, card);
-        } else if (suitPlayed == m_trumpSuit) {
-            setWinner(player, card);
-        }
+    const auto card = m_cards.last();
+    if (m_cards.size() == 1) {
+        m_winner = 0;
+        return;
     }
-    return;
-
-    // Detect player signaling, which can only be done by the third or fourth
-    // player
-    const int count = m_players.size();
-    if (count > 2
-        && suitPlayed != m_suitLed
-        && suitPlayed != m_trumpSuit
-        && m_players.at(count - 3) == m_winner
-    ) {
-        Signal signal = Signal::None;
-        const auto rankPlayed = card.rank();
-        if (rankPlayed >= Card::Rank::Nine && rankPlayed <= Card::Rank::Seven)
-            signal = Signal::High;
-        else if (rankPlayed >= Card::Rank::King && rankPlayed <= Card::Rank::Jack)
-            signal = Signal::Low;
-        else if (rankPlayed == Card::Rank::Ace)
-            signal = Signal::Long;
-
-        if (signal != Signal::None) {
-            qCDebug(klaverjasTrick) << player << "potential signal" << signal << "in suit" << suitPlayed;
-//             emit playerSignal(player, signal, suitPlayed);
-        }
+    const auto suitPlayed = card.suit();
+    if (suitPlayed == winningCard().suit()) {
+        const auto order = rankOrder(suitPlayed == m_trumpSuit);
+        if (card.beats(winningCard(), order))
+            m_winner = m_cards.size() - 1;
+    } else if (suitPlayed == m_trumpSuit) {
+        m_winner = m_cards.size() - 1;
     }
 }
 
-const CardSet* Trick::cards() const
-{
-    return &m_cards;
-}
-
-const QVector<int> Trick::players() const
-{
-    return m_players;
-}
-
-/* Return total points for current trick including any bonus points.
+/* Bonuses are scored by the following rules:
  *
- * Bonus combinations and points are:
- * 20 points: K+Q of trump suit
- * 20 points: a run of 3 cards in suit
- * 50 points: a run of 4 cards in suit
- * 100 points: 4 cards of the same rank
- * 200 points: 4 jacks
+ * A sequence of three cards of the same suit in the regular card order of
+ * numbers, face cards, ace scores 20 points, and four cards scores 50.
+ *
+ * The King and Queen of the trump suit in the same trick scores 20 points.
+ *
+ * If all cards in the trick have the same rank, this scores either 100 points
+ * or 200 if the rank is Jack.
  */
-int Trick::points() const
+void Trick::checkBonus()
 {
-    int total = m_points;
-    const auto sets = m_cards.suitSets();
-    const auto suitLengthMap = m_cards.cardsPerSuit();
-    const int maxLength = *std::max_element(suitLengthMap.constBegin(), suitLengthMap.constEnd());
-
-    if (maxLength == 1) {
-        auto iSet = sets.cbegin();
-        const Card::Rank rank = iSet.value().first().rank();
-        bool sameRank = true;
-        while (iSet != sets.cend()) {
-            if (iSet.value().first().rank() != rank) {
-                sameRank = false;
-                break;
-            }
-            ++iSet;
+    auto trick = m_cards;
+    auto first = trick.begin();
+    auto last = trick.end();
+    // Group the cards by suit and sort each suit by bonus scoring order
+    std::sort(first, last, [](Card &a, Card &b) {
+        return a.suit() != b.suit() || BonusOrder[a.rank()] < BonusOrder[b.rank()];
+    });
+    // Award bonus points for runs
+    uint runLength = 1;
+    for (auto c = first + 1; c < last; ++c) {
+        if (c->suit() == (c-1)->suit() && BonusOrder[c->rank()] - BonusOrder[(c-1)->rank()] == 1) {
+            ++runLength;
+            if (runLength > 1 && c->suit() == m_trumpSuit &&  c->rank() == Card::Rank::King)
+                m_score.bonus += 20;
+        } else {
+            runLength = 1;
         }
-        if (sameRank)
-            total += rank == Card::Rank::Jack ? 200 : 100;
-    } else {
-        const auto maxRunMap = m_cards.maxRunLengths(s_bonusSortingMap);
-        for (auto set = sets.constBegin(); set != sets.constEnd(); ++set) {
-            const Card::Suit suit = set.key();
-            const int length = maxRunMap[suit];
-            if (length >= 2
-                && m_cards.contains(Card(m_trumpSuit, Card::Rank::King))
-                && m_cards.contains(Card(m_trumpSuit, Card::Rank::Queen))) {
-                total += 20;
-            }
-            if (length == 3)
-                total += 20;
-            if (length == 4)
-                total += 50;
-        }
+        if (runLength == 3)
+            m_score.bonus += 20;
+        else if (runLength == 4) // Add 30 to make 50 and keep it simple
+            m_score.bonus += 30;
     }
-    return total;
-}
-
-Card::Suit Trick::suitLed() const
-{
-    return m_suitLed;
-}
-
-void Trick::setWinner(int player, const Card& card)
-{
-    m_winner = player;
-    m_winningCard = card;
-}
-
-
-int Trick::winner() const
-{
-    return m_winner;
-}
-
-const Card* Trick::winningCard() const
-{
-    return &m_winningCard;
+    if (m_score.bonus != 0)
+        return;
+    // Extra bonus points for the rare case of 4 equal ranks
+    const bool sameRank = std::all_of(first + 1, last, [&](const Card& a) { return a.rank() == first->rank(); });
+    if (sameRank)
+        m_score.bonus += first->rank() == Card::Rank::Jack ? 200 : 100;
 }
 
 QDebug operator<<(QDebug dbg, const Trick& trick)
 {
-    for (int i = 0; i < trick.m_players.size(); ++i)
-        dbg.nospace() << "(" << trick.m_players.at(i) << ": " << trick.m_cards.at(i) << ")";
+    for (int i = 0; i < trick.m_cards.size(); ++i)
+        dbg.nospace() << "(" << i << ": " << trick.m_cards[i] << ")";
     return dbg.maybeSpace();
 }
-
