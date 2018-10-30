@@ -21,6 +21,7 @@
 #include "players/baseplayer.h"
 
 #include <QMap>
+#include <QSet>
 
 #include <algorithm>
 
@@ -28,6 +29,7 @@ namespace {
 
 using Rank = Card::Rank;
 using Suit = Card::Suit;
+using CIter = QVector<Card>::iterator;
 
 const GameEngine::ConstraintSet DefaultConstraints {
     {Suit::Clubs,       Rank::Ace},
@@ -35,6 +37,8 @@ const GameEngine::ConstraintSet DefaultConstraints {
     {Suit::Hearts,      Rank::Ace},
     {Suit::Spades,      Rank::Ace}
 };
+
+const QSet<Rank> FaceRanks { Rank::Jack, Rank::Queen, Rank::King };
 
 inline ushort team(GameEngine::Position position)
 {
@@ -49,6 +53,18 @@ inline QVector<Card> higherCards(const QVector<Card> cards, Card toBeat, const C
         if (c.suit() == toBeat.suit() && order[c.rank()] >= order[toBeat.rank()])
             result << c;
     return result;
+}
+
+CIter highestInPlainSuit(QVector<Card> &cards, Suit suit)
+{
+    CIter top = nullptr;
+    for (auto c = cards.begin(), cEnd = cards.end(); c < cEnd; ++c) {
+        if (c->suit() != suit)
+            continue;
+        if (!top || c->beats(*top, PlainOrder))
+            top = c;
+    }
+    return top ? top : cards.end();
 }
 
 template<typename T> inline GameEngine::Position operator+(GameEngine::Position p, T t)
@@ -71,6 +87,7 @@ std::unique_ptr<GameEngine> GameEngine::create(const PlayerList players, Positio
 GameEngine::GameEngine(const PlayerList players, Position firstPlayer, Position contractor, TrumpRule trumpRule, Card::Suit trumpSuit)
     : m_players(players)
     , m_tricks {{trumpSuit}}
+    , m_playerSignals(4)
     , m_scores(2)
     , m_trumpSuit(trumpSuit)
     , m_trumpRule(trumpRule)
@@ -80,7 +97,6 @@ GameEngine::GameEngine(const PlayerList players, Position firstPlayer, Position 
 {
     m_tricks.reserve(8);
     setDefaultConstraints();
-
 }
 
 void GameEngine::setDefaultConstraints()
@@ -125,18 +141,53 @@ void GameEngine::determiniseCards(uint observer) const
         if (p == observer)
             continue;
         const auto player = m_players.at(p).get();
-        const auto constraints = m_playerConstraints.value(p);
-        QVector<Card> newHand;
+        auto newHand = signalCards(unknowns, p);
         for (auto i = 0; newHand.size() <= player->hand().size() && i < unknowns.size(); ++i)
-            if (takeCard(unknowns.at(i), constraints))
+            if (takeCard(unknowns.at(i), p))
                 newHand << unknowns.takeAt(i);
         player->setHand(newHand);
     }
 }
 
-inline bool GameEngine::takeCard(Card card, const GameEngine::ConstraintSet constraints) const
+// Take those cards from the unknowns that match the given player's signals
+QVector<Card> GameEngine::signalCards(QVector<Card> &unknowns, uint player) const
 {
-    const auto order = rankOrder(card.suit() == m_trumpSuit);
+    QVector<Card> cards;
+    const auto sigs = m_playerSignals.at(player);
+    if (sigs.isEmpty())
+        return cards;
+    QVector<CIter> iters;
+    for (auto s = sigs.begin(); s != sigs.end(); ++s) {
+        switch (s.value()) {
+        case Trick::Signal::Long:
+            iters << std::find(unknowns.begin(), unknowns.end(), Card(s.key(), Rank::Ten));
+            iters << std::find_if(unknowns.begin(), unknowns.end(), [&](Card &c){
+                return c.suit() == s.key() && FaceRanks.contains(c.rank());
+            });
+            break;
+        case Trick::Signal::High:
+            iters << highestInPlainSuit(unknowns, s.key());
+            break;
+        case Trick::Signal::Low:
+            setConstraint(player, s.key(), Rank::King);
+            break;
+        default:
+            break;
+        }
+    }
+    for (const auto &i : iters) {
+        if (i < unknowns.end()) {
+            cards << *i;
+            unknowns.erase(i);
+        }
+    }
+    return cards;
+}
+
+inline bool GameEngine::takeCard(Card card, uint player) const
+{
+    const auto &constraints = m_playerConstraints.at(player);
+    const auto &order = rankOrder(card.suit() == m_trumpSuit);
     return constraints.contains(card.suit()) && order[card.rank()] <= order[constraints[card.suit()]];
 }
 
@@ -215,6 +266,12 @@ void GameEngine::doMove(const Card move)
 
     currentTrick().add(move);
     m_players.at(currentPlayer())->removeCard(move);
+    if (currentTrick().cards().size() > 2) {
+        const auto signal = currentTrick().checkSignal();
+        const auto suit = std::get<0>(signal);
+        if (signal != Trick::NullSignal && !m_playerSignals.value(currentPlayer()).contains(suit))
+            m_playerSignals[currentPlayer()].insert(suit, std::get<1>(signal));
+    }
     ++m_currentPlayer;
     if (currentTrick().isComplete())
         finishTrick();
@@ -275,6 +332,7 @@ void GameEngine::reset(Position firstPlayer, Position contractor, Card::Suit tru
     m_trumpSuit = trumpSuit;
     m_tricks = {{trumpSuit}};
     setDefaultConstraints();
+    m_playerSignals.fill(SignalMap());
 }
 
 const QVector<Card> GameEngine::cardsPlayed() const

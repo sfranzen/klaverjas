@@ -27,6 +27,8 @@
 #include <QObject>
 #include <QVector>
 
+#include <tuple>
+
 class Trick
 {
     Q_GADGET
@@ -40,6 +42,7 @@ public:
      * The meanings and associated ranks are as follows:
      */
     enum class Signal : uchar {
+        None,
         /// The player has played a 7, 8 or 9 to signal possession of the
         /// current high card in that suit.
         High,
@@ -50,6 +53,8 @@ public:
         /// cards in that suit.
         Low
     };
+    using PlayerSignal = std::tuple<Card::Suit,Signal>;
+    static const PlayerSignal NullSignal;
     Q_ENUM(Signal)
 
     Trick() = default;
@@ -62,6 +67,9 @@ public:
     ushort winner() const;
     const Card &winningCard() const;
     bool isComplete() const;
+    /// Returns a valid signal if the last card played was a signal, otherwise
+    /// a NullSignal.
+    PlayerSignal checkSignal() const;
 
 private:
     QVector<Card> m_cards;

@@ -93,6 +93,7 @@ public:
     const Trick &currentTrick() const;
 
 private:
+    using SignalMap = QMap<Card::Suit,Trick::Signal>;
     PlayerList m_players;
     QVector<Trick> m_tricks;
     /* For now, the constraints work as follows: if it's unknown to other
@@ -102,6 +103,7 @@ private:
      * overtrump, the rank is recorded as his maximum rank for determinisation.
      */
     mutable QVector<ConstraintSet> m_playerConstraints;
+    QVector<SignalMap> m_playerSignals;
     QVector<RoundScore> m_scores;
     Card::Suit m_trumpSuit;
     TrumpRule m_trumpRule;
@@ -125,8 +127,10 @@ private:
     */
     void determiniseCards(uint observer) const;
 
+    QVector<Card> signalCards (QVector<Card> &unknowns, uint player) const;
+
     /// Determine whether this card fits the given constraints
-    bool takeCard(Card card, const ConstraintSet constraints) const;
+    bool takeCard(Card card, uint player) const;
 
     /**
     * Find the card rank and suit the player should beat in the current state.

@@ -24,6 +24,14 @@
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasTrick)
 
+const Trick::PlayerSignal Trick::NullSignal {Card::Suit::Spades, Signal::None};
+
+namespace {
+
+using Rank = Card::Rank;
+
+}
+
 Trick::Trick(Card::Suit trumpSuit)
     : m_winner(0)
     , m_trumpSuit(trumpSuit)
@@ -116,7 +124,7 @@ void Trick::checkBonus()
     for (auto c = first + 1; c < last; ++c) {
         if (c->suit() == (c-1)->suit() && BonusOrder[c->rank()] - BonusOrder[(c-1)->rank()] == 1) {
             ++runLength;
-            if (runLength > 1 && c->suit() == m_trumpSuit &&  c->rank() == Card::Rank::King)
+            if (runLength > 1 && c->suit() == m_trumpSuit &&  c->rank() == Rank::King)
                 m_score.bonus += 20;
         } else {
             runLength = 1;
@@ -131,7 +139,36 @@ void Trick::checkBonus()
     // Extra bonus points for the rare case of 4 equal ranks
     const bool sameRank = std::all_of(first + 1, last, [&](const Card& a) { return a.rank() == first->rank(); });
     if (sameRank)
-        m_score.bonus += first->rank() == Card::Rank::Jack ? 200 : 100;
+        m_score.bonus += first->rank() == Rank::Jack ? 200 : 100;
+}
+
+Trick::PlayerSignal Trick::checkSignal() const
+{
+    if (m_cards.size() < 3)
+        return NullSignal;
+
+    const auto lead = m_cards[0];
+    for (ushort p = 2; p < m_cards.size(); ++p) {
+        const auto card = m_cards[p];
+        if (m_winner == p - 2 &&  card.suit() != lead.suit() && card.suit() != m_trumpSuit) {
+            switch(card.rank()) {
+            case Rank::Seven: Q_FALLTHROUGH();
+            case Rank::Eight: Q_FALLTHROUGH();
+            case Rank::Nine:
+                return PlayerSignal(card.suit(), Signal::High);
+            case Rank::Jack: Q_FALLTHROUGH();
+            case Rank::Queen: Q_FALLTHROUGH();
+            case Rank::King:
+                return PlayerSignal(card.suit(), Signal::Low);
+            case Rank::Ace:
+                return PlayerSignal(card.suit(), Signal::Long);
+            default:
+                break;
+            };
+            break;
+        }
+    }
+    return NullSignal;
 }
 
 QDebug operator<<(QDebug dbg, const Trick& trick)
