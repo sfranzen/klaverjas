@@ -109,7 +109,7 @@ void Trick::checkBonus()
     auto last = trick.end();
     // Group the cards by suit and sort each suit by bonus scoring order
     std::sort(first, last, [](Card &a, Card &b) {
-        return a.suit() != b.suit() || BonusOrder[a.rank()] < BonusOrder[b.rank()];
+        return a.suit() < b.suit() || BonusOrder[a.rank()] < BonusOrder[b.rank()];
     });
     // Award bonus points for runs
     uint runLength = 1;
