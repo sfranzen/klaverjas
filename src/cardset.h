@@ -63,7 +63,6 @@ public:
     /// Sort with trump ranks
     void sortAll(SuitOrder suitOrder, Card::Suit trumpSuit);
     void remove(const Card &card);
-    void remove(int i, int count);
     void clear();
 
 private:

@@ -65,11 +65,8 @@ QVariantList CardSet::cards() const
 
 CardSet::CardSet(QVector<Card> cards)
 {
-    QVector::append(cards);
-    for (const auto &c : cards) {
-        m_suitSets[c.suit()] << c;
-        ++m_suitCounts[c.suit()];
-    }
+    for (const auto &c : cards)
+        append(c);
 }
 
 void CardSet::append(const Card &card)
@@ -99,15 +96,10 @@ CardSet &CardSet::operator<<(const CardSet &set)
 
 void CardSet::remove(const Card &card)
 {
-    m_suitSets[card.suit()].removeAll(card);
+    m_suitSets[card.suit()].removeOne(card);
     --m_suitCounts[card.suit()];
     const bool removed = removeOne(card);
     Q_ASSERT(removed);
-}
-
-void CardSet::remove(int i, int count)
-{
-    QVector::remove(i, count);
 }
 
 void CardSet::clear()
@@ -119,7 +111,7 @@ void CardSet::clear()
 
 bool CardSet::containsSuit(const Card::Suit suit) const
 {
-    return m_suitSets.contains(suit) && !m_suitSets[suit].isEmpty();
+    return m_suitSets.contains(suit) && !m_suitSets.value(suit).isEmpty();
 }
 
 const QMap<Card::Suit, QVector<Card>> &CardSet::suitSets() const
@@ -141,7 +133,7 @@ QMap<Card::Suit, int> CardSet::cardsPerSuit(const QVector<Card::Suit> suits) con
 CardSet::RunMap CardSet::runs(const SortingMap sortingMap) const
 {
     RunMap runs;
-    for (auto set = m_suitSets.constBegin(); set != m_suitSets.constEnd(); ++set) {
+    for (auto set = m_suitSets.begin(); set != m_suitSets.end(); ++set) {
         auto suit = set.key();
         auto cards = set.value();
         const auto order = sortingMap.value(suit);
@@ -150,7 +142,7 @@ CardSet::RunMap CardSet::runs(const SortingMap sortingMap) const
         if (order[firstRank] != 7)
             continue;
         runs.insert(suit, {firstRank});
-        for (auto c = cards.constBegin() + 1; c < cards.constEnd() && order[(c - 1)->rank()] - order[c->rank()] == 1; ++c)
+        for (auto c = cards.cbegin() + 1; c < cards.cend() && order[(c - 1)->rank()] - order[c->rank()] == 1; ++c)
             runs[suit].append(c->rank());
     }
     return runs;
@@ -160,7 +152,7 @@ QMap<Card::Suit,int> CardSet::maxRunLengths(const SortingMap sortingMap) const
 {
     QMap<Card::Suit,int> runLengths;
 
-    for (auto set = m_suitSets.constBegin(); set != m_suitSets.constEnd(); ++set) {
+    for (auto set = m_suitSets.begin(); set != m_suitSets.end(); ++set) {
         auto suit = set.key();
         auto cards = set.value();
 
@@ -168,7 +160,7 @@ QMap<Card::Suit,int> CardSet::maxRunLengths(const SortingMap sortingMap) const
         sort(cards, order);
         int currentLength = 1;
 
-        for (auto c = cards.constBegin(); c < cards.constEnd() - 1; ++c) {
+        for (auto c = cards.cbegin(); c < cards.cend() - 1; ++c) {
             if (order[c->rank()] - order[(c + 1)->rank()] == 1)
                 ++currentLength;
             else
@@ -205,9 +197,9 @@ void CardSet::sortAll(SuitOrder suitOrder, Suit trumpSuit)
     // Prepare the suit order
     auto suits = m_suitCounts.keys();
     if (suitOrder == CardSet::SuitOrder::TrumpFirst) {
-        const auto index = suits.indexOf(trumpSuit);
-        if (index != -1)
-            std::rotate(suits.begin(), suits.begin() + index, suits.end());
+        const auto trumpIt = std::find(suits.begin(), suits.end(), trumpSuit);
+        if (trumpIt != suits.end())
+            std::rotate(suits.begin(), trumpIt, suits.end());
     }
     alternateColourSort(suits);
     QVector<Card> sorted;
