@@ -97,6 +97,8 @@ CardSet &CardSet::operator<<(const CardSet &set)
 void CardSet::remove(const Card &card)
 {
     m_suitSets[card.suit()].removeOne(card);
+    if (m_suitSets[card.suit()].isEmpty())
+        m_suitSets.remove(card.suit());
     --m_suitCounts[card.suit()];
     const bool removed = removeOne(card);
     Q_ASSERT(removed);
@@ -111,7 +113,7 @@ void CardSet::clear()
 
 bool CardSet::containsSuit(const Card::Suit suit) const
 {
-    return m_suitSets.contains(suit) && !m_suitSets.value(suit).isEmpty();
+    return m_suitSets.contains(suit);
 }
 
 const QMap<Card::Suit, QVector<Card>> &CardSet::suitSets() const

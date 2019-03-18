@@ -198,9 +198,6 @@ uint GameEngine::currentPlayer() const
 
 QVector<Card> GameEngine::validMoves() const
 {
-    if (isFinished())
-        return QVector<Card>();
-
     const auto currentHand = m_players[currentPlayer()]->hand();
     const auto currentPos = currentTrick().cards().size();
     // minimumRank returns empty if all moves are valid
@@ -211,10 +208,26 @@ QVector<Card> GameEngine::validMoves() const
     const auto order = rankOrder(minRank[0].suit() == m_trumpSuit);
     auto moves = higherCards(currentHand, minRank[0], order);
     if (moves.isEmpty()) {
-        // If there are still no valid moves at this point, it means the player
-        // had to beat a trump but cannot; he may then play a lower trump
-        moves = higherCards(currentHand, {m_trumpSuit, Rank::Seven}, TrumpOrder);
+        // If there are still no valid moves at this point, it means:
+        // a) Trumps were led but the player cannot overtrump;
+        // b) A trick was trumped, but the player can neither overtrump nor
+        //    follow suit.
+        // In case a the player must play a lower trump, in case b he must play
+        // a different suit unless, he only has trumps.
         setConstraint(currentPlayer(), m_trumpSuit, minRank[0].rank());
+        if (currentTrick().suitLed() == m_trumpSuit)
+            moves = higherCards(currentHand, {m_trumpSuit, Rank::Seven}, TrumpOrder);
+        else if (currentHand.suitSets().size() == 1 && currentHand.containsSuit(m_trumpSuit)) {
+            moves = higherCards(currentHand, {m_trumpSuit, Rank::Seven}, TrumpOrder);
+            for (const auto &suit : Card::Suits)
+                if (suit != m_trumpSuit)
+                    removeConstraint(currentPlayer(), suit);
+        } else {
+            for (const auto &set : currentHand.suitSets()) {
+                if (set.first().suit() != m_trumpSuit)
+                    moves << set;
+            }
+        }
     }
     Q_ASSERT(!moves.isEmpty());
     return moves;
@@ -228,8 +241,8 @@ bool GameEngine::isFinished() const
 QVector<Card> GameEngine::minimumRank(const CardSet& hand, uint position) const
 {
     QVector<Card> minRank;
-    // Allow all moves if current player is first in trick
-    if (position == 0 || hand.size() == 1)
+    // Allow all moves if the player is in first position or has too few cards
+    if (position == 0 || hand.size() < 2)
         return minRank;
 
     // Player must always follow suit if possible, otherwise the rules and
