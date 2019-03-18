@@ -59,7 +59,7 @@ class GameEngine : public ISMC::Game<Card>
 public:
     using Player = std::shared_ptr<BasePlayer>;
     using PlayerList = QVector<Player>;
-    using ConstraintSet = QMap<Card::Suit,Card::Rank>;
+    using ConstraintSet = std::map<Card::Suit,Card::Rank>;
     enum class Position : uchar { North = 0, East, South, West };
 
     /**
@@ -102,7 +102,7 @@ private:
      * this suit is removed from that player's constraints. If he has failed to
      * overtrump, the rank is recorded as his maximum rank for determinisation.
      */
-    mutable QVector<ConstraintSet> m_playerConstraints;
+    mutable QMap<Player,ConstraintSet> m_playerConstraints;
     QVector<SignalMap> m_playerSignals;
     QVector<RoundScore> m_scores;
     Card::Suit m_trumpSuit;
@@ -126,11 +126,12 @@ private:
     * @param observer The player observing this game.
     */
     void determiniseCards(uint observer) const;
+    void constrainedDeal(const PlayerList players, const QVector<Card> cards) const;
 
     QVector<Card> signalCards (QVector<Card> &unknowns, uint player) const;
 
     /// Determine whether this card fits the given constraints
-    bool takeCard(Card card, uint player) const;
+    bool takeCard(Card card, const ConstraintSet &constraints) const;
 
     /**
     * Find the card rank and suit the player should beat in the current state.

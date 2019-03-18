@@ -102,7 +102,7 @@ GameEngine::GameEngine(const PlayerList players, Position firstPlayer, Position 
 void GameEngine::setDefaultConstraints()
 {
     m_playerConstraints.clear();
-    for (uint p = 0; p < 4; ++p) {
+    for (const auto &p : m_players) {
         m_playerConstraints.insert(p, DefaultConstraints);
         m_playerConstraints[p][m_trumpSuit] = Rank::Jack;
     }
@@ -113,8 +113,12 @@ GameEngine::GameEngine(const GameEngine& other)
 {
     *this = other;
     m_players.clear();
-    for (const auto &p : other.m_players)
-        m_players << Player(new BasePlayer(*p));
+    m_playerConstraints.clear();
+    for (const auto &p : other.m_players) {
+        const auto clone = Player(new BasePlayer(*p));
+        m_players << clone;
+        m_playerConstraints.insert(clone, other.m_playerConstraints.value(p));
+    }
 }
 
 std::unique_ptr<ISMC::Game<Card>> GameEngine::cloneAndRandomise(uint observer) const
@@ -130,22 +134,63 @@ std::unique_ptr<ISMC::Game<Card>> GameEngine::cloneAndRandomise(uint observer) c
  */
 void GameEngine::determiniseCards(uint observer) const
 {
+    QVector<Player> others;
     QVector<Card> unknowns;
-    const auto oPlayer = m_players[observer].get();
+    const auto oPlayer = m_players[observer];
     unknowns.reserve(24);
-    for (const auto &p : m_players)
-        if (p.get() != oPlayer)
-            unknowns << p->hand();
-    std::random_shuffle(unknowns.begin(), unknowns.end());
-    for (uint p = 0; p < 4; ++p) {
-        if (p == observer)
-            continue;
-        const auto player = m_players.at(p).get();
-        auto newHand = signalCards(unknowns, p);
-        for (auto i = 0; newHand.size() <= player->hand().size() && i < unknowns.size(); ++i)
-            if (takeCard(unknowns.at(i), p))
-                newHand << unknowns.takeAt(i);
-        player->setHand(newHand);
+    for (const auto &player : m_players) {
+        if (player != oPlayer) {
+            others << player;
+            unknowns << player->hand();
+        }
+    }
+    // Now deal out the cards, starting with the most constrained player; "most
+    // constrained" meaning having the lowest sum of constraint ranks.
+    auto constraintSum = [&](const ConstraintSet &constraints) {
+        int sum = 0;
+        // Add 1 to each constraint present because the lowest order is 0
+        for (const auto &c : constraints)
+            sum += 1 + rankOrder(c.first == m_trumpSuit)[c.second];
+        return sum;
+    };
+    std::sort(others.begin(), others.end(), [&](Player p1, Player p2) {
+        return constraintSum(m_playerConstraints.value(p1)) < constraintSum(m_playerConstraints.value(p2));
+    });
+    constrainedDeal(others, unknowns);
+}
+
+void GameEngine::constrainedDeal(const GameEngine::PlayerList players, const QVector<Card> cards) const
+{
+    bool deal = false;
+    int dealCounter = 1;
+    QVector<Card> newHands(cards.size());
+    while (!deal && dealCounter < 1000) {
+        newHands.clear();
+        QVector<Card> shuffled(cards);
+        std::random_shuffle(shuffled.begin(), shuffled.end());
+        for (const auto &player : players) {
+            auto i = shuffled.size() - 1;
+            auto target = newHands.begin();
+            const auto end = target + player->hand().size();
+            const auto &currentConstraints = m_playerConstraints[player];
+            while (i > -1 && target < end) {
+                if (takeCard(shuffled.at(i), currentConstraints)) {
+                    *target = shuffled.takeAt(i);
+                    ++target;
+                }
+                --i;
+            }
+        }
+        deal = shuffled.isEmpty();
+        if (!deal)
+            ++dealCounter;
+    }
+    Q_ASSERT(deal);
+
+    int pos = 0;
+    for (auto &player : players) {
+        player->setHand(newHands.mid(pos, player->hand().size()));
+        pos += player->hand().size();
     }
 }
 
@@ -184,11 +229,10 @@ QVector<Card> GameEngine::signalCards(QVector<Card> &unknowns, uint player) cons
     return cards;
 }
 
-inline bool GameEngine::takeCard(Card card, uint player) const
+inline bool GameEngine::takeCard(Card card, const ConstraintSet &constraints) const
 {
-    const auto &constraints = m_playerConstraints.at(player);
     const auto &order = rankOrder(card.suit() == m_trumpSuit);
-    return constraints.contains(card.suit()) && order[card.rank()] <= order[constraints[card.suit()]];
+    return constraints.count(card.suit()) > 0 && order[card.rank()] <= order[constraints.at(card.suit())];
 }
 
 uint GameEngine::currentPlayer() const
@@ -363,12 +407,12 @@ const QVector<RoundScore> GameEngine::scores() const
 
 void GameEngine::setConstraint(uint player, Card::Suit suit, Card::Rank rank) const
 {
-    m_playerConstraints[player][suit] = rank;
+    m_playerConstraints[m_players[player]][suit] = rank;
 }
 
 void GameEngine::removeConstraint(uint player, Card::Suit suit) const
 {
-    m_playerConstraints[player].remove(suit);
+    m_playerConstraints[m_players[player]].erase(suit);
 }
 
 Trick &GameEngine::currentTrick()
