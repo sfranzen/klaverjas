@@ -49,11 +49,11 @@ public:
      *
      * @param iterMax Sets the number of simulations performed for each search.
      * @param exploration Sets the algorithm's bias towards unexplored moves.
-     *      Must be between 0 (never explore) and 1 (always explore).
+     *      It must be positive; the authors of the algorithm suggest 0.7.
      */
     explicit Solver(uint iterMax = 1000, qreal exploration = 0.7)
         : m_iterMax(iterMax)
-        , m_exploration(std::min(std::max(exploration, 0.), 1.))
+        , m_exploration(std::max(exploration, 0.))
     {}
 
     /**
@@ -70,21 +70,18 @@ public:
         QFutureSynchronizer<void> sync;
         auto *root = new Node<Move>();
 
-        for (uint i = 0; i < m_iterMax; ++i) {
-//             sync.addFuture(QtConcurrent::run(&*this, &Solver::search, root, rootState));
+        for (uint i = 0; i < m_iterMax; ++i)
             search(root, rootState);
-        }
-//         sync.waitForFinished();
 
         // Return move of most-visited child node
         auto compareVisits = [](const NodePtr a, const NodePtr b){ return a->visits() < b->visits(); };
-        auto rootList = root->children();
+        const auto rootList = root->children();
         const auto mostVisited = *std::max_element(rootList.cbegin(), rootList.cend(), compareVisits);
         delete root;
         return mostVisited->move();
     }
 
-private:
+protected:
     const uint m_iterMax;
     const qreal m_exploration;
 
@@ -116,14 +113,13 @@ private:
      * Descend the tree until a node is reached that has unexplored moves, or
      * is a terminal node (no more moves available).
      */
-    void select(Node<Move> *node, Game<Move> *state) const
+    void select(Node<Move> *&node, Game<Move> *state) const
     {
         bool selected = false;
         while (!selected) {
             const auto validMoves = state->validMoves();
             selected = validMoves.isEmpty() || !node->untriedMoves(validMoves).isEmpty();
             if (!selected) {
-                node->addVirtualLoss();
                 node = node->ucbSelectChild(validMoves, m_exploration);
                 state->doMove(node->move());
             }
@@ -136,7 +132,7 @@ private:
      * Choose a random unexplored move, add it to the children of the current
      * node and select this new node.
      */
-    static void expand(Node<Move> *node, Game<Move> *state)
+    static void expand(Node<Move> *&node, Game<Move> *state)
     {
         const auto untriedMoves = node->untriedMoves(state->validMoves());
         if (!untriedMoves.isEmpty()) {
@@ -144,6 +140,7 @@ private:
             const auto player = state->currentPlayer();
             state->doMove(move);
             node = node->addChild(move, player);
+            node->addVirtualLoss();
         }
     }
 
@@ -171,7 +168,7 @@ private:
      *
      * Update the node statistics using the rewards from the terminal state.
      */
-    static void backPropagate(Node<Move> *node, Game<Move> *state)
+    static void backPropagate(Node<Move> *&node, const Game<Move> *state)
     {
         node->removeVirtualLoss();
         while (node) {
