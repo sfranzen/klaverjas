@@ -99,7 +99,7 @@ GameEngine::GameEngine(const PlayerList players, Position firstPlayer, Position 
     setDefaultConstraints();
 }
 
-void GameEngine::setDefaultConstraints()
+void GameEngine::setDefaultConstraints() const
 {
     m_playerConstraints.clear();
     for (const auto &p : m_players) {
@@ -165,7 +165,6 @@ void GameEngine::constrainedDeal(const GameEngine::PlayerList players, const QVe
     int dealCounter = 1;
     QVector<Card> newHands(cards.size());
     while (!deal && dealCounter < 1000) {
-        newHands.clear();
         QVector<Card> shuffled(cards);
         std::random_shuffle(shuffled.begin(), shuffled.end());
         for (const auto &player : players) {
@@ -220,7 +219,7 @@ QVector<Card> GameEngine::signalCards(QVector<Card> &unknowns, uint player) cons
             break;
         }
     }
-    for (const auto &i : iters) {
+    for (const auto &i : qAsConst(iters)) {
         if (i < unknowns.end()) {
             cards << *i;
             unknowns.erase(i);
@@ -251,27 +250,28 @@ QVector<Card> GameEngine::validMoves() const
 
     const auto order = rankOrder(minRank[0].suit() == m_trumpSuit);
     auto moves = higherCards(currentHand, minRank[0], order);
-    if (moves.isEmpty()) {
-        // If there are still no valid moves at this point, it means:
-        // a) Trumps were led but the player cannot overtrump;
-        // b) A trick was trumped, but the player can neither overtrump nor
-        //    follow suit.
-        // In case a the player must play a lower trump, in case b he must play
-        // a different suit unless, he only has trumps.
-        setConstraint(currentPlayer(), m_trumpSuit, minRank[0].rank());
-        if (currentTrick().suitLed() == m_trumpSuit)
-            moves = higherCards(currentHand, {m_trumpSuit, Rank::Seven}, TrumpOrder);
-        else if (currentHand.suitSets().size() == 1 && currentHand.containsSuit(m_trumpSuit)) {
-            moves = higherCards(currentHand, {m_trumpSuit, Rank::Seven}, TrumpOrder);
+    if (!moves.isEmpty())
+        return moves;
+
+    // If there are still no valid moves at this point, it means the player has
+    // to beat a trump card but can't, leading to two possibilities
+    setConstraint(currentPlayer(), m_trumpSuit, minRank[0].rank());
+    const auto trumpsLed = currentTrick().suitLed() == m_trumpSuit;
+    const auto hasOnlyTrumps = currentHand.suitSets().size() == 1 && currentHand.containsSuit(m_trumpSuit);
+    if (trumpsLed || hasOnlyTrumps) {
+        // Player may play a lower trump
+        moves = higherCards(currentHand, {m_trumpSuit, Rank::Seven}, TrumpOrder);
+        if (!trumpsLed)
+            // Being forced to play trumps in this case reveals the lack of
+            // other suits to other players
             for (const auto &suit : Card::Suits)
                 if (suit != m_trumpSuit)
                     removeConstraint(currentPlayer(), suit);
-        } else {
-            for (const auto &set : currentHand.suitSets()) {
-                if (set.first().suit() != m_trumpSuit)
-                    moves << set;
-            }
-        }
+    } else {
+        // Player has other suits available and must play from these
+        for (const auto &set : currentHand.suitSets())
+            if (set.first().suit() != m_trumpSuit)
+                moves << set;
     }
     Q_ASSERT(!moves.isEmpty());
     return moves;
@@ -291,16 +291,14 @@ QVector<Card> GameEngine::minimumRank(const CardSet& hand, uint position) const
 
     // Player must always follow suit if possible, otherwise the rules and
     // state of the game determine whether he must trump if possible
-    const auto leadingCard = currentTrick().cards().first();
-    if (hand.containsSuit(leadingCard.suit())) {
-        // Player can follow suit
-        if (leadingCard.suit() != m_trumpSuit)
-            minRank << Card(leadingCard.suit(), Rank::Seven);
-        else { // Player must beat the highest trump played in this trick
+    const auto suitLed = currentTrick().suitLed();
+    if (hand.containsSuit(suitLed)) {
+        if (suitLed != m_trumpSuit) // Player can follow suit
+            minRank << Card(suitLed, Rank::Seven);
+        else // Player must beat the highest trump played in this trick
             minRank << currentTrick().winningCard();
-        }
     } else {
-        removeConstraint(currentPlayer(), leadingCard.suit());
+        removeConstraint(currentPlayer(), suitLed);
         if (hand.containsSuit(m_trumpSuit)) {
             // Player cannot follow suit but has trumps; he must generally (over-)
             // trump, but is exempt from this under Amsterdam rules if his partner
@@ -318,9 +316,6 @@ QVector<Card> GameEngine::minimumRank(const CardSet& hand, uint position) const
 
 void GameEngine::doMove(const Card move)
 {
-    if (isFinished())
-        return;
-
     currentTrick().add(move);
     m_players.at(currentPlayer())->removeCard(move);
     if (currentTrick().cards().size() > 2) {

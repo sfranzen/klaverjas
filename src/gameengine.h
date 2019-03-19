@@ -143,7 +143,7 @@ private:
     */
     QVector<Card> minimumRank(const CardSet& hand, uint position) const;
 
-    void setDefaultConstraints();
+    void setDefaultConstraints() const;
     void setConstraint(uint player, Card::Suit suit, Card::Rank rank) const;
     void removeConstraint(uint player, Card::Suit suit) const;
 
