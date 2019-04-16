@@ -21,12 +21,8 @@
 #define AITEST_H
 
 #include "game.h"
-#include "ismc/solver.h"
 
 #include <QObject>
-#include <QLoggingCategory>
-
-Q_DECLARE_LOGGING_CATEGORY(klaverjasTest)
 
 class Team;
 

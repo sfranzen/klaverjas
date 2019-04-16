@@ -21,9 +21,7 @@
 #define AIPLAYER_H
 
 #include "randomplayer.h"
-#include "ismc/solver.h"
-
-#include <memory>
+#include <ismcts/sosolver.h>
 
 class Game;
 
@@ -33,11 +31,11 @@ public:
     explicit AiPlayer(QString name = "", Game *parent = nullptr);
 
 public slots:
-    void selectMove(const QVector<Card> legalMoves) const override;
+    void selectMove(const std::vector<Card> &legalMoves) const override;
 
 private:
     const Game *m_game;
-    ISMC::Solver<Card> m_solver;
+    ISMCTS::SOSolver<Card> m_solver;
 };
 
 #endif // AIPLAYER_H

@@ -20,7 +20,7 @@
 #ifndef GAMEENGINE_H
 #define GAMEENGINE_H
 
-#include "ismc/game.h"
+#include <ismcts/game.h>
 #include "card.h"
 #include "trick.h"
 #include "rules.h"
@@ -54,7 +54,7 @@ class CardSet;
  * simulated repeatedly from a given starting state by a Monte Carlo tree
  * search algorithm.
  */
-class GameEngine : public ISMC::Game<Card>
+class GameEngine : public ISMCTS::Game<Card>
 {
 public:
     using Player = std::shared_ptr<BasePlayer>;
@@ -77,9 +77,9 @@ public:
     static std::unique_ptr<GameEngine> create(const PlayerList players, Position firstPlayer, Position contractor, TrumpRule trumpRule, Card::Suit trumpSuit);
     GameEngine() = delete;
 
-    std::unique_ptr<Game<Card>> cloneAndRandomise(uint observer) const override;
+    Ptr cloneAndRandomise(uint observer) const override;
     uint currentPlayer() const override;
-    QVector<Card> validMoves() const override;
+    std::vector<Card> validMoves() const override;
     void doMove(const Card move) override;
     qreal getResult(uint player) const override;
 

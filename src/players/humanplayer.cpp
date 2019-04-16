@@ -24,7 +24,7 @@ void HumanPlayer::selectBid(QVariantList options) const
     Q_UNUSED(options)
 }
 
-void HumanPlayer::selectMove(const QVector<Card> legalMoves) const
+void HumanPlayer::selectMove(const std::vector<Card> &legalMoves) const
 {
     Q_UNUSED(legalMoves)
 }

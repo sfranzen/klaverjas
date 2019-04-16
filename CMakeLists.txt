@@ -26,6 +26,8 @@ find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Concurrent
 )
 
+find_package(ismcsolver REQUIRED)
+
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 add_subdirectory(src)

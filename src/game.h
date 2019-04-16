@@ -32,6 +32,7 @@
 
 #include <random>
 #include <memory>
+#include <vector>
 
 class Player;
 class HumanPlayer;
@@ -81,7 +82,7 @@ signals:
     void biddingStarted();
     void bidRequested(QVariantList options, Player *player);
     void newContract(Card::Suit suit, Team *contractors);
-    void moveRequested(QVector<Card> legalMoves);
+    void moveRequested(std::vector<Card> legalMoves);
     void cardPlayed(int player, Card card);
     void newTrick();
     void newRound();

@@ -23,6 +23,9 @@
 #include "team.h"
 
 #include <QString>
+#include <QLoggingCategory>
+
+Q_DECLARE_LOGGING_CATEGORY(klaverjasTest)
 
 AiTest::AiTest(QObject* parent, int numRounds)
     : QObject(parent)

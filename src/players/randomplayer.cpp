@@ -26,7 +26,7 @@
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasAi);
 
-void RandomPlayer::selectMove(QVector<Card> legalMoves) const
+void RandomPlayer::selectMove(const std::vector<Card> &legalMoves) const
 {
     const int idx = std::rand() % legalMoves.size();
     emit moveSelected(legalMoves.at(idx));

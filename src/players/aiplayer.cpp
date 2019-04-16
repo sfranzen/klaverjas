@@ -23,6 +23,7 @@
 
 #include <QString>
 #include <QVector>
+#include <QLoggingCategory>
 
 Q_DECLARE_LOGGING_CATEGORY(klaverjasAi);
 
@@ -33,7 +34,7 @@ AiPlayer::AiPlayer(QString name, Game *parent)
 {
 }
 
-void AiPlayer::selectMove(const QVector<Card> legalMoves) const
+void AiPlayer::selectMove(const std::vector<Card> &legalMoves) const
 {
     Q_UNUSED(legalMoves)
     if (m_game->engine()) {

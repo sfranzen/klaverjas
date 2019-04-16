@@ -25,6 +25,7 @@ target_link_libraries(klaverjas
     Qt5::Quick
     Qt5::Svg
     Qt5::Concurrent
+    ismcsolver
 )
 
 install(TARGETS klaverjas ${INSTALL_TARGETS_DEFAULT_ARGS})

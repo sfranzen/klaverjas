@@ -45,13 +45,13 @@ inline ushort team(GameEngine::Position position)
     return ushort(position) % 2;
 }
 
-inline QVector<Card> higherCards(const QVector<Card> cards, Card toBeat, const Card::Order order)
+inline std::vector<Card> higherCards(const QVector<Card> cards, Card toBeat, const Card::Order order)
 {
-    QVector<Card> result;
+    std::vector<Card> result;
     result.reserve(cards.size());
     for (const auto &c : cards)
         if (c.suit() == toBeat.suit() && order[c.rank()] >= order[toBeat.rank()])
-            result << c;
+            result.emplace_back(c);
     return result;
 }
 
@@ -121,11 +121,11 @@ GameEngine::GameEngine(const GameEngine& other)
     }
 }
 
-std::unique_ptr<ISMC::Game<Card>> GameEngine::cloneAndRandomise(uint observer) const
+GameEngine::Ptr GameEngine::cloneAndRandomise(uint observer) const
 {
     auto clone = new GameEngine(*this);
     clone->determiniseCards(observer);
-    return std::unique_ptr<GameEngine>(clone);
+    return Ptr(clone);
 }
 
 /* Observer has seen his own cards as well as all cards played up to this
@@ -239,18 +239,18 @@ uint GameEngine::currentPlayer() const
     return uint(m_currentPlayer);
 }
 
-QVector<Card> GameEngine::validMoves() const
+std::vector<Card> GameEngine::validMoves() const
 {
     const auto currentHand = m_players[currentPlayer()]->hand();
     const auto currentPos = currentTrick().cards().size();
     // minimumRank returns empty if all moves are valid
     const auto minRank = minimumRank(currentHand, currentPos);
     if (minRank.isEmpty())
-        return currentHand;
+        return currentHand.toStdVector();
 
     const auto order = rankOrder(minRank[0].suit() == m_trumpSuit);
     auto moves = higherCards(currentHand, minRank[0], order);
-    if (!moves.isEmpty())
+    if (!moves.empty())
         return moves;
 
     // If there are still no valid moves at this point, it means the player has
@@ -271,9 +271,9 @@ QVector<Card> GameEngine::validMoves() const
         // Player has other suits available and must play from these
         for (const auto &set : currentHand.suitSets())
             if (set.first().suit() != m_trumpSuit)
-                moves << set;
+                moves.insert(moves.end(), set.begin(), set.end());
     }
-    Q_ASSERT(!moves.isEmpty());
+    Q_ASSERT(!moves.empty());
     return moves;
 }
 

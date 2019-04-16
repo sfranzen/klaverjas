@@ -64,7 +64,7 @@ signals:
 
 public slots:
     virtual void selectBid(QVariantList options) const = 0;
-    virtual void selectMove(const QVector<Card> legalMoves) const = 0;
+    virtual void selectMove(const std::vector<Card> &legalMoves) const = 0;
     virtual void removeCard(Card card) override;
     virtual void bidSort();
     virtual void playSort(Card::Suit trumpSuit);
